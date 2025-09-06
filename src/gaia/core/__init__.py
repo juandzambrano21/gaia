@@ -5,6 +5,7 @@ This module provides the core categorical structures for the GAIA framework
 """
 
 # Core constants and utilities
+from .simplices import DEVICE
 
 # Basic simplicial structures (no circular dependencies)
 from .simplices import (

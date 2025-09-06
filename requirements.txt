@@ -9,7 +9,7 @@ torchvision>=0.15.0
 torchaudio>=2.0.0
 
 # Scientific computing
-numpy>=1.24.0
+numpy<2.0
 scipy>=1.10.0
 
 # Machine learning utilities

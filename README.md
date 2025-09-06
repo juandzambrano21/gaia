@@ -100,8 +100,22 @@ GAIA implements from category theory research:
 ### **Installation**
 
 #### **Prerequisites**
-- Python 3.8-3.12 (⚠️ Python 3.13 not yet supported by PyTorch)
+- **Python 3.8-3.12** (⚠️ **Python 3.13 NOT supported** - PyTorch compatibility issue)
 - Git
+
+**If you have Python 3.13:**
+```bash
+# Install Python 3.12 using pyenv (recommended)
+brew install pyenv
+pyenv install 3.12.7
+pyenv local 3.12.7
+
+# Or use conda
+conda create -n gaia python=3.12
+conda activate gaia
+
+# Or download Python 3.12 from python.org
+```
 
 #### **Quick Setup (Recommended)**
 ```bash
@@ -119,6 +133,9 @@ cd GAIA
 python3 -m venv venv
 source venv/bin/activate
 
+# ⚠️ IMPORTANT: Install compatible NumPy first (fixes PyTorch compatibility)
+pip install 'numpy<2'
+
 # Install PyTorch (CPU version)
 pip install torch torchvision torchaudio
 
@@ -127,12 +144,70 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 
 # Install other dependencies
 pip install -r requirements.txt
+
+# Install GAIA package in development mode
+cd src
+pip install -e .
+cd ..
 ```
 
 #### **Verify Installation**
 ```bash
+# Activate environment
+source venv/bin/activate
+
+# Test PyTorch
 python -c "import torch; print(f'PyTorch {torch.__version__} installed successfully!')"
+
+# Test GAIA framework
 python -c "import gaia; print('GAIA framework ready!')"
+
+# Run example to verify everything works
+python src/examples/text_classification_sentiment.py
+```
+
+#### **🚨 Troubleshooting Common Issues**
+
+**Problem: PyTorch installation fails with Python 3.13**
+```
+ERROR: Could not find a version that satisfies the requirement torch>=2.0.0
+ERROR: No matching distribution found for torch>=2.0.0
+```
+**Solution:** PyTorch Use Python 3.8-3.12:
+```bash
+# Check your Python version
+python3 --version
+
+# If Python 3.13, install Python 3.11 (see Prerequisites section above)
+# Then recreate virtual environment with compatible Python
+rm -rf venv
+python3.11 -m venv venv  # or python3 if you switched versions
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Problem: NumPy compatibility error with PyTorch**
+```
+A module that was compiled using NumPy 1.x cannot be run in NumPy 2.x
+```
+**Solution:**
+```bash
+source venv/bin/activate
+pip install 'numpy<2'  # Downgrade to compatible version
+```
+
+**Problem: ModuleNotFoundError: No module named 'gaia'**
+**Solution:**
+```bash
+source venv/bin/activate
+cd src
+pip install -e .  # Install GAIA in development mode
+```
+
+**Problem: Command 'pip' not found**
+**Solution:**
+```bash
+source venv/bin/activate  # Make sure virtual environment is activated
 ```
 
 ### **Your First GAIA Model**
@@ -174,21 +249,26 @@ for batch in train_loader:
 
 ## 📊 **Real-World Examples**
 
-GAIA includes **complete,  examples** demonstrating the full framework:
+GAIA includes **complete examples** demonstrating the full framework:
 
-### **🎭 Sentiment Analysis**
+### **🎭 Sentiment Analysis (Recommended First Test)**
 ```bash
+# Make sure environment is activated
+source venv/bin/activate
+
+# Run complete GAIA sentiment analysis example
 python src/examples/text_classification_sentiment.py
 ```
-### **🏭 Production Training**
+
+### **🏭 Training Script**
 ```bash
-python examples/production_training_script.py --train_data data.jsonl
+python src/examples/training_script.py
 ```
 **Features:**
-- ✅ Training pipeline
+- ✅ Complete training pipeline
 - ✅ Automatic checkpointing and resuming
 - ✅ Distributed training support
-- ✅ Weights & Biases integration
+- ✅ All GAIA theoretical components active
 
 ## 🏗️ **Architecture Overview**
 

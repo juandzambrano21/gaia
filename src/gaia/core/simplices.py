@@ -20,10 +20,8 @@ from copy import deepcopy
 import torch
 import torch.nn as nn
 
-from . import DEVICE
-
 # Global device configuration
-# DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 @dataclass(slots=True)
 class SimplicialObject:
