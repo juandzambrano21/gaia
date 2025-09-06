@@ -247,12 +247,6 @@ GAIA is built on rigorous mathematical foundations:
 
 We welcome contributions that maintain GAIAs theoretical rigor:
 
-### **Guidelines**
-- ✅ **Category-theoretic correctness** - All structures must satisfy mathematical laws
-- ✅ ** code** - Enterprise-grade quality and testing
-- ✅ **Comprehensive documentation** - Mathematical and practical explanations
-- ✅ **Automatic integration** - Components must work seamlessly
-
 ### **Areas for Contribution**
 - 🔬 **New categorical structures** - Additional functors, coalgebras
 - 🚀 **Performance optimization** - Efficient implementations
