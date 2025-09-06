@@ -1,0 +1,7 @@
+gaia.data.fuzzy\_encoding module
+================================
+
+.. automodule:: gaia.data.fuzzy_encoding
+   :members:
+   :show-inheritance:
+   :undoc-members:

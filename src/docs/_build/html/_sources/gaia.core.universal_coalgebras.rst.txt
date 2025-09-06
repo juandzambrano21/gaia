@@ -1,0 +1,7 @@
+gaia.core.universal\_coalgebras module
+======================================
+
+.. automodule:: gaia.core.universal_coalgebras
+   :members:
+   :show-inheritance:
+   :undoc-members:

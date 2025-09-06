@@ -1,0 +1,7 @@
+gaia.core.business\_units module
+================================
+
+.. automodule:: gaia.core.business_units
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,16 @@
+gaia.training.utils package
+===========================
+
+.. automodule:: gaia.training.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.training.utils.structure_helpers
+   gaia.training.utils.validation

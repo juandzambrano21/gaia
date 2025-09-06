@@ -1,0 +1,7 @@
+gaia.models.categorical\_mlp module
+===================================
+
+.. automodule:: gaia.models.categorical_mlp
+   :members:
+   :show-inheritance:
+   :undoc-members:

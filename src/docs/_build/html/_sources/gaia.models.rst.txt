@@ -1,0 +1,16 @@
+gaia.models package
+===================
+
+.. automodule:: gaia.models
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.models.categorical_mlp
+   gaia.models.gaia_transformer

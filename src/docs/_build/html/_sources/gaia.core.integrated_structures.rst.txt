@@ -1,0 +1,7 @@
+gaia.core.integrated\_structures module
+=======================================
+
+.. automodule:: gaia.core.integrated_structures
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,7 @@
+gaia.data.utils module
+======================
+
+.. automodule:: gaia.data.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:

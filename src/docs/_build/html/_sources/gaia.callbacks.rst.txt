@@ -1,0 +1,7 @@
+gaia.callbacks package
+======================
+
+.. automodule:: gaia.callbacks
+   :members:
+   :show-inheritance:
+   :undoc-members:

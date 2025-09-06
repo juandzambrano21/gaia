@@ -1,0 +1,7 @@
+gaia.core.functor module
+========================
+
+.. automodule:: gaia.core.functor
+   :members:
+   :show-inheritance:
+   :undoc-members:

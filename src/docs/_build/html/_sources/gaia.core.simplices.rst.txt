@@ -1,0 +1,7 @@
+gaia.core.simplices module
+==========================
+
+.. automodule:: gaia.core.simplices
+   :members:
+   :show-inheritance:
+   :undoc-members:

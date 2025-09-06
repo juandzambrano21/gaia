@@ -1,0 +1,7 @@
+gaia.core.coalgebras module
+===========================
+
+.. automodule:: gaia.core.coalgebras
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,7 @@
+gaia.core.identity module
+=========================
+
+.. automodule:: gaia.core.identity
+   :members:
+   :show-inheritance:
+   :undoc-members:

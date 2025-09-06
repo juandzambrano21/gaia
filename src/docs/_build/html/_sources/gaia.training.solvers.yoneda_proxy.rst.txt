@@ -1,0 +1,7 @@
+gaia.training.solvers.yoneda\_proxy module
+==========================================
+
+.. automodule:: gaia.training.solvers.yoneda_proxy
+   :members:
+   :show-inheritance:
+   :undoc-members:

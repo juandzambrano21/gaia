@@ -1,0 +1,7 @@
+gaia.core.legacy\_adapters module
+=================================
+
+.. automodule:: gaia.core.legacy_adapters
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,7 @@
+gaia.training.unified\_trainer module
+=====================================
+
+.. automodule:: gaia.training.unified_trainer
+   :members:
+   :show-inheritance:
+   :undoc-members:

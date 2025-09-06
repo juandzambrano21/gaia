@@ -1,0 +1,7 @@
+gaia.data.categorical module
+============================
+
+.. automodule:: gaia.data.categorical
+   :members:
+   :show-inheritance:
+   :undoc-members:

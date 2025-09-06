@@ -1,0 +1,7 @@
+gaia.core.hierarchical\_messaging module
+========================================
+
+.. automodule:: gaia.core.hierarchical_messaging
+   :members:
+   :show-inheritance:
+   :undoc-members:

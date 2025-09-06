@@ -1,0 +1,7 @@
+gaia.training.config module
+===========================
+
+.. automodule:: gaia.training.config
+   :members:
+   :show-inheritance:
+   :undoc-members:

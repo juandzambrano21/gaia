@@ -1,0 +1,16 @@
+gaia.utils package
+==================
+
+.. automodule:: gaia.utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.utils.device
+   gaia.utils.reproducibility

@@ -1,0 +1,55 @@
+GAIA Framework Documentation
+============================
+
+Welcome to the GAIA () Framework documentation!
+
+GAIA is a  deep learning framework that leverages categorical deep learning and geometric algebra principles to create more interpretable and mathematically grounded neural networks.
+
+.. toctree::
+   :maxdepth: 3
+   :caption: API Reference
+
+   gaia
+   modules
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Core Components
+
+   gaia.core
+   gaia.models
+   gaia.nn
+   gaia.data
+   gaia.integration
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Training & Optimization
+
+   gaia.training
+   gaia.callbacks
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Utilities
+
+   gaia.utils
+   gaia.pytorch_api
+
+Key Features
+============
+
+* **Categorical Deep Learning**: Built on solid category theory foundations
+* **Geometric Algebra**: Leverages geometric algebra for enhanced mathematical representation
+* **Interpretable Models**: Focus on mathematical interpretability and explainability
+* **Modular Architecture**: Flexible and extensible design
+* **PyTorch Integration**: Seamless integration with PyTorch ecosystem
+
+Quick Links
+===========
+
+* :doc:`gaia.models` - Core model implementations including CategoricalMLP and GAIATransformer
+* :doc:`gaia.core` - Fundamental framework components and mathematical foundations
+* :doc:`gaia.training` - Training utilities and optimization algorithms
+* :doc:`gaia.nn` - Neural network building blocks and layers
+

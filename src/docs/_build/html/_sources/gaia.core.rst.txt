@@ -1,0 +1,29 @@
+gaia.core package
+=================
+
+.. automodule:: gaia.core
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.core.abstractions
+   gaia.core.business_units
+   gaia.core.coalgebras
+   gaia.core.ends_coends
+   gaia.core.functor
+   gaia.core.fuzzy
+   gaia.core.hierarchical_messaging
+   gaia.core.identity
+   gaia.core.integrated_structures
+   gaia.core.kan_extensions
+   gaia.core.kan_verification
+   gaia.core.legacy_adapters
+   gaia.core.metric_yoneda
+   gaia.core.simplices
+   gaia.core.universal_coalgebras

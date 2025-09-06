@@ -1,0 +1,7 @@
+gaia.nn module
+==============
+
+.. automodule:: gaia.nn
+   :members:
+   :show-inheritance:
+   :undoc-members:

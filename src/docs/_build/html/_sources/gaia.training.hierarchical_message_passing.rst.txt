@@ -1,0 +1,7 @@
+gaia.training.hierarchical\_message\_passing module
+===================================================
+
+.. automodule:: gaia.training.hierarchical_message_passing
+   :members:
+   :show-inheritance:
+   :undoc-members:

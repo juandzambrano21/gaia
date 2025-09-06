@@ -1,0 +1,28 @@
+gaia.training package
+=====================
+
+.. automodule:: gaia.training
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.training.engine
+   gaia.training.solvers
+   gaia.training.utils
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.training.config
+   gaia.training.hierarchical_message_passing
+   gaia.training.unified_trainer
+   gaia.training.verifiers

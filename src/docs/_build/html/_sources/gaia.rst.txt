@@ -1,0 +1,31 @@
+gaia package
+============
+
+.. automodule:: gaia
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.callbacks
+   gaia.core
+   gaia.data
+   gaia.integration
+   gaia.metrics
+   gaia.models
+   gaia.training
+   gaia.utils
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.nn
+   gaia.pytorch_api

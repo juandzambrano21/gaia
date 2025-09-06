@@ -1,0 +1,7 @@
+gaia.core.ends\_coends module
+=============================
+
+.. automodule:: gaia.core.ends_coends
+   :members:
+   :show-inheritance:
+   :undoc-members:

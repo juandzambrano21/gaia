@@ -1,0 +1,7 @@
+gaia.data.synthetic module
+==========================
+
+.. automodule:: gaia.data.synthetic
+   :members:
+   :show-inheritance:
+   :undoc-members:

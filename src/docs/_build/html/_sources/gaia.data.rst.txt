@@ -1,0 +1,19 @@
+gaia.data package
+=================
+
+.. automodule:: gaia.data
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.data.categorical
+   gaia.data.fuzzy_encoding
+   gaia.data.synthetic
+   gaia.data.transforms
+   gaia.data.utils

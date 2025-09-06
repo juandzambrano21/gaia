@@ -1,0 +1,7 @@
+gaia.core.fuzzy module
+======================
+
+.. automodule:: gaia.core.fuzzy
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,7 @@
+gaia.training.solvers.outer\_solver module
+==========================================
+
+.. automodule:: gaia.training.solvers.outer_solver
+   :members:
+   :show-inheritance:
+   :undoc-members:

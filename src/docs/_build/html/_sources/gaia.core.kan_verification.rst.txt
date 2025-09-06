@@ -1,0 +1,7 @@
+gaia.core.kan\_verification module
+==================================
+
+.. automodule:: gaia.core.kan_verification
+   :members:
+   :show-inheritance:
+   :undoc-members:

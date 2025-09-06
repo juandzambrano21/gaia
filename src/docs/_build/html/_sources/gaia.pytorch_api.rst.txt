@@ -1,0 +1,7 @@
+gaia.pytorch\_api module
+========================
+
+.. automodule:: gaia.pytorch_api
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,7 @@
+gaia.training.solvers.inner\_solver module
+==========================================
+
+.. automodule:: gaia.training.solvers.inner_solver
+   :members:
+   :show-inheritance:
+   :undoc-members:

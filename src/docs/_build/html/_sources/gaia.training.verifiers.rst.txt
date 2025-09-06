@@ -1,0 +1,7 @@
+gaia.training.verifiers module
+==============================
+
+.. automodule:: gaia.training.verifiers
+   :members:
+   :show-inheritance:
+   :undoc-members:

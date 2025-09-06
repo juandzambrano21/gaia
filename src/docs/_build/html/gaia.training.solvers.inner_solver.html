@@ -1,0 +1,1079 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>gaia.training.solvers.inner_solver module &mdash; GAIA Framework Documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=fcc2ed65" />
+
+  
+    <link rel="shortcut icon" href="_static/gaia_favicon.ico"/>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=8d563738"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="gaia.training.solvers.outer_solver module" href="gaia.training.solvers.outer_solver.html" />
+    <link rel="prev" title="gaia.training.solvers package" href="gaia.training.solvers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #1F3B82" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            GAIA Framework
+              <img src="_static/gaia_logo.svg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="gaia.html">gaia package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.__getitem__"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.__init__"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.add"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.add()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_coalgebra_structure_map"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_coalgebra_structure_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_morphism"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_morphism()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_object"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_triangle"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_triangle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.define_degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.define_degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.define_face"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.define_face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.diagnose_partial_structure"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.diagnose_partial_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.face"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.find_horns"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.find_horns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.get_endofunctor_trajectory"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.get_endofunctor_trajectory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.has_lift"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.has_lift()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.load_state_dict"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.load_state_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.register_endofunctor_update"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.register_endofunctor_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.state_dict"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.state_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.verify_simplicial_identities"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.verify_simplicial_identities()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.Simplex0"><code class="docutils literal notranslate"><span class="pre">Simplex0</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.dim"><code class="docutils literal notranslate"><span class="pre">Simplex0.dim</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.basis_id"><code class="docutils literal notranslate"><span class="pre">Simplex0.basis_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.__deepcopy__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__deepcopy__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.__eq__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.__hash__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__hash__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.__init__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.__setattr__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__setattr__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.id"><code class="docutils literal notranslate"><span class="pre">Simplex0.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.level"><code class="docutils literal notranslate"><span class="pre">Simplex0.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.name"><code class="docutils literal notranslate"><span class="pre">Simplex0.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0.payload"><code class="docutils literal notranslate"><span class="pre">Simplex0.payload</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.Simplex1"><code class="docutils literal notranslate"><span class="pre">Simplex1</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.morphism"><code class="docutils literal notranslate"><span class="pre">Simplex1.morphism</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.__call__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.__eq__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.__hash__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__hash__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.__init__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.codomain"><code class="docutils literal notranslate"><span class="pre">Simplex1.codomain</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.components"><code class="docutils literal notranslate"><span class="pre">Simplex1.components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.degeneracy"><code class="docutils literal notranslate"><span class="pre">Simplex1.degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.domain"><code class="docutils literal notranslate"><span class="pre">Simplex1.domain</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.eval"><code class="docutils literal notranslate"><span class="pre">Simplex1.eval()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.face"><code class="docutils literal notranslate"><span class="pre">Simplex1.face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.id"><code class="docutils literal notranslate"><span class="pre">Simplex1.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.level"><code class="docutils literal notranslate"><span class="pre">Simplex1.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.name"><code class="docutils literal notranslate"><span class="pre">Simplex1.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.payload"><code class="docutils literal notranslate"><span class="pre">Simplex1.payload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1.to"><code class="docutils literal notranslate"><span class="pre">Simplex1.to()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.SimplexN"><code class="docutils literal notranslate"><span class="pre">SimplexN</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.components"><code class="docutils literal notranslate"><span class="pre">SimplexN.components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.__eq__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.__hash__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__hash__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.__init__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplexN.degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.face"><code class="docutils literal notranslate"><span class="pre">SimplexN.face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.id"><code class="docutils literal notranslate"><span class="pre">SimplexN.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.level"><code class="docutils literal notranslate"><span class="pre">SimplexN.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.name"><code class="docutils literal notranslate"><span class="pre">SimplexN.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN.payload"><code class="docutils literal notranslate"><span class="pre">SimplexN.payload</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.FuzzySet"><code class="docutils literal notranslate"><span class="pre">FuzzySet</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.FuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">FuzzySimplicialSet</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.__init__"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.get_kan_complex_status"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.get_kan_complex_status()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.suggest_improvements"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.suggest_improvements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.verify_all_conditions"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.verify_all_conditions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.create_model"><code class="docutils literal notranslate"><span class="pre">create_model()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.get_training_components"><code class="docutils literal notranslate"><span class="pre">get_training_components()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.get_advanced_components"><code class="docutils literal notranslate"><span class="pre">get_advanced_components()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.version"><code class="docutils literal notranslate"><span class="pre">version()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.info"><code class="docutils literal notranslate"><span class="pre">info()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.status"><code class="docutils literal notranslate"><span class="pre">status()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#gaia.list_components"><code class="docutils literal notranslate"><span class="pre">list_components()</span></code></a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="gaia.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html">gaia.callbacks package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager"><code class="docutils literal notranslate"><span class="pre">CallbackManager</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.EarlyStopping"><code class="docutils literal notranslate"><span class="pre">EarlyStopping</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html">gaia.core package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialObject"><code class="docutils literal notranslate"><span class="pre">SimplicialObject</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0"><code class="docutils literal notranslate"><span class="pre">Simplex0</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1"><code class="docutils literal notranslate"><span class="pre">Simplex1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2"><code class="docutils literal notranslate"><span class="pre">Simplex2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN"><code class="docutils literal notranslate"><span class="pre">SimplexN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.MapType"><code class="docutils literal notranslate"><span class="pre">MapType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.HornError"><code class="docutils literal notranslate"><span class="pre">HornError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm"><code class="docutils literal notranslate"><span class="pre">TConorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.FuzzyElement"><code class="docutils literal notranslate"><span class="pre">FuzzyElement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.create_fuzzy_simplex"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplex()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.create_fuzzy_simplicial_set_from_data"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplicial_set_from_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.merge_fuzzy_simplicial_sets"><code class="docutils literal notranslate"><span class="pre">merge_fuzzy_simplicial_sets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.KanComplexVerifier"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType"><code class="docutils literal notranslate"><span class="pre">KanConditionType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult"><code class="docutils literal notranslate"><span class="pre">KanConditionResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.get_training_components"><code class="docutils literal notranslate"><span class="pre">get_training_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#gaia.core.get_advanced_components"><code class="docutils literal notranslate"><span class="pre">get_advanced_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.data.html">gaia.data package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.data.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html">gaia.integration package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra"><code class="docutils literal notranslate"><span class="pre">FCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraHomomorphism"><code class="docutils literal notranslate"><span class="pre">CoalgebraHomomorphism</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.Bisimulation"><code class="docutils literal notranslate"><span class="pre">Bisimulation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraCategory"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.Endofunctor"><code class="docutils literal notranslate"><span class="pre">Endofunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.PowersetFunctor"><code class="docutils literal notranslate"><span class="pre">PowersetFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.StreamFunctor"><code class="docutils literal notranslate"><span class="pre">StreamFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.NeuralFunctor"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_llm_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_llm_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_diffusion_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_diffusion_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_transformer_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_transformer_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.GeneralizedMetricSpace"><code class="docutils literal notranslate"><span class="pre">GeneralizedMetricSpace</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.MetricYonedaApplications"><code class="docutils literal notranslate"><span class="pre">MetricYonedaApplications</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.UniversalRepresenter"><code class="docutils literal notranslate"><span class="pre">UniversalRepresenter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_llm_metric_space"><code class="docutils literal notranslate"><span class="pre">create_llm_metric_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_causal_metric_space"><code class="docutils literal notranslate"><span class="pre">create_causal_metric_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm"><code class="docutils literal notranslate"><span class="pre">TConorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.FuzzyElement"><code class="docutils literal notranslate"><span class="pre">FuzzyElement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_fuzzy_simplex"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplex()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_fuzzy_simplicial_set_from_data"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplicial_set_from_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.merge_fuzzy_simplicial_sets"><code class="docutils literal notranslate"><span class="pre">merge_fuzzy_simplicial_sets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.get_training_components"><code class="docutils literal notranslate"><span class="pre">get_training_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html#gaia.integration.get_verification_components"><code class="docutils literal notranslate"><span class="pre">get_verification_components()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.metrics.html">gaia.metrics package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.metrics.html#gaia.metrics.MetricTracker"><code class="docutils literal notranslate"><span class="pre">MetricTracker</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.models.html">gaia.models package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.models.html#gaia.models.create_gaia_llm"><code class="docutils literal notranslate"><span class="pre">create_gaia_llm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.models.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="gaia.training.html">gaia.training package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="gaia.training.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.utils.html">gaia.utils package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.utils.html#gaia.utils.set_seed"><code class="docutils literal notranslate"><span class="pre">set_seed()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.utils.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.nn.html">gaia.nn module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.pytorch_api.html">gaia.pytorch_api module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">gaia</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="gaia.html">gaia package</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.__getitem__"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.__getitem__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.__init__"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.add"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.add()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_coalgebra_structure_map"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_coalgebra_structure_map()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_morphism"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_morphism()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_object"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_object()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.create_triangle"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_triangle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.define_degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.define_degeneracy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.define_face"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.define_face()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.degeneracy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.diagnose_partial_structure"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.diagnose_partial_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.face"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.face()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.find_horns"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.find_horns()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.get_endofunctor_trajectory"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.get_endofunctor_trajectory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.has_lift"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.has_lift()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.load_state_dict"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.load_state_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.register_endofunctor_update"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.register_endofunctor_update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.state_dict"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.state_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplicialFunctor.verify_simplicial_identities"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.verify_simplicial_identities()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex0"><code class="docutils literal notranslate"><span class="pre">Simplex0</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.dim"><code class="docutils literal notranslate"><span class="pre">Simplex0.dim</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.basis_id"><code class="docutils literal notranslate"><span class="pre">Simplex0.basis_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.__deepcopy__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__deepcopy__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.__eq__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__eq__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.__hash__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__hash__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.__init__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.__setattr__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__setattr__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.id"><code class="docutils literal notranslate"><span class="pre">Simplex0.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.level"><code class="docutils literal notranslate"><span class="pre">Simplex0.level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.name"><code class="docutils literal notranslate"><span class="pre">Simplex0.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex0.payload"><code class="docutils literal notranslate"><span class="pre">Simplex0.payload</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.Simplex1"><code class="docutils literal notranslate"><span class="pre">Simplex1</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.morphism"><code class="docutils literal notranslate"><span class="pre">Simplex1.morphism</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.__call__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__call__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.__eq__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__eq__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.__hash__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__hash__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.__init__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.codomain"><code class="docutils literal notranslate"><span class="pre">Simplex1.codomain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.components"><code class="docutils literal notranslate"><span class="pre">Simplex1.components</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.degeneracy"><code class="docutils literal notranslate"><span class="pre">Simplex1.degeneracy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.domain"><code class="docutils literal notranslate"><span class="pre">Simplex1.domain</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.eval"><code class="docutils literal notranslate"><span class="pre">Simplex1.eval()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.face"><code class="docutils literal notranslate"><span class="pre">Simplex1.face()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.id"><code class="docutils literal notranslate"><span class="pre">Simplex1.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.level"><code class="docutils literal notranslate"><span class="pre">Simplex1.level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.name"><code class="docutils literal notranslate"><span class="pre">Simplex1.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.payload"><code class="docutils literal notranslate"><span class="pre">Simplex1.payload</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.Simplex1.to"><code class="docutils literal notranslate"><span class="pre">Simplex1.to()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.SimplexN"><code class="docutils literal notranslate"><span class="pre">SimplexN</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.components"><code class="docutils literal notranslate"><span class="pre">SimplexN.components</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.__eq__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__eq__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.__hash__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__hash__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.__init__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplexN.degeneracy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.face"><code class="docutils literal notranslate"><span class="pre">SimplexN.face()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.id"><code class="docutils literal notranslate"><span class="pre">SimplexN.id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.level"><code class="docutils literal notranslate"><span class="pre">SimplexN.level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.name"><code class="docutils literal notranslate"><span class="pre">SimplexN.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.SimplexN.payload"><code class="docutils literal notranslate"><span class="pre">SimplexN.payload</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.FuzzySet"><code class="docutils literal notranslate"><span class="pre">FuzzySet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.FuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">FuzzySimplicialSet</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.__init__"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.get_kan_complex_status"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.get_kan_complex_status()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.suggest_improvements"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.suggest_improvements()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.html#gaia.KanComplexVerifier.verify_all_conditions"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.verify_all_conditions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.create_model"><code class="docutils literal notranslate"><span class="pre">create_model()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.get_training_components"><code class="docutils literal notranslate"><span class="pre">get_training_components()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.get_advanced_components"><code class="docutils literal notranslate"><span class="pre">get_advanced_components()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.version"><code class="docutils literal notranslate"><span class="pre">version()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.info"><code class="docutils literal notranslate"><span class="pre">info()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.status"><code class="docutils literal notranslate"><span class="pre">status()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#gaia.list_components"><code class="docutils literal notranslate"><span class="pre">list_components()</span></code></a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="gaia.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="gaia.callbacks.html">gaia.callbacks package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.html">gaia.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.data.html">gaia.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.integration.html">gaia.integration package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.metrics.html">gaia.metrics package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.models.html">gaia.models package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="gaia.training.html">gaia.training package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.utils.html">gaia.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.html#submodules">Submodules</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.nn.html">gaia.nn module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.pytorch_api.html">gaia.pytorch_api module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Core Components</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gaia.core.html">gaia.core package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialObject"><code class="docutils literal notranslate"><span class="pre">SimplicialObject</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialObject.level"><code class="docutils literal notranslate"><span class="pre">SimplicialObject.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialObject.name"><code class="docutils literal notranslate"><span class="pre">SimplicialObject.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialObject.payload"><code class="docutils literal notranslate"><span class="pre">SimplicialObject.payload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialObject.id"><code class="docutils literal notranslate"><span class="pre">SimplicialObject.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialObject.__init__"><code class="docutils literal notranslate"><span class="pre">SimplicialObject.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0"><code class="docutils literal notranslate"><span class="pre">Simplex0</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.dim"><code class="docutils literal notranslate"><span class="pre">Simplex0.dim</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.basis_id"><code class="docutils literal notranslate"><span class="pre">Simplex0.basis_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.__deepcopy__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__deepcopy__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.__eq__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.__hash__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__hash__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.__init__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.__setattr__"><code class="docutils literal notranslate"><span class="pre">Simplex0.__setattr__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.id"><code class="docutils literal notranslate"><span class="pre">Simplex0.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.level"><code class="docutils literal notranslate"><span class="pre">Simplex0.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.name"><code class="docutils literal notranslate"><span class="pre">Simplex0.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex0.payload"><code class="docutils literal notranslate"><span class="pre">Simplex0.payload</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1"><code class="docutils literal notranslate"><span class="pre">Simplex1</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.morphism"><code class="docutils literal notranslate"><span class="pre">Simplex1.morphism</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.__call__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.__eq__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.__hash__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__hash__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.__init__"><code class="docutils literal notranslate"><span class="pre">Simplex1.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.codomain"><code class="docutils literal notranslate"><span class="pre">Simplex1.codomain</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.components"><code class="docutils literal notranslate"><span class="pre">Simplex1.components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.degeneracy"><code class="docutils literal notranslate"><span class="pre">Simplex1.degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.domain"><code class="docutils literal notranslate"><span class="pre">Simplex1.domain</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.eval"><code class="docutils literal notranslate"><span class="pre">Simplex1.eval()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.face"><code class="docutils literal notranslate"><span class="pre">Simplex1.face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.id"><code class="docutils literal notranslate"><span class="pre">Simplex1.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.level"><code class="docutils literal notranslate"><span class="pre">Simplex1.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.name"><code class="docutils literal notranslate"><span class="pre">Simplex1.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.payload"><code class="docutils literal notranslate"><span class="pre">Simplex1.payload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex1.to"><code class="docutils literal notranslate"><span class="pre">Simplex1.to()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2"><code class="docutils literal notranslate"><span class="pre">Simplex2</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.components"><code class="docutils literal notranslate"><span class="pre">Simplex2.components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.__eq__"><code class="docutils literal notranslate"><span class="pre">Simplex2.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.__hash__"><code class="docutils literal notranslate"><span class="pre">Simplex2.__hash__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.__init__"><code class="docutils literal notranslate"><span class="pre">Simplex2.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.degeneracy"><code class="docutils literal notranslate"><span class="pre">Simplex2.degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.f"><code class="docutils literal notranslate"><span class="pre">Simplex2.f</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.face"><code class="docutils literal notranslate"><span class="pre">Simplex2.face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.g"><code class="docutils literal notranslate"><span class="pre">Simplex2.g</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.h"><code class="docutils literal notranslate"><span class="pre">Simplex2.h</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.horn_type"><code class="docutils literal notranslate"><span class="pre">Simplex2.horn_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.id"><code class="docutils literal notranslate"><span class="pre">Simplex2.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.is_inner_horn"><code class="docutils literal notranslate"><span class="pre">Simplex2.is_inner_horn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.is_outer_horn"><code class="docutils literal notranslate"><span class="pre">Simplex2.is_outer_horn()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.level"><code class="docutils literal notranslate"><span class="pre">Simplex2.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.name"><code class="docutils literal notranslate"><span class="pre">Simplex2.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.Simplex2.payload"><code class="docutils literal notranslate"><span class="pre">Simplex2.payload</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN"><code class="docutils literal notranslate"><span class="pre">SimplexN</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.components"><code class="docutils literal notranslate"><span class="pre">SimplexN.components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.__eq__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__eq__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.__hash__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__hash__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.__init__"><code class="docutils literal notranslate"><span class="pre">SimplexN.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplexN.degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.face"><code class="docutils literal notranslate"><span class="pre">SimplexN.face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.id"><code class="docutils literal notranslate"><span class="pre">SimplexN.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.level"><code class="docutils literal notranslate"><span class="pre">SimplexN.level</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.name"><code class="docutils literal notranslate"><span class="pre">SimplexN.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplexN.payload"><code class="docutils literal notranslate"><span class="pre">SimplexN.payload</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.__getitem__"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.__init__"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.add"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.add()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.create_coalgebra_structure_map"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_coalgebra_structure_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.create_morphism"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_morphism()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.create_object"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.create_triangle"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.create_triangle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.define_degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.define_degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.define_face"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.define_face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.degeneracy"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.degeneracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.diagnose_partial_structure"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.diagnose_partial_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.face"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.face()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.find_horns"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.find_horns()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.get_endofunctor_trajectory"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.get_endofunctor_trajectory()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.has_lift"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.has_lift()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.load_state_dict"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.load_state_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.register_endofunctor_update"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.register_endofunctor_update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.state_dict"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.state_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.SimplicialFunctor.verify_simplicial_identities"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor.verify_simplicial_identities()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.MapType"><code class="docutils literal notranslate"><span class="pre">MapType</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.MapType.FACE"><code class="docutils literal notranslate"><span class="pre">MapType.FACE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.MapType.DEGENERACY"><code class="docutils literal notranslate"><span class="pre">MapType.DEGENERACY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.MapType.__contains__"><code class="docutils literal notranslate"><span class="pre">MapType.__contains__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.MapType.__getitem__"><code class="docutils literal notranslate"><span class="pre">MapType.__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.MapType.__iter__"><code class="docutils literal notranslate"><span class="pre">MapType.__iter__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.MapType.__len__"><code class="docutils literal notranslate"><span class="pre">MapType.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.HornError"><code class="docutils literal notranslate"><span class="pre">HornError</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.HornError.__init__"><code class="docutils literal notranslate"><span class="pre">HornError.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.HornError.add_note"><code class="docutils literal notranslate"><span class="pre">HornError.add_note()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.HornError.args"><code class="docutils literal notranslate"><span class="pre">HornError.args</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.HornError.with_traceback"><code class="docutils literal notranslate"><span class="pre">HornError.with_traceback()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.alpha_cut"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.alpha_cut()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.get_membership"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.get_membership()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.initialize"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.merge_with"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.merge_with()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.support"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.support()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.update"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySet.validate"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex.degeneracy_map"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.degeneracy_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex.dimension"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.dimension</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex.face_map"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.face_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedSimplex.verify_simplicial_identities"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.verify_simplicial_identities()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet.add_simplex"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.add_simplex()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet.get_membership"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.get_membership()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet.initialize"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet.merge_with"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.merge_with()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet.update"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedFuzzySimplicialSet.validate"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.evolve"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.evolve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.initialize"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.is_bisimilar"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.is_bisimilar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.iterate_dynamics"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.iterate_dynamics()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.update"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.IntegratedCoalgebra.validate"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm"><code class="docutils literal notranslate"><span class="pre">TConorm</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.apply"><code class="docutils literal notranslate"><span class="pre">TConorm.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.MAXIMUM"><code class="docutils literal notranslate"><span class="pre">TConorm.MAXIMUM</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.PROBABILISTIC"><code class="docutils literal notranslate"><span class="pre">TConorm.PROBABILISTIC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.LUKASIEWICZ"><code class="docutils literal notranslate"><span class="pre">TConorm.LUKASIEWICZ</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.__contains__"><code class="docutils literal notranslate"><span class="pre">TConorm.__contains__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.__getitem__"><code class="docutils literal notranslate"><span class="pre">TConorm.__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.__iter__"><code class="docutils literal notranslate"><span class="pre">TConorm.__iter__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.TConorm.__len__"><code class="docutils literal notranslate"><span class="pre">TConorm.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.FuzzyElement"><code class="docutils literal notranslate"><span class="pre">FuzzyElement</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.FuzzyElement.__init__"><code class="docutils literal notranslate"><span class="pre">FuzzyElement.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.FuzzyElement.element"><code class="docutils literal notranslate"><span class="pre">FuzzyElement.element</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.FuzzyElement.membership"><code class="docutils literal notranslate"><span class="pre">FuzzyElement.membership</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.create_fuzzy_simplex"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplex()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.create_fuzzy_simplicial_set_from_data"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplicial_set_from_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.merge_fuzzy_simplicial_sets"><code class="docutils literal notranslate"><span class="pre">merge_fuzzy_simplicial_sets()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.KanComplexVerifier"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanComplexVerifier.__init__"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanComplexVerifier.get_kan_complex_status"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.get_kan_complex_status()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanComplexVerifier.suggest_improvements"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.suggest_improvements()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanComplexVerifier.verify_all_conditions"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier.verify_all_conditions()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType"><code class="docutils literal notranslate"><span class="pre">KanConditionType</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.INNER_HORN_FILLING"><code class="docutils literal notranslate"><span class="pre">KanConditionType.INNER_HORN_FILLING</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.OUTER_HORN_FILLING"><code class="docutils literal notranslate"><span class="pre">KanConditionType.OUTER_HORN_FILLING</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.LIFTING_PROPERTY"><code class="docutils literal notranslate"><span class="pre">KanConditionType.LIFTING_PROPERTY</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.FIBRATION_CONDITION"><code class="docutils literal notranslate"><span class="pre">KanConditionType.FIBRATION_CONDITION</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.HOMOTOPY_EXTENSION"><code class="docutils literal notranslate"><span class="pre">KanConditionType.HOMOTOPY_EXTENSION</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.__contains__"><code class="docutils literal notranslate"><span class="pre">KanConditionType.__contains__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.__getitem__"><code class="docutils literal notranslate"><span class="pre">KanConditionType.__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.__iter__"><code class="docutils literal notranslate"><span class="pre">KanConditionType.__iter__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionType.__len__"><code class="docutils literal notranslate"><span class="pre">KanConditionType.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult"><code class="docutils literal notranslate"><span class="pre">KanConditionResult</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.__init__"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.error_message"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.error_message</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.condition_type"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.condition_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.simplex_id"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.simplex_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.simplex_name"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.simplex_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.horn_index"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.horn_index</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.satisfied"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.satisfied</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.confidence"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.confidence</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.html#gaia.core.KanConditionResult.verification_data"><code class="docutils literal notranslate"><span class="pre">KanConditionResult.verification_data</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.get_training_components"><code class="docutils literal notranslate"><span class="pre">get_training_components()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#gaia.core.get_advanced_components"><code class="docutils literal notranslate"><span class="pre">get_advanced_components()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.core.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.abstractions.html">gaia.core.abstractions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.CategoryObject"><code class="docutils literal notranslate"><span class="pre">CategoryObject</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.Morphism"><code class="docutils literal notranslate"><span class="pre">Morphism</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.Functor"><code class="docutils literal notranslate"><span class="pre">Functor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.Endofunctor"><code class="docutils literal notranslate"><span class="pre">Endofunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.StructureMap"><code class="docutils literal notranslate"><span class="pre">StructureMap</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.Coalgebra"><code class="docutils literal notranslate"><span class="pre">Coalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.FuzzyMembership"><code class="docutils literal notranslate"><span class="pre">FuzzyMembership</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.SimplicialStructure"><code class="docutils literal notranslate"><span class="pre">SimplicialStructure</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.HornFiller"><code class="docutils literal notranslate"><span class="pre">HornFiller</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.MessagePasser"><code class="docutils literal notranslate"><span class="pre">MessagePasser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.TrainingState"><code class="docutils literal notranslate"><span class="pre">TrainingState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.GAIAComponent"><code class="docutils literal notranslate"><span class="pre">GAIAComponent</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.IntegratedTrainer"><code class="docutils literal notranslate"><span class="pre">IntegratedTrainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.compose_morphisms"><code class="docutils literal notranslate"><span class="pre">compose_morphisms()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.create_identity_morphism"><code class="docutils literal notranslate"><span class="pre">create_identity_morphism()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.verify_functor_laws"><code class="docutils literal notranslate"><span class="pre">verify_functor_laws()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.ComponentRegistry"><code class="docutils literal notranslate"><span class="pre">ComponentRegistry</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.business_units.html">gaia.core.business_units module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.business_units.html#gaia.core.business_units.CommunicationType"><code class="docutils literal notranslate"><span class="pre">CommunicationType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.business_units.html#gaia.core.business_units.BusinessMessage"><code class="docutils literal notranslate"><span class="pre">BusinessMessage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.business_units.html#gaia.core.business_units.BusinessUnit"><code class="docutils literal notranslate"><span class="pre">BusinessUnit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.business_units.html#gaia.core.business_units.BusinessUnitHierarchy"><code class="docutils literal notranslate"><span class="pre">BusinessUnitHierarchy</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.business_units.html#gaia.core.business_units.create_business_hierarchy_from_model"><code class="docutils literal notranslate"><span class="pre">create_business_hierarchy_from_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.business_units.html#gaia.core.business_units.simulate_organizational_learning"><code class="docutils literal notranslate"><span class="pre">simulate_organizational_learning()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.coalgebras.html">gaia.core.coalgebras module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.EndofunctorProtocol"><code class="docutils literal notranslate"><span class="pre">EndofunctorProtocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.BackpropagationEndofunctor"><code class="docutils literal notranslate"><span class="pre">BackpropagationEndofunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.SGDEndofunctor"><code class="docutils literal notranslate"><span class="pre">SGDEndofunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.FCoalgebra"><code class="docutils literal notranslate"><span class="pre">FCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.CoalgebraMorphism"><code class="docutils literal notranslate"><span class="pre">CoalgebraMorphism</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.BisimulationRelation"><code class="docutils literal notranslate"><span class="pre">BisimulationRelation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.FinalCoalgebra"><code class="docutils literal notranslate"><span class="pre">FinalCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.CoalgebraCategory"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.create_parameter_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_parameter_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.create_stochastic_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_stochastic_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.create_bisimulation_between_coalgebras"><code class="docutils literal notranslate"><span class="pre">create_bisimulation_between_coalgebras()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.coalgebras.html#gaia.core.coalgebras.SimplicialCoalgebra"><code class="docutils literal notranslate"><span class="pre">SimplicialCoalgebra</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.ends_coends.html">gaia.core.ends_coends module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.CategoricalIntegral"><code class="docutils literal notranslate"><span class="pre">CategoricalIntegral</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.End"><code class="docutils literal notranslate"><span class="pre">End</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.Coend"><code class="docutils literal notranslate"><span class="pre">Coend</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.Sheaf"><code class="docutils literal notranslate"><span class="pre">Sheaf</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.Topos"><code class="docutils literal notranslate"><span class="pre">Topos</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.TopologicalEmbedding"><code class="docutils literal notranslate"><span class="pre">TopologicalEmbedding</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.CategoricalProbability"><code class="docutils literal notranslate"><span class="pre">CategoricalProbability</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.ends_coends.html#gaia.core.ends_coends.create_complete_gaia_system"><code class="docutils literal notranslate"><span class="pre">create_complete_gaia_system()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.functor.html">gaia.core.functor module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.MapType"><code class="docutils literal notranslate"><span class="pre">MapType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.SimplicialError"><code class="docutils literal notranslate"><span class="pre">SimplicialError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.HornError"><code class="docutils literal notranslate"><span class="pre">HornError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.MapConflictError"><code class="docutils literal notranslate"><span class="pre">MapConflictError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.BasisClashError"><code class="docutils literal notranslate"><span class="pre">BasisClashError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.FaceExpectationError"><code class="docutils literal notranslate"><span class="pre">FaceExpectationError</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.SimplicialObjectProtocol"><code class="docutils literal notranslate"><span class="pre">SimplicialObjectProtocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.functor.html#gaia.core.functor.SimplicialFunctor"><code class="docutils literal notranslate"><span class="pre">SimplicialFunctor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.fuzzy.html">gaia.core.fuzzy module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.FuzzySet"><code class="docutils literal notranslate"><span class="pre">FuzzySet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.FuzzySetMorphism"><code class="docutils literal notranslate"><span class="pre">FuzzySetMorphism</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.FuzzyCategory"><code class="docutils literal notranslate"><span class="pre">FuzzyCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.FuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">FuzzySimplicialSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.FuzzySimplicialFunctor"><code class="docutils literal notranslate"><span class="pre">FuzzySimplicialFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.create_discrete_fuzzy_set"><code class="docutils literal notranslate"><span class="pre">create_discrete_fuzzy_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.create_gaussian_fuzzy_set"><code class="docutils literal notranslate"><span class="pre">create_gaussian_fuzzy_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.create_triangular_fuzzy_set"><code class="docutils literal notranslate"><span class="pre">create_triangular_fuzzy_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.TConorm"><code class="docutils literal notranslate"><span class="pre">TConorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.fuzzy.html#gaia.core.fuzzy.merge_fuzzy_simplicial_sets"><code class="docutils literal notranslate"><span class="pre">merge_fuzzy_simplicial_sets()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.hierarchical_messaging.html">gaia.core.hierarchical_messaging module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.hierarchical_messaging.html#gaia.core.hierarchical_messaging.SimplexParameters"><code class="docutils literal notranslate"><span class="pre">SimplexParameters</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.hierarchical_messaging.html#gaia.core.hierarchical_messaging.LocalObjective"><code class="docutils literal notranslate"><span class="pre">LocalObjective</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.hierarchical_messaging.html#gaia.core.hierarchical_messaging.HierarchicalMessagePasser"><code class="docutils literal notranslate"><span class="pre">HierarchicalMessagePasser</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.hierarchical_messaging.html#gaia.core.hierarchical_messaging.create_triangle_complex"><code class="docutils literal notranslate"><span class="pre">create_triangle_complex()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.hierarchical_messaging.html#gaia.core.hierarchical_messaging.create_tetrahedron_complex"><code class="docutils literal notranslate"><span class="pre">create_tetrahedron_complex()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.identity.html">gaia.core.identity module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.identity.html#gaia.core.identity.id_edge"><code class="docutils literal notranslate"><span class="pre">id_edge()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.integrated_structures.html">gaia.core.integrated_structures module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.TConorm"><code class="docutils literal notranslate"><span class="pre">TConorm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.FuzzyElement"><code class="docutils literal notranslate"><span class="pre">FuzzyElement</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.IntegratedFuzzySet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.IntegratedSimplex"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.IntegratedFuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.IntegratedCoalgebra"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.create_fuzzy_simplex"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplex()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.create_fuzzy_simplicial_set_from_data"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplicial_set_from_data()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.integrated_structures.html#gaia.core.integrated_structures.merge_fuzzy_simplicial_sets"><code class="docutils literal notranslate"><span class="pre">merge_fuzzy_simplicial_sets()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.kan_extensions.html">gaia.core.kan_extensions module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.Category"><code class="docutils literal notranslate"><span class="pre">Category</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.SetCategory"><code class="docutils literal notranslate"><span class="pre">SetCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.GenerativeAICategory"><code class="docutils literal notranslate"><span class="pre">GenerativeAICategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.Functor"><code class="docutils literal notranslate"><span class="pre">Functor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.NeuralFunctor"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.NaturalTransformation"><code class="docutils literal notranslate"><span class="pre">NaturalTransformation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.LeftKanExtension"><code class="docutils literal notranslate"><span class="pre">LeftKanExtension</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.RightKanExtension"><code class="docutils literal notranslate"><span class="pre">RightKanExtension</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.MigrationFunctor"><code class="docutils literal notranslate"><span class="pre">MigrationFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.FoundationModelBuilder"><code class="docutils literal notranslate"><span class="pre">FoundationModelBuilder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.create_llm_foundation_model"><code class="docutils literal notranslate"><span class="pre">create_llm_foundation_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.create_diffusion_foundation_model"><code class="docutils literal notranslate"><span class="pre">create_diffusion_foundation_model()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.create_multimodal_foundation_model"><code class="docutils literal notranslate"><span class="pre">create_multimodal_foundation_model()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.kan_verification.html">gaia.core.kan_verification module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.KanConditionType"><code class="docutils literal notranslate"><span class="pre">KanConditionType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.KanConditionResult"><code class="docutils literal notranslate"><span class="pre">KanConditionResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.HornFillingVerifier"><code class="docutils literal notranslate"><span class="pre">HornFillingVerifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.LiftingPropertyVerifier"><code class="docutils literal notranslate"><span class="pre">LiftingPropertyVerifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.FibrationVerifier"><code class="docutils literal notranslate"><span class="pre">FibrationVerifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.KanComplexVerifier"><code class="docutils literal notranslate"><span class="pre">KanComplexVerifier</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.verify_model_kan_conditions"><code class="docutils literal notranslate"><span class="pre">verify_model_kan_conditions()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.kan_verification.html#gaia.core.kan_verification.create_kan_verification_summary"><code class="docutils literal notranslate"><span class="pre">create_kan_verification_summary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.legacy_adapters.html">gaia.core.legacy_adapters module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.FuzzySetAdapter"><code class="docutils literal notranslate"><span class="pre">FuzzySetAdapter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.FuzzySimplicialSetAdapter"><code class="docutils literal notranslate"><span class="pre">FuzzySimplicialSetAdapter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.CoalgebraAdapter"><code class="docutils literal notranslate"><span class="pre">CoalgebraAdapter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.create_legacy_fuzzy_set"><code class="docutils literal notranslate"><span class="pre">create_legacy_fuzzy_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.create_legacy_fuzzy_simplicial_set"><code class="docutils literal notranslate"><span class="pre">create_legacy_fuzzy_simplicial_set()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.create_legacy_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_legacy_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.merge_fuzzy_simplicial_sets"><code class="docutils literal notranslate"><span class="pre">merge_fuzzy_simplicial_sets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.FuzzySet"><code class="docutils literal notranslate"><span class="pre">FuzzySet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.FuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">FuzzySimplicialSet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.legacy_adapters.html#gaia.core.legacy_adapters.FCoalgebra"><code class="docutils literal notranslate"><span class="pre">FCoalgebra</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.metric_yoneda.html">gaia.core.metric_yoneda module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.GeneralizedMetricSpace"><code class="docutils literal notranslate"><span class="pre">GeneralizedMetricSpace</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.EnrichedCategory"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.YonedaEmbedding"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.MetricYonedaApplications"><code class="docutils literal notranslate"><span class="pre">MetricYonedaApplications</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.UniversalRepresenter"><code class="docutils literal notranslate"><span class="pre">UniversalRepresenter</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.create_llm_metric_space"><code class="docutils literal notranslate"><span class="pre">create_llm_metric_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.create_causal_metric_space"><code class="docutils literal notranslate"><span class="pre">create_causal_metric_space()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.simplices.html">gaia.core.simplices module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.simplices.html#gaia.core.simplices.SimplicialObject"><code class="docutils literal notranslate"><span class="pre">SimplicialObject</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.simplices.html#gaia.core.simplices.BasisRegistry"><code class="docutils literal notranslate"><span class="pre">BasisRegistry</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.simplices.html#gaia.core.simplices.Simplex0"><code class="docutils literal notranslate"><span class="pre">Simplex0</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.simplices.html#gaia.core.simplices.SimplexN"><code class="docutils literal notranslate"><span class="pre">SimplexN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.simplices.html#gaia.core.simplices.Simplex1"><code class="docutils literal notranslate"><span class="pre">Simplex1</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.simplices.html#gaia.core.simplices.Simplex2"><code class="docutils literal notranslate"><span class="pre">Simplex2</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.core.universal_coalgebras.html">gaia.core.universal_coalgebras module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.Endofunctor"><code class="docutils literal notranslate"><span class="pre">Endofunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.PowersetFunctor"><code class="docutils literal notranslate"><span class="pre">PowersetFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.StreamFunctor"><code class="docutils literal notranslate"><span class="pre">StreamFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.NeuralFunctor"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.FCoalgebra"><code class="docutils literal notranslate"><span class="pre">FCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.CoalgebraHomomorphism"><code class="docutils literal notranslate"><span class="pre">CoalgebraHomomorphism</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.Bisimulation"><code class="docutils literal notranslate"><span class="pre">Bisimulation</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.GenerativeCoalgebra"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.CoalgebraCategory"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.create_llm_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_llm_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.create_diffusion_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_diffusion_coalgebra()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.core.universal_coalgebras.html#gaia.core.universal_coalgebras.create_transformer_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_transformer_coalgebra()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gaia.models.html">gaia.models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gaia.models.html#gaia.models.create_gaia_llm"><code class="docutils literal notranslate"><span class="pre">create_gaia_llm()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.models.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.models.categorical_mlp.html">gaia.models.categorical_mlp module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.models.gaia_transformer.html">gaia.models.gaia_transformer module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.models.gaia_transformer.html#gaia.models.gaia_transformer.create_gaia_llm"><code class="docutils literal notranslate"><span class="pre">create_gaia_llm()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gaia.nn.html">gaia.nn module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gaia.data.html">gaia.data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gaia.data.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.data.categorical.html">gaia.data.categorical module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.data.fuzzy_encoding.html">gaia.data.fuzzy_encoding module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.data.synthetic.html">gaia.data.synthetic module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.data.synthetic.html#gaia.data.synthetic.create_synthetic_dataset"><code class="docutils literal notranslate"><span class="pre">create_synthetic_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.data.synthetic.html#gaia.data.synthetic.create_xor_dataset"><code class="docutils literal notranslate"><span class="pre">create_xor_dataset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.data.synthetic.html#gaia.data.synthetic.create_regression_dataset"><code class="docutils literal notranslate"><span class="pre">create_regression_dataset()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.data.transforms.html">gaia.data.transforms module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.data.utils.html">gaia.data.utils module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gaia.integration.html">gaia.integration package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra"><code class="docutils literal notranslate"><span class="pre">FCoalgebra</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.__init__"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.evolve"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.evolve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.is_fixed_point"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.is_fixed_point()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.iterate"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.iterate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.name"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.carrier"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.carrier</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.structure_map"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.structure_map</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FCoalgebra.endofunctor"><code class="docutils literal notranslate"><span class="pre">FCoalgebra.endofunctor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraHomomorphism"><code class="docutils literal notranslate"><span class="pre">CoalgebraHomomorphism</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraHomomorphism.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">CoalgebraHomomorphism.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraHomomorphism.__init__"><code class="docutils literal notranslate"><span class="pre">CoalgebraHomomorphism.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraHomomorphism.apply"><code class="docutils literal notranslate"><span class="pre">CoalgebraHomomorphism.apply()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.Bisimulation"><code class="docutils literal notranslate"><span class="pre">Bisimulation</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.Bisimulation.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">Bisimulation.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.Bisimulation.__init__"><code class="docutils literal notranslate"><span class="pre">Bisimulation.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.Bisimulation.are_bisimilar"><code class="docutils literal notranslate"><span class="pre">Bisimulation.are_bisimilar()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.__init__"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.evolve"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.evolve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.is_fixed_point"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.is_fixed_point()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.iterate"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.iterate()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.name"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.carrier"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.carrier</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.structure_map"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.structure_map</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GenerativeCoalgebra.endofunctor"><code class="docutils literal notranslate"><span class="pre">GenerativeCoalgebra.endofunctor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraCategory"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraCategory.__init__"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraCategory.add_coalgebra"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory.add_coalgebra()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraCategory.add_homomorphism"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory.add_homomorphism()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraCategory.compose_morphisms"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory.compose_morphisms()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.CoalgebraCategory.find_bisimulations"><code class="docutils literal notranslate"><span class="pre">CoalgebraCategory.find_bisimulations()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.Endofunctor"><code class="docutils literal notranslate"><span class="pre">Endofunctor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.Endofunctor.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">Endofunctor.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.Endofunctor.apply"><code class="docutils literal notranslate"><span class="pre">Endofunctor.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.Endofunctor.fmap"><code class="docutils literal notranslate"><span class="pre">Endofunctor.fmap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.PowersetFunctor"><code class="docutils literal notranslate"><span class="pre">PowersetFunctor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.PowersetFunctor.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">PowersetFunctor.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.PowersetFunctor.apply"><code class="docutils literal notranslate"><span class="pre">PowersetFunctor.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.PowersetFunctor.fmap"><code class="docutils literal notranslate"><span class="pre">PowersetFunctor.fmap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.StreamFunctor"><code class="docutils literal notranslate"><span class="pre">StreamFunctor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.StreamFunctor.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">StreamFunctor.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.StreamFunctor.apply"><code class="docutils literal notranslate"><span class="pre">StreamFunctor.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.StreamFunctor.fmap"><code class="docutils literal notranslate"><span class="pre">StreamFunctor.fmap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.NeuralFunctor"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.NeuralFunctor.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.NeuralFunctor.__init__"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.NeuralFunctor.apply"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.NeuralFunctor.fmap"><code class="docutils literal notranslate"><span class="pre">NeuralFunctor.fmap()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_llm_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_llm_coalgebra()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_diffusion_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_diffusion_coalgebra()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_transformer_coalgebra"><code class="docutils literal notranslate"><span class="pre">create_transformer_coalgebra()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.GeneralizedMetricSpace"><code class="docutils literal notranslate"><span class="pre">GeneralizedMetricSpace</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GeneralizedMetricSpace.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">GeneralizedMetricSpace.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GeneralizedMetricSpace.__init__"><code class="docutils literal notranslate"><span class="pre">GeneralizedMetricSpace.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.GeneralizedMetricSpace.distance"><code class="docutils literal notranslate"><span class="pre">GeneralizedMetricSpace.distance()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory.__init__"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory.add_object"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory.add_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory.categorical_coproduct"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory.categorical_coproduct()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory.categorical_product"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory.categorical_product()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory.has_morphism"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory.has_morphism()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory.internal_hom"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory.internal_hom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.EnrichedCategory.tensor_product"><code class="docutils literal notranslate"><span class="pre">EnrichedCategory.tensor_product()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding.__init__"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding.embed"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding.embed()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding.presheaf_distance"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding.presheaf_distance()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding.universal_property"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding.universal_property()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.YonedaEmbedding.verify_isometry"><code class="docutils literal notranslate"><span class="pre">YonedaEmbedding.verify_isometry()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.MetricYonedaApplications"><code class="docutils literal notranslate"><span class="pre">MetricYonedaApplications</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.MetricYonedaApplications.create_image_metric_space"><code class="docutils literal notranslate"><span class="pre">MetricYonedaApplications.create_image_metric_space()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.MetricYonedaApplications.create_neural_embedding_space"><code class="docutils literal notranslate"><span class="pre">MetricYonedaApplications.create_neural_embedding_space()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.MetricYonedaApplications.create_probability_metric_space"><code class="docutils literal notranslate"><span class="pre">MetricYonedaApplications.create_probability_metric_space()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.MetricYonedaApplications.create_text_metric_space"><code class="docutils literal notranslate"><span class="pre">MetricYonedaApplications.create_text_metric_space()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.UniversalRepresenter"><code class="docutils literal notranslate"><span class="pre">UniversalRepresenter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.UniversalRepresenter.__init__"><code class="docutils literal notranslate"><span class="pre">UniversalRepresenter.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.UniversalRepresenter.compare_objects"><code class="docutils literal notranslate"><span class="pre">UniversalRepresenter.compare_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.UniversalRepresenter.find_nearest_neighbors"><code class="docutils literal notranslate"><span class="pre">UniversalRepresenter.find_nearest_neighbors()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.UniversalRepresenter.represent"><code class="docutils literal notranslate"><span class="pre">UniversalRepresenter.represent()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_llm_metric_space"><code class="docutils literal notranslate"><span class="pre">create_llm_metric_space()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_causal_metric_space"><code class="docutils literal notranslate"><span class="pre">create_causal_metric_space()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.alpha_cut"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.alpha_cut()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.get_membership"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.get_membership()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.initialize"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.merge_with"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.merge_with()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.support"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.support()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.update"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySet.validate"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySet.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex.degeneracy_map"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.degeneracy_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex.dimension"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.dimension</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex.face_map"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.face_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedSimplex.verify_simplicial_identities"><code class="docutils literal notranslate"><span class="pre">IntegratedSimplex.verify_simplicial_identities()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet.add_simplex"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.add_simplex()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet.get_membership"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.get_membership()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet.initialize"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet.merge_with"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.merge_with()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet.update"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedFuzzySimplicialSet.validate"><code class="docutils literal notranslate"><span class="pre">IntegratedFuzzySimplicialSet.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.__class_getitem__"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.__class_getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.__init__"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.evolve"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.evolve()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.initialize"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.initialize()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.is_bisimilar"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.is_bisimilar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.iterate_dynamics"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.iterate_dynamics()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.update"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.update()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.IntegratedCoalgebra.validate"><code class="docutils literal notranslate"><span class="pre">IntegratedCoalgebra.validate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm"><code class="docutils literal notranslate"><span class="pre">TConorm</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.apply"><code class="docutils literal notranslate"><span class="pre">TConorm.apply()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.MAXIMUM"><code class="docutils literal notranslate"><span class="pre">TConorm.MAXIMUM</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.PROBABILISTIC"><code class="docutils literal notranslate"><span class="pre">TConorm.PROBABILISTIC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.LUKASIEWICZ"><code class="docutils literal notranslate"><span class="pre">TConorm.LUKASIEWICZ</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.__contains__"><code class="docutils literal notranslate"><span class="pre">TConorm.__contains__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.__getitem__"><code class="docutils literal notranslate"><span class="pre">TConorm.__getitem__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.__iter__"><code class="docutils literal notranslate"><span class="pre">TConorm.__iter__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.TConorm.__len__"><code class="docutils literal notranslate"><span class="pre">TConorm.__len__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.FuzzyElement"><code class="docutils literal notranslate"><span class="pre">FuzzyElement</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FuzzyElement.__init__"><code class="docutils literal notranslate"><span class="pre">FuzzyElement.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FuzzyElement.element"><code class="docutils literal notranslate"><span class="pre">FuzzyElement.element</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.integration.html#gaia.integration.FuzzyElement.membership"><code class="docutils literal notranslate"><span class="pre">FuzzyElement.membership</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_fuzzy_simplex"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplex()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.create_fuzzy_simplicial_set_from_data"><code class="docutils literal notranslate"><span class="pre">create_fuzzy_simplicial_set_from_data()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.merge_fuzzy_simplicial_sets"><code class="docutils literal notranslate"><span class="pre">merge_fuzzy_simplicial_sets()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.get_training_components"><code class="docutils literal notranslate"><span class="pre">get_training_components()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.integration.html#gaia.integration.get_verification_components"><code class="docutils literal notranslate"><span class="pre">get_verification_components()</span></code></a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Training &amp; Optimization</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="gaia.training.html">gaia.training package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="gaia.training.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="gaia.training.engine.html">gaia.training.engine package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.engine.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3 current"><a class="reference internal" href="gaia.training.solvers.html">gaia.training.solvers package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="gaia.training.solvers.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.training.utils.html">gaia.training.utils package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.utils.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.training.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.training.config.html">gaia.training.config module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.config.html#gaia.training.config.OptimizationType"><code class="docutils literal notranslate"><span class="pre">OptimizationType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.config.html#gaia.training.config.SchedulerType"><code class="docutils literal notranslate"><span class="pre">SchedulerType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.config.html#gaia.training.config.OptimizationConfig"><code class="docutils literal notranslate"><span class="pre">OptimizationConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.config.html#gaia.training.config.ModelConfig"><code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.config.html#gaia.training.config.DataConfig"><code class="docutils literal notranslate"><span class="pre">DataConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.config.html#gaia.training.config.TrainingConfig"><code class="docutils literal notranslate"><span class="pre">TrainingConfig</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.training.hierarchical_message_passing.html">gaia.training.hierarchical_message_passing module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.training.unified_trainer.html">gaia.training.unified_trainer module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainingConfig"><code class="docutils literal notranslate"><span class="pre">GAIATrainingConfig</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.FuzzyDataEncoder"><code class="docutils literal notranslate"><span class="pre">FuzzyDataEncoder</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.CoalgebraEvolution"><code class="docutils literal notranslate"><span class="pre">CoalgebraEvolution</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.HierarchicalCommunication"><code class="docutils literal notranslate"><span class="pre">HierarchicalCommunication</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.KanVerification"><code class="docutils literal notranslate"><span class="pre">KanVerification</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer"><code class="docutils literal notranslate"><span class="pre">GAIAUnifiedTrainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.create_gaia_trainer"><code class="docutils literal notranslate"><span class="pre">create_gaia_trainer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.training.verifiers.html">gaia.training.verifiers module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gaia.callbacks.html">gaia.callbacks package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager"><code class="docutils literal notranslate"><span class="pre">CallbackManager</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.__init__"><code class="docutils literal notranslate"><span class="pre">CallbackManager.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.on_train_begin"><code class="docutils literal notranslate"><span class="pre">CallbackManager.on_train_begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.on_train_end"><code class="docutils literal notranslate"><span class="pre">CallbackManager.on_train_end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.on_train_error"><code class="docutils literal notranslate"><span class="pre">CallbackManager.on_train_error()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.on_epoch_begin"><code class="docutils literal notranslate"><span class="pre">CallbackManager.on_epoch_begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.on_epoch_end"><code class="docutils literal notranslate"><span class="pre">CallbackManager.on_epoch_end()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.on_batch_begin"><code class="docutils literal notranslate"><span class="pre">CallbackManager.on_batch_begin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.CallbackManager.on_batch_end"><code class="docutils literal notranslate"><span class="pre">CallbackManager.on_batch_end()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.EarlyStopping"><code class="docutils literal notranslate"><span class="pre">EarlyStopping</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.EarlyStopping.__init__"><code class="docutils literal notranslate"><span class="pre">EarlyStopping.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.callbacks.html#gaia.callbacks.EarlyStopping.on_epoch_end"><code class="docutils literal notranslate"><span class="pre">EarlyStopping.on_epoch_end()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Utilities</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="gaia.utils.html">gaia.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="gaia.utils.html#gaia.utils.set_seed"><code class="docutils literal notranslate"><span class="pre">set_seed()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="gaia.utils.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="gaia.utils.device.html">gaia.utils.device module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gaia.utils.reproducibility.html">gaia.utils.reproducibility module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="gaia.utils.reproducibility.html#gaia.utils.reproducibility.set_seed"><code class="docutils literal notranslate"><span class="pre">set_seed()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="gaia.pytorch_api.html">gaia.pytorch_api module</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #1F3B82" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">GAIA Framework</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="gaia.html">gaia package</a></li>
+          <li class="breadcrumb-item"><a href="gaia.training.html">gaia.training package</a></li>
+          <li class="breadcrumb-item"><a href="gaia.training.solvers.html">gaia.training.solvers package</a></li>
+      <li class="breadcrumb-item active">gaia.training.solvers.inner_solver module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="gaia-training-solvers-inner-solver-module">
+<h1>gaia.training.solvers.inner_solver module<a class="headerlink" href="#gaia-training-solvers-inner-solver-module" title="Link to this heading"></a></h1>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="gaia.training.solvers.html" class="btn btn-neutral float-left" title="gaia.training.solvers package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="gaia.training.solvers.outer_solver.html" class="btn btn-neutral float-right" title="gaia.training.solvers.outer_solver module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Juan Zambrano, Sridhar Mahadevan, Enrique ter Horst.
+      <span class="lastupdated">Last updated on Sep 05, 2025.
+      </span></p>
+  </div>
+
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

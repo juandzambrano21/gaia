@@ -1,0 +1,7 @@
+gaia.core.metric\_yoneda module
+===============================
+
+.. automodule:: gaia.core.metric_yoneda
+   :members:
+   :show-inheritance:
+   :undoc-members:

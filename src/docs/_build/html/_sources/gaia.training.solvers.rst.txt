@@ -1,0 +1,17 @@
+gaia.training.solvers package
+=============================
+
+.. automodule:: gaia.training.solvers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   gaia.training.solvers.inner_solver
+   gaia.training.solvers.outer_solver
+   gaia.training.solvers.yoneda_proxy

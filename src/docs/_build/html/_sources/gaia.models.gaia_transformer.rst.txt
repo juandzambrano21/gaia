@@ -1,0 +1,7 @@
+gaia.models.gaia\_transformer module
+====================================
+
+.. automodule:: gaia.models.gaia_transformer
+   :members:
+   :show-inheritance:
+   :undoc-members:

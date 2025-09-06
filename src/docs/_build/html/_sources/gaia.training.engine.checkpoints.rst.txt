@@ -1,0 +1,7 @@
+gaia.training.engine.checkpoints module
+=======================================
+
+.. automodule:: gaia.training.engine.checkpoints
+   :members:
+   :show-inheritance:
+   :undoc-members:

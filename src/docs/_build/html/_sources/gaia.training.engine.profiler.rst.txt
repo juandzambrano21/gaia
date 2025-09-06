@@ -1,0 +1,7 @@
+gaia.training.engine.profiler module
+====================================
+
+.. automodule:: gaia.training.engine.profiler
+   :members:
+   :show-inheritance:
+   :undoc-members:

@@ -1,0 +1,7 @@
+gaia.metrics package
+====================
+
+.. automodule:: gaia.metrics
+   :members:
+   :show-inheritance:
+   :undoc-members:

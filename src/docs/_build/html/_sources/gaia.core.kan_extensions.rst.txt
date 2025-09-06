@@ -1,0 +1,7 @@
+gaia.core.kan\_extensions module
+================================
+
+.. automodule:: gaia.core.kan_extensions
+   :members:
+   :show-inheritance:
+   :undoc-members:

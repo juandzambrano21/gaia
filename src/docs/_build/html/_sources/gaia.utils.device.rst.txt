@@ -1,0 +1,7 @@
+gaia.utils.device module
+========================
+
+.. automodule:: gaia.utils.device
+   :members:
+   :show-inheritance:
+   :undoc-members:

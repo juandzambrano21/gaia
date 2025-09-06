@@ -1,0 +1,7 @@
+gaia.training.utils.structure\_helpers module
+=============================================
+
+.. automodule:: gaia.training.utils.structure_helpers
+   :members:
+   :show-inheritance:
+   :undoc-members:

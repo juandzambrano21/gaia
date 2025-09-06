@@ -1,0 +1,7 @@
+gaia.integration package
+========================
+
+.. automodule:: gaia.integration
+   :members:
+   :show-inheritance:
+   :undoc-members:
