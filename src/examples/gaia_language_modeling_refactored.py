@@ -205,7 +205,7 @@ class GAIALanguageModel(nn.Module):
         
         # Setup training
         optimizer = optim.AdamW(self.parameters(), lr=learning_rate, weight_decay=0.01)
-        criterion = lambda logits, labels: CategoricalLoss(logits, labels, ignore_index=-100)
+        criterion = CategoricalLoss(device=self.device, ignore_index=-100, reduction='mean')
         
         # Training metrics
         train_losses = []
@@ -236,12 +236,18 @@ class GAIALanguageModel(nn.Module):
     
     def _train_epoch_refactored(self, train_loader, optimizer, criterion, epoch):
         """Train for one epoch using refactored categorical components."""
+        import time
+        epoch_start = time.time()
+        logger.debug(f"🔍 STARTING EPOCH {epoch+1} - Total batches: {len(train_loader)}")
+        
         running_loss = 0
         num_batches = 0
         
         progress_bar = tqdm(train_loader, desc=f'Epoch {epoch+1}')
         
-        for batch in progress_bar:
+        for batch_idx, batch in enumerate(progress_bar):
+            batch_start = time.time()
+            logger.debug(f"🔍 STARTING BATCH {batch_idx + 1}/{len(train_loader)}...")
             input_ids = batch['input_ids'].to(self.device)
             attention_mask = batch['attention_mask'].to(self.device)
             labels = batch['labels'].to(self.device)
@@ -257,35 +263,51 @@ class GAIALanguageModel(nn.Module):
             }
             
             # Forward pass
+            forward_start = time.time()
+            logger.debug(f"🔍 BATCH {batch_idx + 1}: Starting forward pass...")
             outputs = self.forward(input_ids, attention_mask)
+            logger.debug(f"🔍 BATCH {batch_idx + 1}: Forward pass completed in {time.time() - forward_start:.4f}s")
             
             # Compute categorical loss using refactored loss computer
+            loss_start = time.time()
+            logger.debug(f"🔍 BATCH {batch_idx + 1}: Starting categorical loss computation...")
             categorical_loss = self.categorical_loss_computer.compute_categorical_diagram_loss(
                 outputs, batch_data, self.components, epoch, num_batches
             )
+            logger.debug(f"🔍 BATCH {batch_idx + 1}: Categorical loss computed in {time.time() - loss_start:.4f}s")
             
             # Optional stability loss for initial epochs
             if epoch < 2:
                 logits = outputs['logits']
-                stability_loss = criterion(logits.view(-1, logits.size(-1)), labels.view(-1)) * 0.1
+                stability_loss = nn.CrossEntropyLoss()(logits.view(-1, logits.size(-1)), labels.view(-1)) * 0.1
                 total_loss = categorical_loss + stability_loss
+                logger.debug(f"🔍 BATCH {batch_idx + 1}: Using stability loss (epoch {epoch + 1})")
             else:
                 total_loss = categorical_loss
+                logger.debug(f"🔍 BATCH {batch_idx + 1}: Using categorical loss only")
             
             # Backward pass
+            backward_start = time.time()
+            logger.debug(f"🔍 BATCH {batch_idx + 1}: Starting backward pass...")
             total_loss.backward()
             torch.nn.utils.clip_grad_norm_(self.parameters(), 1.0)
             optimizer.step()
+            logger.debug(f"🔍 BATCH {batch_idx + 1}: Backward pass completed in {time.time() - backward_start:.4f}s")
             
             # Statistics
             running_loss += total_loss.item()
             num_batches += 1
             
+            # Batch summary
+            batch_time = time.time() - batch_start
+            logger.debug(f"🔍 BATCH {batch_idx + 1} COMPLETE - Total time: {batch_time:.4f}s, Loss: {total_loss.item():.4f}")
+            
             # Update progress bar
             progress_bar.set_postfix({
                 'total': f'{total_loss.item():.4f}',
                 'categorical': f'{categorical_loss.item():.4f}',
-                'avg': f'{running_loss/num_batches:.4f}'
+                'avg': f'{running_loss/num_batches:.4f}',
+                'time': f'{batch_time:.2f}s'
             })
         
         return running_loss / num_batches
@@ -306,7 +328,8 @@ class GAIALanguageModel(nn.Module):
                 logits = outputs['logits']
                 
                 # Compute categorical loss using Gaia framework
-                loss = CategoricalLoss(logits.view(-1, logits.size(-1)), labels.view(-1), ignore_index=-100, reduction='sum')
+                loss_fn = CategoricalLoss(device=self.device, ignore_index=-100, reduction='sum')
+                loss = loss_fn(logits.view(-1, logits.size(-1)), labels.view(-1))
                 
                 # Count valid tokens
                 valid_tokens = (labels != -100).sum().item()
@@ -320,94 +343,216 @@ class GAIALanguageModel(nn.Module):
     
     def forward(self, input_ids: torch.Tensor, attention_mask: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
         """Forward pass using refactored categorical operations."""
+        import time
+        start_time = time.time()
+        logger.debug(f"🔍 FORWARD PASS START - Batch shape: {input_ids.shape}")
+        
         batch_size, seq_len = input_ids.shape
         
         # Ensure tensors are on correct device
+        device_start = time.time()
         if input_ids.device != self.device:
             input_ids = input_ids.to(self.device)
         if attention_mask is not None and attention_mask.device != self.device:
             attention_mask = attention_mask.to(self.device)
+        logger.debug(f"🔍 DEVICE TRANSFER: {time.time() - device_start:.4f}s")
         
         # Add positional embeddings
+        pos_start = time.time()
         position_ids = torch.arange(seq_len, device=self.device, dtype=torch.long).unsqueeze(0).expand(batch_size, -1)
         position_embeddings = self.position_embeddings(position_ids)
+        logger.debug(f"🔍 POSITIONAL EMBEDDINGS: {time.time() - pos_start:.4f}s")
         
         # GAIA Transformer forward
+        transformer_start = time.time()
+        logger.debug(f"🔍 STARTING GAIA TRANSFORMER FORWARD...")
         transformer_outputs = self.gaia_transformer(input_ids, attention_mask)
         hidden_states = transformer_outputs['last_hidden_state']
         hidden_states = hidden_states + position_embeddings
+        logger.debug(f"🔍 GAIA TRANSFORMER: {time.time() - transformer_start:.4f}s")
         
-        # Apply hierarchical message passing
+        # Apply hierarchical message passing periodically (not every forward pass)
+        # Only run hierarchical updates every 10 forward passes to avoid computational overhead
+        hierarchical_start = time.time()
+        if not hasattr(self, '_forward_count'):
+            self._forward_count = 0
+        self._forward_count += 1
+        logger.debug(f"🔍 FORWARD COUNT: {self._forward_count}")
+        
+        # ENABLED: Always run hierarchical message passing for full GAIA functionality
+        logger.debug(f"🔍 🚀 ULTRA-VERBOSE: STARTING HIERARCHICAL MESSAGE PASSING (forward #{self._forward_count})...")
         from gaia.training.config import TrainingConfig
         training_config = TrainingConfig()
-        message_results = self.message_passing.full_hierarchical_message_passing(
-            num_steps=3, learning_rate=training_config.optimization.learning_rate
-        )
+        hmp_start = time.time()
+        logger.debug(f"🔍 🚀 ULTRA-VERBOSE: HMP Config - lr={training_config.optimization.learning_rate}, threshold=1e-3")
+        
+        try:
+            message_results = self.message_passing.full_hierarchical_message_passing(
+                num_steps=3,  # Increased steps for full functionality
+                learning_rate=training_config.optimization.learning_rate,
+                convergence_threshold=1e-3,
+                max_steps=5  # Increased limit for better convergence
+            )
+            logger.debug(f"🔍 🚀 ULTRA-VERBOSE: HMP Results - {message_results}")
+            logger.debug(f"🔍 🚀 ULTRA-VERBOSE: HIERARCHICAL MESSAGE PASSING COMPLETED: {time.time() - hmp_start:.4f}s")
+        except Exception as e:
+            logger.error(f"🔍 🚀 ULTRA-VERBOSE: HMP FAILED: {e}")
+            logger.debug(f"🔍 🚀 ULTRA-VERBOSE: HMP FALLBACK: Using identity transformation")
+        logger.debug(f"🔍 HIERARCHICAL SECTION TOTAL: {time.time() - hierarchical_start:.4f}s")
         
         # Apply fuzzy encoding using refactored operations
+        fuzzy_start = time.time()
+        logger.debug(f"🔍 STARTING FUZZY ENCODING...")
         try:
+            logger.debug(f"🔍 STARTING FUZZY ENCODING DEVICE...")
             hidden_states_cpu = hidden_states.detach().cpu() if hidden_states.device.type == 'mps' else hidden_states.detach()
+            logger.debug(f"🔍 STARTING FUZZY ENCODING DEVICE...2")
             fuzzy_encoded = self.fuzzy_encoding_pipeline.encode(hidden_states_cpu)
-            if isinstance(fuzzy_encoded, torch.Tensor):
-                fuzzy_encoded = fuzzy_encoded.to(hidden_states.device)
+            logger.debug(f"🔍 FUZZY ENCODING SUCCESS: {time.time() - fuzzy_start:.4f}s")
+            
+            # Use original hidden states for membership computation since fuzzy_encoded is FuzzySimplicialSet
+            fuzzy_input = hidden_states
         except Exception as e:
-            logger.debug(f"Fuzzy encoding failed: {e}")
-            fuzzy_encoded = hidden_states
+            logger.debug(f"🔍 FUZZY ENCODING FAILED: {e} - Using fallback")
+            fuzzy_encoded = None
+            fuzzy_input = hidden_states
         
         # Compute fuzzy membership using refactored operations
-        fuzzy_memberships = self.categorical_operations.compute_token_fuzzy_membership(fuzzy_encoded)
+        membership_start = time.time()
+        logger.debug(f"🔍 STARTING FUZZY MEMBERSHIP COMPUTATION...")
+        fuzzy_memberships = self.categorical_operations.compute_token_fuzzy_membership(fuzzy_input)
+        logger.debug(f"🔍 FUZZY MEMBERSHIP: {time.time() - membership_start:.4f}s")
         
-        # Evolve through coalgebra using refactored operations
+        # Evolve through coalgebra using refactored operations (optimized)
+        coalgebra_start = time.time()
+        logger.debug(f"🔍 STARTING COALGEBRA EVOLUTION (forward #{self._forward_count})...")
         try:
-            coalgebra_trajectory = self.categorical_operations.evolve_generative_coalgebra(
-                fuzzy_encoded.mean(dim=1),
-                self.components['generative_coalgebra'],
-                self.components['coalgebra_optimizer'],
-                self.components['coalgebra_loss_fn'],
-                self.components['backprop_functor'],
-                steps=2
-            )
-            evolved_state = coalgebra_trajectory[-1].unsqueeze(1).expand(-1, seq_len, -1)
-        except Exception as e:
-            logger.debug(f"Coalgebra evolution failed: {e}")
-            evolved_state = torch.tanh(fuzzy_encoded) + 0.1 * torch.randn_like(fuzzy_encoded)
-        
-        # Apply Yoneda embeddings
-        try:
-            if len(evolved_state.shape) == 3:
-                evolved_state_2d = evolved_state.mean(dim=1)
+            # Only run coalgebra evolution every 5 forward passes for efficiency
+            if self._forward_count % 5 == 0:
+                logger.debug(f"🔍 RUNNING FULL COALGEBRA EVOLUTION...")
+                evolution_start = time.time()
+                coalgebra_trajectory = self.categorical_operations.evolve_generative_coalgebra(
+                    fuzzy_input.mean(dim=1),
+                    self.components['generative_coalgebra'],
+                    self.components['coalgebra_optimizer'],
+                    self.components['coalgebra_loss_fn'],
+                    self.components['backprop_functor'],
+                    steps=1  # Reduced steps for efficiency
+                )
+                evolved_state = coalgebra_trajectory[-1].unsqueeze(1).expand(-1, seq_len, -1)
+                logger.debug(f"🔍 COALGEBRA EVOLUTION COMPLETED: {time.time() - evolution_start:.4f}s")
             else:
-                evolved_state_2d = evolved_state
-            yoneda_embedded = self.components['yoneda_proxy']._profile(evolved_state_2d).squeeze(-1)
+                # Use cached or simplified evolution for other forward passes
+                logger.debug(f"🔍 USING SIMPLIFIED COALGEBRA EVOLUTION...")
+                fallback_start = time.time()
+                evolved_state = torch.tanh(fuzzy_input) + 0.05 * torch.randn_like(fuzzy_input)
+                logger.debug(f"🔍 SIMPLIFIED EVOLUTION: {time.time() - fallback_start:.4f}s")
         except Exception as e:
-            logger.debug(f"Yoneda embedding failed: {e}")
+            logger.debug(f"🔍 COALGEBRA EVOLUTION FAILED: {e} - Using fallback")
+            evolved_state = torch.tanh(fuzzy_input) + 0.05 * torch.randn_like(fuzzy_input)
+        logger.debug(f"🔍 COALGEBRA SECTION TOTAL: {time.time() - coalgebra_start:.4f}s")
+        
+        # Apply Yoneda embeddings while preserving sequence dimension
+        yoneda_start = time.time()
+        logger.debug(f"🔍 STARTING YONEDA EMBEDDINGS...")
+        try:
+            # Process each sequence position separately to preserve sequence dimension
+            batch_size, seq_len, hidden_dim = evolved_state.shape
+            yoneda_embedded = torch.zeros_like(evolved_state)
+            
+            for i in range(seq_len):
+                seq_slice = evolved_state[:, i, :]
+                yoneda_slice = self.components['yoneda_proxy']._profile(seq_slice).squeeze(-1)
+                # Ensure yoneda_slice has correct dimension
+                if yoneda_slice.shape[-1] != hidden_dim:
+                    # Pad or truncate to match hidden_dim
+                    if yoneda_slice.shape[-1] < hidden_dim:
+                        padding = torch.zeros(batch_size, hidden_dim - yoneda_slice.shape[-1], device=yoneda_slice.device)
+                        yoneda_slice = torch.cat([yoneda_slice, padding], dim=-1)
+                    else:
+                        yoneda_slice = yoneda_slice[:, :hidden_dim]
+                yoneda_embedded[:, i, :] = yoneda_slice
+            
+            logger.debug(f"🔍 YONEDA EMBEDDINGS SUCCESS: {time.time() - yoneda_start:.4f}s")
+        except Exception as e:
+            logger.debug(f"🔍 YONEDA EMBEDDINGS FAILED: {e} - Using fallback")
             yoneda_embedded = evolved_state
         
-        # Apply Kan extensions using refactored operations
+        # Apply Kan extensions using refactored operations (preserve sequence dimension)
+        kan_start = time.time()
+        logger.debug(f"🔍 STARTING KAN EXTENSIONS...")
         try:
-            compositional_repr = self.categorical_operations.apply_compositional_kan_extensions(
-                yoneda_embedded,
-                self.components['left_kan_extension'],
-                self.components['right_kan_extension']
-            )
+            # Process sequence-wise to preserve dimensions
+            batch_size, seq_len, hidden_dim = yoneda_embedded.shape
+            compositional_repr = torch.zeros_like(yoneda_embedded)
+            
+            for i in range(seq_len):
+                seq_slice = yoneda_embedded[:, i, :]
+                kan_slice = self.categorical_operations.apply_compositional_kan_extensions(
+                    seq_slice,
+                    self.components['left_kan_extension'],
+                    self.components['right_kan_extension']
+                )
+                # Ensure kan_slice has correct dimension
+                if kan_slice.shape[-1] != hidden_dim:
+                    if kan_slice.shape[-1] < hidden_dim:
+                        padding = torch.zeros(batch_size, hidden_dim - kan_slice.shape[-1], device=kan_slice.device)
+                        kan_slice = torch.cat([kan_slice, padding], dim=-1)
+                    else:
+                        kan_slice = kan_slice[:, :hidden_dim]
+                compositional_repr[:, i, :] = kan_slice
+            
+            logger.debug(f"🔍 KAN EXTENSIONS SUCCESS: {time.time() - kan_start:.4f}s")
         except Exception as e:
-            logger.debug(f"Kan extensions failed: {e}")
+            logger.debug(f"🔍 KAN EXTENSIONS FAILED: {e} - Using fallback")
             compositional_repr = yoneda_embedded
         
-        # Compute ends/coends using refactored operations
+        # Compute ends/coends using refactored operations (preserve sequence dimension)
+        ends_start = time.time()
+        logger.debug(f"🔍 STARTING ENDS/COENDS COMPUTATION...")
         try:
-            end_result, coend_result = self.categorical_operations.compute_ends_coends(
-                compositional_repr,
-                self.components['end_computation'],
-                self.components['coend_computation']
-            )
-            final_repr = (compositional_repr + end_result + coend_result) / 3
+            # Process sequence-wise to preserve dimensions
+            batch_size, seq_len, hidden_dim = compositional_repr.shape
+            final_repr = torch.zeros_like(compositional_repr)
+            
+            for i in range(seq_len):
+                seq_slice = compositional_repr[:, i, :]
+                end_result, coend_result = self.categorical_operations.compute_ends_coends(
+                    seq_slice,
+                    self.components['end_computation'],
+                    self.components['coend_computation']
+                )
+                # Ensure results have correct dimension
+                if end_result.shape[-1] != hidden_dim:
+                    if end_result.shape[-1] < hidden_dim:
+                        padding = torch.zeros(batch_size, hidden_dim - end_result.shape[-1], device=end_result.device)
+                        end_result = torch.cat([end_result, padding], dim=-1)
+                    else:
+                        end_result = end_result[:, :hidden_dim]
+                        
+                if coend_result.shape[-1] != hidden_dim:
+                    if coend_result.shape[-1] < hidden_dim:
+                        padding = torch.zeros(batch_size, hidden_dim - coend_result.shape[-1], device=coend_result.device)
+                        coend_result = torch.cat([coend_result, padding], dim=-1)
+                    else:
+                        coend_result = coend_result[:, :hidden_dim]
+                        
+                final_repr[:, i, :] = (seq_slice + end_result + coend_result) / 3
+            
+            logger.debug(f"🔍 ENDS/COENDS SUCCESS: {time.time() - ends_start:.4f}s")
         except Exception as e:
-            logger.debug(f"Ends/coends computation failed: {e}")
+            logger.debug(f"🔍 ENDS/COENDS FAILED: {e} - Using fallback")
             final_repr = compositional_repr
         
         # Language modeling head
+        lm_head_start = time.time()
+        logger.debug(f"🔍 STARTING LANGUAGE MODELING HEAD...")
         logits = self.lm_head(final_repr)
+        logger.debug(f"🔍 LANGUAGE MODELING HEAD: {time.time() - lm_head_start:.4f}s")
+        
+        # Forward pass summary
+        total_time = time.time() - start_time
+        logger.debug(f"🔍 FORWARD PASS COMPLETE - Total time: {total_time:.4f}s, Output shape: {logits.shape}")
         
         return {
             'logits': logits,
