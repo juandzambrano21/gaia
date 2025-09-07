@@ -281,11 +281,20 @@ class FuzzyEncodingPipeline:
         Complete encoding pipeline: F1 → F2 → F3 → F4.
         
         Args:
-            X: Data matrix of shape (n_samples, n_features)
+            X: Data matrix of shape (n_samples, n_features) or (batch_size, seq_len, n_features)
             
         Returns:
             Global fuzzy simplicial set encoding the data
         """
+        # Handle 3D tensors by reshaping to 2D for NearestNeighbors compatibility
+        original_shape = X.shape
+        if len(X.shape) == 3:
+            # Reshape (batch_size, seq_len, n_features) -> (batch_size * seq_len, n_features)
+            X = X.reshape(-1, X.shape[-1])
+        elif len(X.shape) > 3:
+            # Flatten all dimensions except the last one
+            X = X.reshape(-1, X.shape[-1])
+        
         # F1: k-nearest neighbors
         distances, indices = self.step_f1_knn(X)
         

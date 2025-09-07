@@ -1,7 +1,7 @@
 """
 Complete Hierarchical Message Passing for GAIA Framework
 
-Implements Section 3.4 from paper.md: "Hierarchical Message Passing"
+Implements Section 3.4 from GAIA paper: "Hierarchical Message Passing"
 
 THEORETICAL FOUNDATIONS:
 - θ_σ parameters for each simplex σ ∈ X_n
@@ -33,7 +33,7 @@ class SimplexParameters:
     """
     Parameters θ_σ for a specific simplex σ
     
-    From paper.md: "For each simplex σ∈X_n with faces d_i σ∈X_{n-1}, 
+    From GAIA paper: "For each simplex σ∈X_n with faces d_i σ∈X_{n-1}, 
     define parameter vectors θ_σ"
     """
     simplex_id: str
@@ -51,7 +51,7 @@ class LocalObjective:
     """
     Local objective function L_σ for a simplex
     
-    From paper.md: "Local objective functions L_σ(θ_{d_0σ},...,θ_{d_nσ}) for each simplex"
+    From GAIA paper: "Local objective functions L_σ(θ_{d_0σ},...,θ_{d_nσ}) for each simplex"
     """
     simplex_id: str
     objective_function: Callable
@@ -172,7 +172,7 @@ class HierarchicalMessagePasser:
         """
         Compute gradient combination from (n+1) faces
         
-        From paper.md: "Update rule for θ_σ combining gradient information de (n+1) faces"
+        From GAIA paper: "Update rule for θ_σ combining gradient information de (n+1) faces"
         """
         if simplex_id not in self.simplex_parameters:
             return torch.zeros(1, device=self.device)
@@ -225,7 +225,7 @@ class HierarchicalMessagePasser:
         """
         Compute instructions from degeneracies
         
-        From paper.md: "Instructions desde degeneracies que incluyen σ como face"
+        From GAIA paper: "Instructions desde degeneracies que incluyen σ como face"
         """
         if simplex_id not in self.simplex_parameters:
             return torch.zeros(1, device=self.device)
@@ -260,7 +260,7 @@ class HierarchicalMessagePasser:
         """
         Perform one hierarchical update step
         
-        From paper.md: "Hierarchical update scheme donde información percolates up/down el simplicial complex"
+        From GAIA paper: "Hierarchical update scheme donde información percolates up/down el simplicial complex"
         """
         total_losses = {}
         
@@ -361,13 +361,14 @@ class HierarchicalMessagePasser:
     
     def full_hierarchical_message_passing(self, 
                                         num_steps: int = 10, 
-                                        learning_rate: float = 0.01) -> Dict[str, Any]:
+                                        learning_rate: float = 0.01,
+                                        total_loss: Optional[torch.Tensor] = None) -> Dict[str, Any]:
         """
         Perform complete hierarchical message passing
         
         Implements the full algorithm from Section 3.4
         """
-        logger.info(f"Starting hierarchical message passing for {num_steps} steps")
+        # logger.info(f"Starting hierarchical message passing for {num_steps} steps")
         
         results = {
             'losses_by_step': [],
@@ -411,11 +412,6 @@ class HierarchicalMessagePasser:
                 
                 results['convergence_metrics'].append(convergence)
             
-            if step % 5 == 0:
-                total_loss = sum(step_losses.values())
-                logger.info(f"Step {step}: Total loss = {total_loss:.6f}")
-        
-        logger.info("✅ Hierarchical message passing completed")
         return results
     
     def get_system_state(self) -> Dict[str, Any]:

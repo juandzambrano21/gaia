@@ -81,8 +81,14 @@ class HornFillingVerifier:
         Returns:
             Verification result
         """
+        logger.info(f"🔧 HORN FRAMEWORK: INNER HORN FILLING verification STARTED")
+        logger.info(f"   Simplex ID: {simplex_id}")
+        logger.info(f"   Horn index k: {horn_index} (inner horn: 1 ≤ k ≤ n-1)")
+        logger.info(f"   Tolerance: {tolerance}")
+        
         cache_key = (simplex_id, horn_index)
         if cache_key in self.verification_cache:
+            logger.info(f"   Using cached result for horn verification")
             return self.verification_cache[cache_key]
         
         simplex = self.simplicial_functor.registry[simplex_id]
@@ -105,6 +111,7 @@ class HornFillingVerifier:
         try:
             face = self.simplicial_functor.face(horn_index, simplex_id)
             # Face exists - not a horn
+            logger.info(f"   Face {horn_index} exists - not a horn (face: {face.name})")
             result = KanConditionResult(
                 condition_type=KanConditionType.INNER_HORN_FILLING,
                 simplex_id=simplex_id,
@@ -116,9 +123,11 @@ class HornFillingVerifier:
             )
         except HornError:
             # Face missing - verify horn filling capability
+            logger.info(f"   Face {horn_index} missing - verifying horn filling capability")
             result = self._verify_inner_horn_solvability(simplex_id, horn_index, tolerance)
         
         self.verification_cache[cache_key] = result
+        logger.info(f"🔧 HORN FRAMEWORK: INNER HORN verification COMPLETED - {result}")
         return result
     
     def verify_outer_horn_filling(self, simplex_id: uuid.UUID, horn_index: int,
@@ -134,8 +143,14 @@ class HornFillingVerifier:
         Returns:
             Verification result
         """
+        logger.info(f"🔧 HORN FRAMEWORK: OUTER HORN FILLING verification STARTED")
+        logger.info(f"   Simplex ID: {simplex_id}")
+        logger.info(f"   Horn index k: {horn_index} (outer horn: k=0 or k=n)")
+        logger.info(f"   Tolerance: {tolerance}")
+        
         cache_key = (simplex_id, horn_index)
         if cache_key in self.verification_cache:
+            logger.info(f"   Using cached result for horn verification")
             return self.verification_cache[cache_key]
         
         simplex = self.simplicial_functor.registry[simplex_id]
@@ -177,16 +192,23 @@ class HornFillingVerifier:
     def _verify_inner_horn_solvability(self, simplex_id: uuid.UUID, horn_index: int,
                                       tolerance: float) -> KanConditionResult:
         """Verify that inner horn can be solved using endofunctorial solver."""
+        logger.info(f"🔧 HORN FRAMEWORK: Testing inner horn solvability")
         simplex = self.simplicial_functor.registry[simplex_id]
+        logger.info(f"   Simplex level: {simplex.level}")
+        logger.info(f"   Simplex name: {simplex.name}")
+        logger.info(f"   Horn index: {horn_index}")
         
         try:
             # Check if we have the necessary structure for inner horn solving
             if simplex.level == 2:
+                logger.info(f"   🔧 Using endofunctorial solver for 2-simplex")
                 # For 2-simplices, check if we can create endofunctorial solver
                 verification_data = self._test_endofunctorial_solver(simplex_id, horn_index)
                 
                 satisfied = verification_data.get("solver_created", False)
                 confidence = verification_data.get("confidence", 0.0)
+                logger.info(f"   Endofunctorial solver created: {satisfied}")
+                logger.info(f"   Solver confidence: {confidence:.3f}")
                 
                 return KanConditionResult(
                     condition_type=KanConditionType.INNER_HORN_FILLING,
@@ -198,16 +220,22 @@ class HornFillingVerifier:
                     verification_data=verification_data
                 )
             else:
+                logger.info(f"   🔧 Using general verification for {simplex.level}-simplex")
                 # For higher-dimensional simplices, use general verification
                 verification_data = self._test_general_inner_horn(simplex_id, horn_index)
+                
+                solvable = verification_data.get("solvable", False)
+                confidence = verification_data.get("confidence", 0.5)
+                logger.info(f"   General horn solvable: {solvable}")
+                logger.info(f"   General confidence: {confidence:.3f}")
                 
                 return KanConditionResult(
                     condition_type=KanConditionType.INNER_HORN_FILLING,
                     simplex_id=simplex_id,
                     simplex_name=simplex.name,
                     horn_index=horn_index,
-                    satisfied=verification_data.get("solvable", False),
-                    confidence=verification_data.get("confidence", 0.5),
+                    satisfied=solvable,
+                    confidence=confidence,
                     verification_data=verification_data
                 )
         

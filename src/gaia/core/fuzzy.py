@@ -393,6 +393,10 @@ def create_gaussian_fuzzy_set(center: float, sigma: float, domain: List[float], 
     elements = set(domain)
     
     def membership_func(x):
+        # Handle tensor inputs
+        if torch.is_tensor(x):
+            return torch.exp(-0.5 * ((x - center) / sigma) ** 2)
+        # Handle scalar inputs
         if x not in domain:
             return 0.0
         return np.exp(-0.5 * ((x - center) / sigma) ** 2)
@@ -405,6 +409,15 @@ def create_triangular_fuzzy_set(a: float, b: float, c: float, domain: List[float
     elements = set(domain)
     
     def membership_func(x):
+        # Handle tensor inputs
+        if torch.is_tensor(x):
+            result = torch.zeros_like(x)
+            mask1 = (x > a) & (x <= b)
+            mask2 = (x > b) & (x < c)
+            result[mask1] = (x[mask1] - a) / (b - a)
+            result[mask2] = (c - x[mask2]) / (c - b)
+            return result
+        # Handle scalar inputs
         if x not in domain:
             return 0.0
         if x <= a or x >= c:

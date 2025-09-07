@@ -256,21 +256,26 @@ class SimplicialFunctor:
         Returns:
             List of (simplex_id, face_index) tuples representing horns
         """
+        
         # Use cached results if valid
         cache_key = (level, horn_type)
         if self._horn_cache_valid and cache_key in self._horn_cache:
-            return self._horn_cache[cache_key]
+            cached_horns = self._horn_cache[cache_key]
+            return cached_horns
         
         horns = []
         if level not in self.graded_registry:
             return []
 
+        
         # DIRECT STRUCTURE QUERY - no pending caches
         for s_id in self.graded_registry[level]:
             simplex = self.registry[s_id]
+            
             for i in range(simplex.level + 1):
                 # A horn exists if the face map is not in the maps dictionary
                 if (s_id, i, MapType.FACE) not in self.maps:
+                    
                     # Check if it matches the requested horn type
                     if horn_type == "both":
                         horns.append((s_id, i))
@@ -278,6 +283,10 @@ class SimplicialFunctor:
                         horns.append((s_id, i))
                     elif horn_type == "outer" and (i == 0 or i == simplex.level):
                         horns.append((s_id, i))
+                    else:
+                        logger.debug(f"🔍 HORN DETECTION: Horn at ({str(s_id)[:8]}..., {i}) doesn't match type '{horn_type}'")
+        
+        logger.debug(f"🔍 HORN DETECTION: Completed - found {len(horns)} total horns of type '{horn_type}'")
         
         # Update cache
         self._horn_cache[cache_key] = horns

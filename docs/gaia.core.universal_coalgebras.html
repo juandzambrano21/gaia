@@ -1044,7 +1044,7 @@
   <section id="module-gaia.core.universal_coalgebras">
 <span id="gaia-core-universal-coalgebras-module"></span><h1>gaia.core.universal_coalgebras module<a class="headerlink" href="#module-gaia.core.universal_coalgebras" title="Link to this heading"></a></h1>
 <p>Universal Coalgebras for GAIA Framework</p>
-<p>Implements Section 3 from paper.md: “Backpropagation as an Endofunctor: Generative AI using Universal Coalgebras”</p>
+<p>Implements Section 3 from GAIA paper: “Backpropagation as an Endofunctor: Generative AI using Universal Coalgebras”</p>
 <p>THEORETICAL FOUNDATIONS:
 - Definition 7: F-coalgebra (A, α) with structure map α: A → F(A)
 - Definition 9: Coalgebra homomorphisms with commutative diagrams
@@ -1126,7 +1126,7 @@ classes in the first place with <cite>class Foo(Generic[T]): …</cite>.</p>
 <dt class="sig sig-object py" id="gaia.core.universal_coalgebras.StreamFunctor">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gaia.core.universal_coalgebras.</span></span><span class="sig-name descname"><span class="pre">StreamFunctor</span></span><a class="reference internal" href="_modules/gaia/core/universal_coalgebras.html#StreamFunctor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.universal_coalgebras.StreamFunctor" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#gaia.core.universal_coalgebras.Endofunctor" title="gaia.core.universal_coalgebras.Endofunctor"><code class="xref py py-class docutils literal notranslate"><span class="pre">Endofunctor</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code></a>]</p>
-<p>Stream functor Str: Set → Set, Str(X) = ℕ × X from paper.md</p>
+<p>Stream functor Str: Set → Set, Str(X) = ℕ × X from GAIA paper</p>
 <p>Models infinite data streams for generative AI (LLMs, sequence models).</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gaia.core.universal_coalgebras.StreamFunctor.apply">
@@ -1493,7 +1493,7 @@ classes in the first place with <cite>class Foo(Generic[T]): …</cite>.</p>
 <dt class="sig sig-object py" id="gaia.core.universal_coalgebras.create_diffusion_coalgebra">
 <span class="sig-prename descclassname"><span class="pre">gaia.core.universal_coalgebras.</span></span><span class="sig-name descname"><span class="pre">create_diffusion_coalgebra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noise_schedule</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/universal_coalgebras.html#create_diffusion_coalgebra"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.universal_coalgebras.create_diffusion_coalgebra" title="Link to this definition"></a></dt>
 <dd><p>Create coalgebra for diffusion model</p>
-<p>Models probabilistic coalgebra over ODEs from paper.md</p>
+<p>Models probabilistic coalgebra over ODEs from GAIA paper</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

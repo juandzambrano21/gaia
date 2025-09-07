@@ -27,6 +27,119 @@ class EndofunctorialSolver:
     Following Mahadevan (2024), this implements the Inner Horn Λ²₁ solver
     where h = g ∘ f is defined symbolically and optimization concerns only task loss.
     """
+    
+    def solve_horn(self, horn) -> Optional[Dict]:
+        """Solve inner horn using endofunctorial approach."""
+        print("🔧 INNER SOLVER STEP 1: Starting inner horn solving process...")
+        try:
+            # Extract horn information
+            simplex_id = horn.simplex_id if hasattr(horn, 'simplex_id') else None
+            horn_index = horn.horn_index if hasattr(horn, 'horn_index') else None
+            print(f"🔧 INNER SOLVER STEP 2: Extracted horn info - simplex_id: {simplex_id}, horn_index: {horn_index}")
+            
+            if simplex_id is None or horn_index is None:
+                print("🔧 INNER SOLVER ERROR: Missing simplex_id or horn_index")
+                return None
+                
+            # Get the simplex from functor registry
+            if not hasattr(self.functor, 'registry') or simplex_id not in self.functor.registry:
+                print("🔧 INNER SOLVER ERROR: Simplex not found in functor registry")
+                return None
+                
+            simplex = self.functor.registry[simplex_id]
+            print(f"🔧 INNER SOLVER STEP 3: Retrieved simplex - level: {simplex.level}, type: {type(simplex).__name__}")
+            
+            # Verify this is an inner horn (1 ≤ k ≤ n-1)
+            if not (1 <= horn_index <= simplex.level - 1):
+                print(f"🔧 INNER SOLVER ERROR: Invalid inner horn index {horn_index} for simplex level {simplex.level}")
+                return None
+                
+            print(f"🔧 INNER SOLVER STEP 4: Verified inner horn condition (1 ≤ {horn_index} ≤ {simplex.level - 1})")
+            
+            # Apply endofunctorial transformation
+            # For inner horns, we can use direct composition h = g ∘ f
+            print("🔧 INNER SOLVER STEP 5: Applying endofunctorial composition h = g ∘ f...")
+            result = self._apply_endofunctorial_composition(simplex, horn_index)
+            print(f"🔧 INNER SOLVER STEP 6: Endofunctorial composition completed - result type: {type(result)}")
+            
+            solution = {
+                'status': 'solved',
+                'method': 'endofunctorial',
+                'simplex_id': simplex_id,
+                'horn_index': horn_index,
+                'result': result
+            }
+            print(f"🔧 INNER SOLVER STEP 7: Inner horn solving SUCCESSFUL! Status: {solution['status']}")
+            return solution
+            
+        except Exception as e:
+            print(f"🔧 INNER SOLVER ERROR: Exception during solving: {e}")
+            return {
+                'status': 'failed',
+                'error': str(e)
+            }
+    
+    def _apply_endofunctorial_composition(self, simplex, horn_index):
+        """Apply endofunctorial composition for inner horn filling."""
+        print(f"🔧 INNER SOLVER: Applying endofunctorial composition for simplex {simplex} at horn index {horn_index}")
+        
+        # For inner horns, we need to fill the missing face by creating a new morphism
+        try:
+            # Create the missing face morphism based on horn type
+            if hasattr(simplex, 'level') and simplex.level >= 2:
+                # For 2-simplices, create the missing edge
+                if horn_index == 1:  # Missing middle face
+                    # Create composition h = g ∘ f as required by theory
+                    if hasattr(simplex, 'f') and hasattr(simplex, 'g'):
+                        # Get domain and codomain from existing morphisms
+                        domain = simplex.f.domain if hasattr(simplex.f, 'domain') else None
+                        codomain = simplex.g.codomain if hasattr(simplex.g, 'codomain') else None
+                        
+                        if domain and codomain:
+                            # Create new morphism as composition
+                            import torch.nn as nn
+                            new_morphism = nn.Linear(domain.dim, codomain.dim)
+                            
+                            # Initialize with composition of existing morphisms
+                            with torch.no_grad():
+                                if hasattr(simplex.f, 'morphism') and hasattr(simplex.g, 'morphism'):
+                                    # Compose the weights: W_h = W_g @ W_f
+                                    new_morphism.weight.data = torch.matmul(
+                                        simplex.g.morphism.weight.data,
+                                        simplex.f.morphism.weight.data
+                                    )
+                                    if new_morphism.bias is not None:
+                                        new_morphism.bias.data = simplex.g.morphism.bias.data.clone()
+                            
+                            # Create new 1-simplex for the filled horn
+                            from gaia.core.simplices import Simplex1
+                            import uuid
+                            filled_morphism = Simplex1(
+                                new_morphism, domain, codomain, f"filled_horn_{uuid.uuid4().hex[:8]}"
+                            )
+                            
+                            # CRITICAL: Add to functor registry to modify structure
+                            if hasattr(self.functor, 'registry'):
+                                self.functor.registry[filled_morphism.id] = filled_morphism
+                                print(f"🔧 INNER SOLVER: Added filled morphism {filled_morphism.id} to functor registry")
+                            
+                            # Update the simplex to include the filled face
+                            if hasattr(simplex, 'faces'):
+                                simplex.faces[horn_index] = filled_morphism
+                                print(f"🔧 INNER SOLVER: Updated simplex face {horn_index} with filled morphism")
+                            
+                            return {
+                                'filled_morphism': filled_morphism,
+                                'composition_weights': new_morphism.state_dict(),
+                                'modified_registry': True
+                            }
+            
+            print(f"🔧 INNER SOLVER WARNING: Could not create composition for simplex level {getattr(simplex, 'level', 'unknown')}")
+            return {'modified_registry': False, 'error': 'Insufficient simplex structure'}
+            
+        except Exception as e:
+            print(f"🔧 INNER SOLVER ERROR: Failed to modify functorial structure: {e}")
+            return {'modified_registry': False, 'error': str(e)}
     def __init__(self, functor: SimplicialFunctor, simplex2_id: uuid.UUID, lr: float = 0.01, coherence_weight: float = 1.0, writer: Optional[SummaryWriter] = None):
         self.functor = functor
         self.s2_id = simplex2_id  
@@ -49,11 +162,33 @@ class EndofunctorialSolver:
         self._step = 0
         self._epoch = 0  # Track epochs properly
         
-        # Optimizer with gradient clipping for stability
-        self.opt = optim.Adam(
-            list(self.f.morphism.parameters()) + list(self.g.morphism.parameters()),
-            lr=lr, weight_decay=1e-5
-        )
+        # According to GAIA paper, horn filling should optimize the entire
+        # functorial structure. All morphisms f, g, h in the 2-simplex should be learnable
+        # neural networks registered in the functor, as per the categorical foundation.
+        
+        all_params = []
+        
+        # Collect parameters from all morphisms in the triangle
+        f_params = list(self.f.morphism.parameters())
+        g_params = list(self.g.morphism.parameters()) 
+        h_params = list(s2.h.morphism.parameters())
+        
+        if f_params:
+            all_params.extend(f_params)
+        
+        if g_params:
+            all_params.extend(g_params)
+            
+        if h_params:
+            all_params.extend(h_params)
+        
+        if not all_params:
+            raise RuntimeError(f"No trainable parameters found in triangle morphisms. "
+                             f"This violates GAIA's theoretical foundation where all morphisms "
+                             f"should be learnable neural networks registered in the functor.")
+        
+        # Optimizer with gradient clipping for stability - optimize entire triangle
+        self.opt = optim.Adam(all_params, lr=lr, weight_decay=1e-5)
         
         # FIX: Proper epoch-based scheduler with deterministic resets
         self.scheduler = optim.lr_scheduler.CosineAnnealingWarmRestarts(

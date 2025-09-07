@@ -1,7 +1,7 @@
 """
 Ends and Coends for GAIA Framework - Integral Calculus for Generative AI
 
-Implements Section 7 from paper.md: "The Coend and End of GAIA: Integral Calculus for Generative AI"
+Implements Section 7 from GAIA paper: "The Coend and End of GAIA: Integral Calculus for Generative AI"
 
 THEORETICAL FOUNDATIONS:
 - Section 7.1: Ends and Coends as categorical integrals
@@ -62,7 +62,7 @@ class End(CategoricalIntegral):
     
     ∫_c F(c,c) - limit over twisted arrow category
     
-    From paper.md: "The End of GAIA represents the terminal object
+    From GAIA paper: "The End of GAIA represents the terminal object
     in the category of natural transformations"
     """
     
@@ -138,7 +138,7 @@ class Coend(CategoricalIntegral):
     
     ∫^c F(c,c) - colimit over twisted arrow category
     
-    From paper.md: "Coends represent the initial object for
+    From GAIA paper: "Coends represent the initial object for
     generative processes in GAIA"
     """
     

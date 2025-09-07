@@ -1044,7 +1044,7 @@
   <section id="module-gaia.core.metric_yoneda">
 <span id="gaia-core-metric-yoneda-module"></span><h1>gaia.core.metric_yoneda module<a class="headerlink" href="#module-gaia.core.metric_yoneda" title="Link to this heading"></a></h1>
 <p>Metric Yoneda Lemma for GAIA Framework</p>
-<p>Implements Section 6.7 from paper.md: “The Metric Yoneda Lemma”</p>
+<p>Implements Section 6.7 from GAIA paper: “The Metric Yoneda Lemma”</p>
 <p>THEORETICAL FOUNDATIONS:
 - Generalized metric spaces (X, d) with non-symmetric distances
 - [0,∞]-enriched categories for distance computations
@@ -1099,7 +1099,7 @@ classes in the first place with <cite>class Foo(Generic[T]): …</cite>.</p>
 <dt class="sig sig-object py" id="gaia.core.metric_yoneda.EnrichedCategory">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gaia.core.metric_yoneda.</span></span><span class="sig-name descname"><span class="pre">EnrichedCategory</span></span><a class="reference internal" href="_modules/gaia/core/metric_yoneda.html#EnrichedCategory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.metric_yoneda.EnrichedCategory" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>[0,∞]-enriched category from paper.md</p>
+<p>[0,∞]-enriched category from GAIA paper</p>
 <p>Objects are non-negative real numbers including ∞
 Morphisms exist r → s iff r ≤ s
 Monoidal structure via addition: r ⊗ s = r + s</p>
@@ -1199,7 +1199,7 @@ Monoidal structure via addition: r ⊗ s = r + s</p>
 <dt class="sig sig-object py" id="gaia.core.metric_yoneda.YonedaEmbedding.verify_isometry">
 <span class="sig-name descname"><span class="pre">verify_isometry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_prime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tolerance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/metric_yoneda.html#YonedaEmbedding.verify_isometry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.metric_yoneda.YonedaEmbedding.verify_isometry" title="Link to this definition"></a></dt>
 <dd><p>Verify isometric property: X(x,x’) = X̂(y(x), y(x’))</p>
-<p>This is Theorem 9 from paper.md</p>
+<p>This is Theorem 9 from GAIA paper</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -1208,7 +1208,7 @@ Monoidal structure via addition: r ⊗ s = r + s</p>
 <dt class="sig sig-object py" id="gaia.core.metric_yoneda.YonedaEmbedding.universal_property">
 <span class="sig-name descname"><span class="pre">universal_property</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/metric_yoneda.html#YonedaEmbedding.universal_property"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.metric_yoneda.YonedaEmbedding.universal_property" title="Link to this definition"></a></dt>
 <dd><p>Universal property: X̂(X(-,x), φ) = φ(x)</p>
-<p>This is the metric Yoneda lemma from paper.md</p>
+<p>This is the metric Yoneda lemma from GAIA paper</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -1231,7 +1231,7 @@ classes in the first place with <cite>class Foo(Generic[T]): …</cite>.</p>
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gaia.core.metric_yoneda.</span></span><span class="sig-name descname"><span class="pre">MetricYonedaApplications</span></span><a class="reference internal" href="_modules/gaia/core/metric_yoneda.html#MetricYonedaApplications"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.metric_yoneda.MetricYonedaApplications" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Applications of Metric Yoneda Lemma to AI/ML problems</p>
-<p>From paper.md: “discriminate two objects (probability distributions,
+<p>From GAIA paper: “discriminate two objects (probability distributions,
 images, text documents) by comparing them in suitable metric space”</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="gaia.core.metric_yoneda.MetricYonedaApplications.create_text_metric_space">

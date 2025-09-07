@@ -1043,7 +1043,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Universal Coalgebras for GAIA Framework</span>
 
-<span class="sd">Implements Section 3 from paper.md: &quot;Backpropagation as an Endofunctor: Generative AI using Universal Coalgebras&quot;</span>
+<span class="sd">Implements Section 3 from GAIA paper: &quot;Backpropagation as an Endofunctor: Generative AI using Universal Coalgebras&quot;</span>
 
 <span class="sd">THEORETICAL FOUNDATIONS:</span>
 <span class="sd">- Definition 7: F-coalgebra (A, α) with structure map α: A → F(A)</span>
@@ -1136,7 +1136,7 @@
 <a class="viewcode-back" href="../../../gaia.integration.html#gaia.core.universal_coalgebras.StreamFunctor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StreamFunctor</span><span class="p">(</span><span class="n">Endofunctor</span><span class="p">[</span><span class="n">List</span><span class="p">]):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Stream functor Str: Set → Set, Str(X) = ℕ × X from paper.md</span>
+<span class="sd">    Stream functor Str: Set → Set, Str(X) = ℕ × X from GAIA paper</span>
 <span class="sd">    </span>
 <span class="sd">    Models infinite data streams for generative AI (LLMs, sequence models).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1603,7 +1603,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create coalgebra for diffusion model</span>
 <span class="sd">    </span>
-<span class="sd">    Models probabilistic coalgebra over ODEs from paper.md</span>
+<span class="sd">    Models probabilistic coalgebra over ODEs from GAIA paper</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">diffusion_structure_map</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="c1"># Simplified diffusion step</span>

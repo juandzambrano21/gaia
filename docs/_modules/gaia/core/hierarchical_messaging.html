@@ -1043,7 +1043,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Complete Hierarchical Message Passing for GAIA Framework</span>
 
-<span class="sd">Implements Section 3.4 from paper.md: &quot;Hierarchical Message Passing&quot;</span>
+<span class="sd">Implements Section 3.4 from GAIA paper: &quot;Hierarchical Message Passing&quot;</span>
 
 <span class="sd">THEORETICAL FOUNDATIONS:</span>
 <span class="sd">- θ_σ parameters for each simplex σ ∈ X_n</span>
@@ -1077,7 +1077,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters θ_σ for a specific simplex σ</span>
 <span class="sd">    </span>
-<span class="sd">    From paper.md: &quot;For each simplex σ∈X_n with faces d_i σ∈X_{n-1}, </span>
+<span class="sd">    From GAIA paper: &quot;For each simplex σ∈X_n with faces d_i σ∈X_{n-1}, </span>
 <span class="sd">    define parameter vectors θ_σ&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">simplex_id</span><span class="p">:</span> <span class="nb">str</span>
@@ -1098,7 +1098,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Local objective function L_σ for a simplex</span>
 <span class="sd">    </span>
-<span class="sd">    From paper.md: &quot;Local objective functions L_σ(θ_{d_0σ},...,θ_{d_nσ}) for each simplex&quot;</span>
+<span class="sd">    From GAIA paper: &quot;Local objective functions L_σ(θ_{d_0σ},...,θ_{d_nσ}) for each simplex&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">simplex_id</span><span class="p">:</span> <span class="nb">str</span>
     <span class="n">objective_function</span><span class="p">:</span> <span class="n">Callable</span>
@@ -1236,7 +1236,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute gradient combination from (n+1) faces</span>
 <span class="sd">        </span>
-<span class="sd">        From paper.md: &quot;Update rule for θ_σ combining gradient information de (n+1) faces&quot;</span>
+<span class="sd">        From GAIA paper: &quot;Update rule for θ_σ combining gradient information de (n+1) faces&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">simplex_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">simplex_parameters</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -1292,7 +1292,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute instructions from degeneracies</span>
 <span class="sd">        </span>
-<span class="sd">        From paper.md: &quot;Instructions desde degeneracies que incluyen σ como face&quot;</span>
+<span class="sd">        From GAIA paper: &quot;Instructions desde degeneracies que incluyen σ como face&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">simplex_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">simplex_parameters</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -1330,7 +1330,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Perform one hierarchical update step</span>
 <span class="sd">        </span>
-<span class="sd">        From paper.md: &quot;Hierarchical update scheme donde información percolates up/down el simplicial complex&quot;</span>
+<span class="sd">        From GAIA paper: &quot;Hierarchical update scheme donde información percolates up/down el simplicial complex&quot;</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">total_losses</span> <span class="o">=</span> <span class="p">{}</span>
         

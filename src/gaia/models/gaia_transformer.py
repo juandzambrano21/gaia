@@ -208,6 +208,10 @@ class GAIAMultiHeadAttention(GAIAModule):
         scores = torch.matmul(Q, K.transpose(-2, -1)) / self.scale + attention_bias
         
         if mask is not None:
+            # Reshape mask to match attention scores dimensions
+            # mask: (batch_size, seq_len) -> (batch_size, 1, 1, seq_len)
+            if mask.dim() == 2:
+                mask = mask.unsqueeze(1).unsqueeze(2)
             scores = scores.masked_fill(mask == 0, -1e9)
         
         attention_weights = F.softmax(scores, dim=-1)
@@ -883,23 +887,120 @@ class GAIATransformer(GAIAModule):
         if not hasattr(self, 'functor') or self.functor is None:
             return
             
+        # Initialize horn solving tracking if not exists
+        if not hasattr(self, '_processed_horns'):
+            self._processed_horns = set()
+            self._horn_solving_step = 0
+            
+        self._horn_solving_step += 1
+
+            
         try:
-            # Find horns automatically
-            horns = self.functor.find_horns()
+            # Find horns automatically at multiple levels
+            all_horns = []
+            for level in range(1, 4):  # Check levels 1, 2, 3
+                level_horns = self.functor.find_horns(level=level, horn_type="both")
+                all_horns.extend(level_horns)
+            horns = all_horns
+            
+            # Process all detected horns to ensure proper horn filling
+            # The theoretical framework requires continuous horn filling for structural integrity
+            new_horns = []
+            for horn in horns:
+                horn_id = f"{horn[0]}_{horn[1]}"  # Create unique ID from simplex_id and face_index
+                # Process horns if never processed OR every 3 steps for continuous filling
+                if horn_id not in self._processed_horns or self._horn_solving_step % 3 == 0:
+                    new_horns.append(horn)
+                    # Only mark as processed after successful solving, not before
+                    # self._processed_horns.add(horn_id)  # Moved to after successful solving
+            
+            horns = new_horns
+            
+            # If no horns to process but we have detected horns, force process some
+            if len(horns) == 0 and len(all_horns) > 0:
+                horns = all_horns[:min(3, len(all_horns))]
             
             if horns:
                 # Solve horns automatically using built-in solvers
                 from ..training.solvers.inner_solver import EndofunctorialSolver
                 from ..training.solvers.outer_solver import UniversalLiftingSolver
+                from ..training.solvers.yoneda_proxy import MetricYonedaProxy
+                from ..core.simplices import Simplex1
                 
-                inner_solver = EndofunctorialSolver()
-                outer_solver = UniversalLiftingSolver()
+                # Initialize solvers with horn context
+                inner_solver = None
+                outer_solver = None
+                yoneda_proxy = MetricYonedaProxy(target_dim=512, num_probes=16, pretrain_steps=50)
                 
-                for horn in horns[:2]:  # Limit to 2 for performance
-                    if horn.horn_type == "inner":
-                        inner_solver.solve_horn(horn)
-                    elif horn.horn_type == "outer":
-                        outer_solver.solve_horn(horn)
+                # Find 2-simplices for inner solver initialization
+                simplex2_candidates = [sid for sid, s in self.functor.registry.items() 
+                                     if hasattr(s, 'level') and s.level == 2]
+                
+                # Find 1-simplices for outer solver initialization  
+                simplex1_candidates = [sid for sid, s in self.functor.registry.items() 
+                                     if hasattr(s, 'level') and s.level == 1]
+                
+                # Initialize inner solver with first available 2-simplex
+                if not simplex2_candidates:
+                    raise RuntimeError("Horn solving requires 2-simplices but none are available in functor registry")
+                    
+                inner_solver = EndofunctorialSolver(self.functor, simplex2_candidates[0]) 
+                
+                # Initialize outer solver with first two available 1-simplices
+                if len(simplex1_candidates) < 2:
+                    raise RuntimeError(f"Horn solving requires at least 2 1-simplices but only {len(simplex1_candidates)} available")
+                    
+                f_simplex = self.functor.registry[simplex1_candidates[0]]
+                k_simplex = self.functor.registry[simplex1_candidates[1]]
+                
+                if f_simplex is None or k_simplex is None:
+                    raise RuntimeError(f"Invalid simplices in registry: f_simplex={f_simplex}, k_simplex={k_simplex}")
+                    
+                outer_solver = UniversalLiftingSolver(f_simplex, k_simplex, yoneda_proxy)
+                # Add functor reference for horn solving
+                outer_solver.functor = self.functor
+                
+                
+                inner_count = 0
+                outer_count = 0
+                processed_count = 0
+                
+                # Process all horns to maintain structural integrity as per theory
+                for horn in horns:  # Process all detected horns
+                    simplex_id, face_index = horn
+                    processed_count += 1
+                    
+                    # Get simplex to determine horn type
+                    simplex = self.functor.registry.get(simplex_id)
+                    if simplex:
+                        # Create proper horn object for solver
+                        class HornData:
+                            def __init__(self, simplex_id, horn_index):
+                                self.simplex_id = simplex_id
+                                self.horn_index = horn_index
+                        
+                        horn_obj = HornData(simplex_id, face_index)
+                        
+                        # Determine horn type based on face index
+                        if 0 < face_index < simplex.level:
+                            inner_count += 1
+                            if inner_solver:
+                                result = inner_solver.solve_horn(horn_obj)
+                                if result:  # Mark as processed only if successful
+                                    horn_id = f"{simplex_id}_{face_index}"
+                                    self._processed_horns.add(horn_id)
+                        elif face_index == 0 or face_index == simplex.level:
+                            outer_count += 1
+                            if outer_solver:
+                                result = outer_solver.solve_horn(horn_obj)
+                                if result:  # Mark as processed only if successful
+                                    horn_id = f"{simplex_id}_{face_index}"
+                                    self._processed_horns.add(horn_id)
+                                else:
+                                    logger.debug(f"🔍 HORN-FILLING: Failed to solve outer horn {simplex_id}_{face_index}")
+                        
+            else:
+                logger.debug("🔍 HORN-FILLING: No new horns to process")
                         
         except Exception as e:
             # Horn solving is optional - don't break forward pass
@@ -934,7 +1035,7 @@ class GAIATransformer(GAIAModule):
                 global_coherence = 1.0 - 0.005 * global_stats['coherence_loss']
                 x = x * global_coherence
         
-        # AUTOMATIC: Horn detection and solving (seamless)
+        # AUTOMATIC: Horn detection and solving 
         if hasattr(self, 'functor') and self.functor is not None:
             self._automatic_horn_solving()
         

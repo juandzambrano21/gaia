@@ -1043,7 +1043,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Metric Yoneda Lemma for GAIA Framework</span>
 
-<span class="sd">Implements Section 6.7 from paper.md: &quot;The Metric Yoneda Lemma&quot;</span>
+<span class="sd">Implements Section 6.7 from GAIA paper: &quot;The Metric Yoneda Lemma&quot;</span>
 
 <span class="sd">THEORETICAL FOUNDATIONS:</span>
 <span class="sd">- Generalized metric spaces (X, d) with non-symmetric distances</span>
@@ -1141,7 +1141,7 @@
 <a class="viewcode-back" href="../../../gaia.integration.html#gaia.core.metric_yoneda.EnrichedCategory">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EnrichedCategory</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    [0,∞]-enriched category from paper.md</span>
+<span class="sd">    [0,∞]-enriched category from GAIA paper</span>
 <span class="sd">    </span>
 <span class="sd">    Objects are non-negative real numbers including ∞</span>
 <span class="sd">    Morphisms exist r → s iff r ≤ s</span>
@@ -1329,7 +1329,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Verify isometric property: X(x,x&#39;) = X̂(y(x), y(x&#39;))</span>
 <span class="sd">        </span>
-<span class="sd">        This is Theorem 9 from paper.md</span>
+<span class="sd">        This is Theorem 9 from GAIA paper</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Original distance in metric space</span>
         <span class="n">original_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric_space</span><span class="o">.</span><span class="n">distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x_prime</span><span class="p">)</span>
@@ -1355,7 +1355,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Universal property: X̂(X(-,x), φ) = φ(x)</span>
 <span class="sd">        </span>
-<span class="sd">        This is the metric Yoneda lemma from paper.md</span>
+<span class="sd">        This is the metric Yoneda lemma from GAIA paper</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">embedding_x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">distance_to_phi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">presheaf_distance</span><span class="p">(</span><span class="n">embedding_x</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
@@ -1372,7 +1372,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Applications of Metric Yoneda Lemma to AI/ML problems</span>
 <span class="sd">    </span>
-<span class="sd">    From paper.md: &quot;discriminate two objects (probability distributions, </span>
+<span class="sd">    From GAIA paper: &quot;discriminate two objects (probability distributions, </span>
 <span class="sd">    images, text documents) by comparing them in suitable metric space&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
@@ -1386,7 +1386,7 @@
 <span class="sd">        Example From (MAHADEVAN,2024) Section 6.7 for string comparison</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">def</span><span class="w"> </span><span class="nf">string_distance</span><span class="p">(</span><span class="n">u</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-            <span class="c1"># Simplified: use longest common prefix metric from paper.md</span>
+            <span class="c1"># Simplified: use longest common prefix metric from GAIA paper</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">u</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">v</span><span class="p">:</span>
                 <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
             
@@ -1398,7 +1398,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">break</span>
             
-            <span class="c1"># Distance based on paper.md formula</span>
+            <span class="c1"># Distance based on GAIA paper formula</span>
             <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">u</span><span class="p">):</span>
                 <span class="k">return</span> <span class="mf">0.0</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1612,7 +1612,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create metric space for causal graphs (DAGs)&quot;&quot;&quot;</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">causal_distance</span><span class="p">(</span><span class="n">graph1</span><span class="p">:</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">graph2</span><span class="p">:</span> <span class="n">Dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
         <span class="c1"># Distance based on structural differences</span>
-        <span class="c1"># This implements the preorder example from paper.md</span>
+        <span class="c1"># This implements the preorder example from GAIA paper</span>
         
         <span class="n">nodes1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph1</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nodes&#39;</span><span class="p">,</span> <span class="p">[]))</span>
         <span class="n">nodes2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">graph2</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;nodes&#39;</span><span class="p">,</span> <span class="p">[]))</span>

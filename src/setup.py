@@ -10,7 +10,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         "torch>=1.9.0",
-        "numpy>=1.19.0",
+        "numpy>=1.19.0,<2.0",
         "tensorboard>=2.5.0",
     ],
     author="GAIA Team",

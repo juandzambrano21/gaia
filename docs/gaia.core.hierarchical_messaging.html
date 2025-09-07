@@ -1044,7 +1044,7 @@
   <section id="module-gaia.core.hierarchical_messaging">
 <span id="gaia-core-hierarchical-messaging-module"></span><h1>gaia.core.hierarchical_messaging module<a class="headerlink" href="#module-gaia.core.hierarchical_messaging" title="Link to this heading"></a></h1>
 <p>Complete Hierarchical Message Passing for GAIA Framework</p>
-<p>Implements Section 3.4 from paper.md: “Hierarchical Message Passing”</p>
+<p>Implements Section 3.4 from GAIA paper: “Hierarchical Message Passing”</p>
 <p>THEORETICAL FOUNDATIONS:
 - θ_σ parameters for each simplex σ ∈ X_n
 - Local objective functions L_σ(θ_{d_0σ},…,θ_{d_nσ}) for each simplex
@@ -1058,7 +1058,7 @@
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gaia.core.hierarchical_messaging.</span></span><span class="sig-name descname"><span class="pre">SimplexParameters</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simplex_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimension</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parameters</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degeneracies=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/hierarchical_messaging.html#SimplexParameters"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.hierarchical_messaging.SimplexParameters" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Parameters θ_σ for a specific simplex σ</p>
-<p>From paper.md: “For each simplex σ∈X_n with faces d_i σ∈X_{n-1},
+<p>From GAIA paper: “For each simplex σ∈X_n with faces d_i σ∈X_{n-1},
 define parameter vectors θ_σ”</p>
 <dl class="field-list simple">
 </dl>
@@ -1101,7 +1101,7 @@ define parameter vectors θ_σ”</p>
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gaia.core.hierarchical_messaging.</span></span><span class="sig-name descname"><span class="pre">LocalObjective</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simplex_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objective_function</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_parameters=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight=1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/hierarchical_messaging.html#LocalObjective"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.hierarchical_messaging.LocalObjective" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Local objective function L_σ for a simplex</p>
-<p>From paper.md: “Local objective functions L_σ(θ_{d_0σ},…,θ_{d_nσ}) for each simplex”</p>
+<p>From GAIA paper: “Local objective functions L_σ(θ_{d_0σ},…,θ_{d_nσ}) for each simplex”</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py attribute">
@@ -1192,7 +1192,7 @@ define parameter vectors θ_σ”</p>
 <dt class="sig sig-object py" id="gaia.core.hierarchical_messaging.HierarchicalMessagePasser.compute_face_gradient_combination">
 <span class="sig-name descname"><span class="pre">compute_face_gradient_combination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simplex_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/hierarchical_messaging.html#HierarchicalMessagePasser.compute_face_gradient_combination"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.hierarchical_messaging.HierarchicalMessagePasser.compute_face_gradient_combination" title="Link to this definition"></a></dt>
 <dd><p>Compute gradient combination from (n+1) faces</p>
-<p>From paper.md: “Update rule for θ_σ combining gradient information de (n+1) faces”</p>
+<p>From GAIA paper: “Update rule for θ_σ combining gradient information de (n+1) faces”</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -1201,7 +1201,7 @@ define parameter vectors θ_σ”</p>
 <dt class="sig sig-object py" id="gaia.core.hierarchical_messaging.HierarchicalMessagePasser.compute_degeneracy_instructions">
 <span class="sig-name descname"><span class="pre">compute_degeneracy_instructions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">simplex_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/hierarchical_messaging.html#HierarchicalMessagePasser.compute_degeneracy_instructions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.hierarchical_messaging.HierarchicalMessagePasser.compute_degeneracy_instructions" title="Link to this definition"></a></dt>
 <dd><p>Compute instructions from degeneracies</p>
-<p>From paper.md: “Instructions desde degeneracies que incluyen σ como face”</p>
+<p>From GAIA paper: “Instructions desde degeneracies que incluyen σ como face”</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -1210,7 +1210,7 @@ define parameter vectors θ_σ”</p>
 <dt class="sig sig-object py" id="gaia.core.hierarchical_messaging.HierarchicalMessagePasser.hierarchical_update_step">
 <span class="sig-name descname"><span class="pre">hierarchical_update_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/core/hierarchical_messaging.html#HierarchicalMessagePasser.hierarchical_update_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.core.hierarchical_messaging.HierarchicalMessagePasser.hierarchical_update_step" title="Link to this definition"></a></dt>
 <dd><p>Perform one hierarchical update step</p>
-<p>From paper.md: “Hierarchical update scheme donde información percolates up/down el simplicial complex”</p>
+<p>From GAIA paper: “Hierarchical update scheme donde información percolates up/down el simplicial complex”</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

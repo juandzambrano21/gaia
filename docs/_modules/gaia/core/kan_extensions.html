@@ -1043,7 +1043,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Kan Extensions for GAIA Framework - Foundation Model Construction</span>
 
-<span class="sd">Implements Section 6.6 from paper.md: &quot;Kan Extension&quot;</span>
+<span class="sd">Implements Section 6.6 from GAIA paper: &quot;Kan Extension&quot;</span>
 <span class="sd">INTEGRATES with existing kan_verification.py for complete Kan extension system</span>
 
 <span class="sd">THEORETICAL FOUNDATIONS:</span>
@@ -1622,7 +1622,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Migration functors for generative AI model modifications</span>
 <span class="sd">    </span>
-<span class="sd">    From paper.md: Δ_F (pullback), Σ_F (left pushforward), Π_F (right pushforward)</span>
+<span class="sd">    From GAIA paper: Δ_F (pullback), Σ_F (left pushforward), Π_F (right pushforward)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
 <div class="viewcode-block" id="MigrationFunctor.__init__">
@@ -1781,7 +1781,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Apply modification to foundation model using migration functors</span>
 <span class="sd">        </span>
-<span class="sd">        This implements the model modification framework from paper.md</span>
+<span class="sd">        This implements the model modification framework from GAIA paper</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">original_model_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extensions</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Original model &#39;</span><span class="si">{</span><span class="n">original_model_name</span><span class="si">}</span><span class="s2">&#39; not found&quot;</span><span class="p">)</span>

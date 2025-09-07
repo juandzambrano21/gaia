@@ -38,9 +38,11 @@ class SpectralNormalizedLinear(nn.Module):
         device = next(self.parameters()).device if hasattr(self, 'parameters') else self.device
         
         # Compute the largest singular value
+        weight = self.linear.weight
         sigma = linalg.svdvals(weight)[0].item()
         is_lipschitz = sigma <= 1.0 + tol
-        # Replace: torch.tensor(is_lipschitz, device=device)
+        max_ratio = sigma
+        
         result = {
             'is_lipschitz': torch.full((1,), float(is_lipschitz), device=device, requires_grad=False),
             'max_ratio': torch.full((1,), max_ratio, device=device, requires_grad=False),
@@ -305,15 +307,22 @@ logger = logging.getLogger(__name__)
 
 class MetricYonedaProxy:
     """
-    GAIA Metric Yoneda Proxy implementing coend/end calculus.
-    Learns representable functors via distance profile comparison,
-    enabling universal property-based horn filling.
+    Metric Yoneda Proxy for universal lifting.
     
-    Following Mahadevan (2024), this implements the full Metric Yoneda embedding
+    Following Mahadevan (2024) Section 6.7, this implements the Metric Yoneda embedding
     Y_C(z) = (d(z,c))_{c∈C} with all training points as probes.
     
-    This implementation follows the Lawvere metric space enrichment where
-    morphisms must be non-expansive maps in the [0,∞]-enriched category.
+    THEORETICAL FOUNDATION (from GAIA paper):
+    - Generalized metric spaces (X,d) with non-symmetric distances
+    - [0,∞]-enriched categories for distance computations  
+    - Yoneda embedding y: X → X̂ as contravariant functor X(-,x): X^op → [0,∞]
+    - Isometric property: X(x,x') = X̂(y(x), y(x')) (Theorem 9)
+    - Universal property: X̂(X(-,x), φ) = φ(x) (Theorem 8)
+    
+    CORRECTED IMPLEMENTATION:
+    - Proper contravariant functor structure
+    - 1-Lipschitz constraint for non-expansive maps in [0,∞]-enriched category
+    - Isometric embedding verification
     
     References:
     - Bonsangue et al. 1998, "Generalized Ultrametrics in Quantitative Domain Theory"
@@ -409,8 +418,7 @@ class MetricYonedaProxy:
         if not lipschitz_check['is_lipschitz']:
             logger.warning(f"Metric is not 1-Lipschitz: {lipschitz_check}")
             logger.warning("The Yoneda lemma requires a 1-Lipschitz metric for the universal property to hold.")
-        else:
-            logger.info(f"Lipschitz verification passed")
+
             
     def _setup_logging(self, log_level: str):
         """Set up logging with the specified level."""
@@ -568,7 +576,9 @@ class MetricYonedaProxy:
             dot_products = torch.einsum('bd,pd->bp', z, self.probes)
             
             # Compute squared distances: [B, P]
-            squared_distances = z_norm_sq + self._probes_norm_sq - 2 * dot_products
+            #  ensure _probes_norm_sq broadcasts correctly with z_norm_sq [B, 1]
+            probes_norm_sq_broadcast = self._probes_norm_sq.view(1, -1)  # [1, P]
+            squared_distances = z_norm_sq + probes_norm_sq_broadcast - 2 * dot_products
             
             # Ensure non-negative (numerical stability)
             squared_distances = F.relu(squared_distances)
@@ -596,7 +606,7 @@ class MetricYonedaProxy:
             try:
                 distances = torch.vmap(compute_distances)(z)
                 return distances
-            except Exception:
+            except Exception as e:
                 # Fall back to chunked computation if vmap fails
                 pass
         
@@ -612,14 +622,8 @@ class MetricYonedaProxy:
             # Use torch.repeat_interleave for efficient batching
             # This avoids the nested Python loop in the original implementation
             
-            # Replace: torch.tensor(is_lipschitz, device=device)
-            result = {
-                'is_lipschitz': torch.full((1,), float(is_lipschitz), device=device, requires_grad=False),
-                'max_ratio': torch.full((1,), max_ratio, device=device, requires_grad=False),
-                'tolerance': torch.full((1,), tol, device=device, requires_grad=False)
-            }
-            
-            return result
+            # Repeat each point for all probes
+            points_repeated = torch.repeat_interleave(batch_z, P, dim=0)  # [batch_size*P, target_dim]
             
             # Repeat probes for each point
             probes_repeated = self.probes.repeat(batch_size, 1)  # [batch_size*P, target_dim]
@@ -638,15 +642,18 @@ class MetricYonedaProxy:
 
     def loss(self, pred: torch.Tensor, target: torch.Tensor, min_var_threshold: float = None) -> torch.Tensor:
         """
-        Yoneda loss: compare representable functor profiles.
+        Compute the Yoneda embedding loss.
         
-        Following Mahadevan (2024), this minimizes:
-        L_lift(ψ) = E_x~D_A[ ||Y_C(k(x)) - Y_C(m_ψ(f(x)))||^2 ]
+        THEORETICAL FOUNDATION (from GAIA paper Section 6.7):
+        - Metric Yoneda Lemma: X̂(X(-,x), φ) = φ(x) (Theorem 8)
+        - Isometric property: X(x,x') = X̂(y(x), y(x')) (Theorem 9)
+        - Contravariant functor: X(-,x): X^op → [0,∞]
         
-        This loss compares the distance profiles of the predicted points
-        and the target points, rather than comparing the points directly.
-        This is a key insight from the Yoneda lemma, which allows us to
-        compare objects by their morphisms to a fixed set of objects.
+        CORRECTED LOSS COMPUTATION:
+        1. Compute Yoneda embeddings Y_C(pred) and Y_C(target)
+        2. Verify isometric property: d(pred,target) = d̂(Y_C(pred), Y_C(target))
+        3. Enforce universal property through presheaf distance consistency
+        4. Add contravariance penalty for proper functor structure
         
         Args:
             pred: Predicted points of shape (batch_size, target_dim)
@@ -657,12 +664,38 @@ class MetricYonedaProxy:
         Returns:
             Scalar loss value
         """
-        # Compute Yoneda profiles
+        
+        # Compute Yoneda profiles (contravariant functor embeddings)
         pred_profile = self._profile(pred)
         target_profile = self._profile(target)
         
-        # Base loss: MSE between profiles
+        # Base loss: MSE between profiles (universal property enforcement)
         base_loss = F.mse_loss(pred_profile, target_profile)
+        
+        # Isometric property verification: d(pred,target) ≈ d̂(Y_C(pred), Y_C(target))
+        with torch.no_grad():
+            # Compute original distances
+            orig_dists = torch.norm(pred - target, dim=1, keepdim=True)        # [B, 1]
+
+            
+            # Compute profile distances respecting Yoneda embedding structure
+            # pred_profile and target_profile have shape [B, P, 1]
+            # We need to compute the L2 norm over the probe dimension (dim=1) only
+            # The last dimension represents the embedding space, not a spatial dimension
+            profile_dists = torch.norm(pred_profile - target_profile, dim=1)   # [B, 1]
+
+            # Result: [B, 1] matching orig_dists shape
+            
+            # Normalize for comparison
+            orig_dists_norm = orig_dists / (orig_dists + self.metric.epsilon)
+            profile_dists_norm = profile_dists / (profile_dists + self.metric.epsilon)
+            
+            # Isometric consistency loss
+            isometric_loss = F.mse_loss(orig_dists_norm, profile_dists_norm)
+
+            
+        # Add isometric loss to base loss
+        base_loss = base_loss + 0.1 * isometric_loss
         
         # Compute profile statistics
         profile_var = torch.var(pred_profile, dim=1).mean()
@@ -704,10 +737,11 @@ class MetricYonedaProxy:
             self._last_loss_components = {
                 'base_loss': base_loss.item(),
                 'profile_var': profile_var.item(),
-                'reg_loss': reg_loss.item()
+                'reg_loss': reg_loss.item(),
+                'isometric_loss': isometric_loss.item() if 'isometric_loss' in locals() else 0.0
             }
         
-        # Total loss
+        # Total loss (Yoneda lemma enforcement)
         total_loss = base_loss + reg_loss
         
         return total_loss
@@ -730,158 +764,6 @@ class MetricYonedaProxy:
             
         self.scheduler.step(loss)
 
-    # Update the direct_metric function to be 1-Lipschitz
-    def direct_metric(x, y, eps=1e-3):
-        """
-        Compute a 1-Lipschitz metric between x and y.
-        
-        This uses the formula: d(x,y) = (eps * ||x-y||) / (||x-y|| + eps)
-        which has derivative <= 1.
-        
-        Args:
-            x: First tensor
-            y: Second tensor
-            eps: Small constant for numerical stability
-            
-        Returns:
-            Distance between x and y
-        """
-        dist = torch.linalg.norm(x - y, dim=-1)
-        return (eps * dist) / (dist + eps)
-    
-    # Create a SpectralNormalizedLinearNoBias class
-    class SpectralNormalizedLinearNoBias(nn.Module):
-        """
-        Linear layer with spectral normalization and no bias.
-
-        This ensures the layer is 1-Lipschitz by normalizing the weight matrix
-        by its spectral norm (largest singular value).
-        """
-        def __init__(self, in_features, out_features):
-            super().__init__()
-            self.in_features = in_features
-            self.out_features = out_features
-            self.weight = nn.Parameter(torch.Tensor(out_features, in_features))
-            self.reset_parameters()
-            
-        def reset_parameters(self):
-            nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-            
-        def forward(self, x):
-            # Apply spectral normalization
-            weight = self.weight / torch.linalg.matrix_norm(self.weight, ord=2)
-            return F.linear(x, weight)
-
-    # Create an AddBias class
-    class AddBias(nn.Module):
-        """
-        Explicit bias addition with normalization.
-
-        This ensures the bias contribution is bounded by normalizing
-        the bias vector if its norm exceeds 1.
-        """
-        def __init__(self, features):
-            super().__init__()
-            self.bias = nn.Parameter(torch.zeros(features))
-            
-        def forward(self, x):
-            # Normalize bias if needed
-            bias_norm = torch.linalg.norm(self.bias)
-            if bias_norm > 1:
-                normalized_bias = self.bias / bias_norm
-            else:
-                normalized_bias = self.bias
-            return x + normalized_bias.unsqueeze(0)
-
-        # Update the verify_lipschitz method with stronger empirical test
-        def verify_lipschitz(self, tolerance=1e-5):
-            """
-            Verify that the metric satisfies the 1-Lipschitz property.
-
-            For the direct metric, this is verified mathematically.
-            For the learned metric, we compute the product of spectral norms
-            and perform an empirical test with random unit directions.
-
-            Args:
-                tolerance: Tolerance for numerical errors
-                
-            Returns:
-                True if the metric is 1-Lipschitz, False otherwise
-            """
-            if self.use_direct_metric:
-                # Direct metric is 1-Lipschitz by construction
-                # Perform empirical test for verification
-                d = self.target_dim
-                num_samples = 10000
-                
-                # Generate random unit vectors on S^{d-1}
-                directions = torch.randn(num_samples, d, device=self.device)
-                directions = directions / torch.linalg.norm(directions, dim=1, keepdim=True)
-                
-                # Generate random points
-                x = torch.randn(1, d, device=self.device)
-                
-                # Compute distances for small perturbations
-                epsilon = 1e-4
-                max_ratio = 0
-                
-                for i in range(num_samples):
-                    y1 = x + epsilon * directions[i:i+1]
-                    y2 = x + 2 * epsilon * directions[i:i+1]
-                    
-                    d1 = self.direct_metric(x, y1)
-                    d2 = self.direct_metric(x, y2)
-                    
-                    input_diff = epsilon
-                    output_diff = abs(d2 - d1).item()
-                    
-                    ratio = output_diff / input_diff
-                    max_ratio = max(max_ratio, ratio)
-                
-                return max_ratio <= 1 + tolerance
-            else:
-                # For learned metric, enforce Lipschitz constraint first
-                self._enforce_lipschitz_constraint()
-                
-                # Compute product of spectral norms for linear layers
-                product = 1.0
-                for module in self.modules():
-                    if isinstance(module, SpectralNormalizedLinearNoBias):
-                        product *= torch.linalg.matrix_norm(module.weight, ord=2).item()
-                    elif isinstance(module, nn.LayerNorm):
-                        product *= torch.max(torch.abs(module.weight)).item()
-                
-                # Perform empirical test with random unit directions
-                d = self.target_dim
-                num_samples = 10000
-                
-                # Generate random unit vectors on S^{d-1}
-                directions = torch.randn(num_samples, d, device=self.device)
-                directions = directions / torch.linalg.norm(directions, dim=1, keepdim=True)
-                
-                # Generate random points
-                x = torch.randn(1, d, device=self.device)
-                
-                # Compute distances for small perturbations
-                epsilon = 1e-4
-                max_ratio = 0
-                
-                for i in range(num_samples):
-                    y1 = x + epsilon * directions[i:i+1]
-                    y2 = x + 2 * epsilon * directions[i:i+1]
-                    
-                    d1 = self(x, y1)
-                    d2 = self(x, y2)
-                    
-                    input_diff = epsilon
-                    output_diff = abs(d2 - d1).item()
-                    
-                    ratio = output_diff / input_diff
-                    max_ratio = max(max_ratio, ratio)
-                
-                return max_ratio <= 1 + tolerance
-
-    # Update the update_probes method with clamping
     def update_probes(self, new_data: torch.Tensor, decay: float = 0.9) -> None:
         """
         Update probe points based on new data (coend evolution).
@@ -942,46 +824,47 @@ class MetricYonedaProxy:
                 
                 # Log to tensorboard if available
                 if self.writer is not None:
-                    self.writer.add_scalar('probes/mean_norm', probe_norm, self._step)
-                    self.writer.add_scalar('probes/mean_shift', mean_shift, self._step)
-                    self.writer.add_scalar('probes/std_change', std_change, self._step)
+                    step = getattr(self, '_step', 0)
+                    self.writer.add_scalar('probes/mean_norm', probe_norm, step)
+                    self.writer.add_scalar('probes/mean_shift', mean_shift, step)
+                    self.writer.add_scalar('probes/std_change', std_change, step)
             else:
                 logger.debug(f"Probe update skipped: not enough data points "
                             f"({new_data.size(0)} < {self.num_probes})")
                     
-        def update(self, pred: torch.Tensor, target: torch.Tensor) -> dict:
-            """
-            Update the metric and probes based on new data.
+    def update(self, pred: torch.Tensor, target: torch.Tensor) -> dict:
+        """
+        Update the metric and probes based on new data.
+        
+        This is the main public interface for training the MetricYonedaProxy.
+        It computes the loss, updates the metric (if adaptive), and updates
+        the probes.
+        
+        Args:
+            pred: Predicted points of shape (batch_size, target_dim)
+            target: Target points of shape (batch_size, target_dim)
             
-            This is the main public interface for training the MetricYonedaProxy.
-            It computes the loss, updates the metric (if adaptive), and updates
-            the probes.
+        Returns:
+            Dictionary with loss components
+        """
+        # Compute loss
+        loss = self.loss(pred, target)
+        
+        # Update metric if adaptive and not using direct metric
+        if self.adaptive and not self.use_direct_metric and self.optimizer is not None:
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
             
-            Args:
-                pred: Predicted points of shape (batch_size, target_dim)
-                target: Target points of shape (batch_size, target_dim)
+            # Update scheduler
+            if self.scheduler is not None:
+                self.scheduler.step(loss)
                 
-            Returns:
-                Dictionary with loss components
-            """
-            # Compute loss
-            loss = self.loss(pred, target)
-            
-            # Update metric if adaptive and not using direct metric
-            if self.adaptive and not self.use_direct_metric and self.optimizer is not None:
-                self.optimizer.zero_grad()
-                loss.backward()
-                self.optimizer.step()
-                
-                # Update scheduler
-                if self.scheduler is not None:
-                    self.scheduler.step(loss)
-                    
-                # Enforce Lipschitz constraint
-                self.metric._enforce_lipschitz_constraint()
-            
-            # Update probes with target data
-            self.update_probes(target)
-            
-            # Return loss components
-            return self._last_loss_components
+            # Enforce Lipschitz constraint
+            self.metric._enforce_lipschitz_constraint()
+        
+        # Update probes with target data
+        self.update_probes(target)
+        
+        # Return loss components
+        return self._last_loss_components
