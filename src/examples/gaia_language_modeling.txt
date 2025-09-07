@@ -5,26 +5,18 @@ GAIA Framework - Language Modeling
 This example demonstrates GAIA theoretical framework applied to language modeling
 """
 
+from torch.utils.data import DataLoader
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
 import torch.nn.functional as F
-import numpy as np
 import math
 import logging
 from typing import List, Tuple, Dict, Optional, Any
 from tqdm import tqdm
-import re
-import json
-import os
 
-
-try:
-    from datasets import load_dataset
-    DATASETS_AVAILABLE = True
-except ImportError:
-    DATASETS_AVAILABLE = False
+from gaia.data.tokenizer import SimpleTokenizer
+from gaia.data.dataset import LanguageModelingDataset
 
 from gaia.models.gaia_transformer import GAIATransformer
 from gaia.core.fuzzy import (
@@ -34,8 +26,6 @@ from gaia.core.fuzzy import (
 from gaia.data.fuzzy_encoding import (
     FuzzyEncodingPipeline, UMAPConfig
 )
-from gaia.data.categorical import CategoricalDataset, SimplicalDataLoader
-from gaia.data.transforms import YonedaTransform, SimplicalTransform, RobustNormalization
 from gaia.core.universal_coalgebras import (
     FCoalgebra, GenerativeCoalgebra, CoalgebraCategory, 
     BackpropagationFunctor, Bisimulation, CoalgebraTrainer
@@ -46,33 +36,11 @@ from gaia.training.solvers.yoneda_proxy import MetricYonedaProxy
 from gaia.core.metric_yoneda import YonedaEmbedding
 from gaia.core.kan_extensions import LeftKanExtension, RightKanExtension
 from gaia.core.ends_coends import End, Coend
+from gaia.training.config import GAIAConfig
 
-logging.basicConfig(
-    level=logging.DEBUG,  # Enable ALL debug messages
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),  # Console output
-    ]
-)
-
-# Set ALL GAIA modules to DEBUG level
-logging.getLogger('gaia').setLevel(logging.DEBUG)
-logging.getLogger('gaia.core').setLevel(logging.DEBUG)
-logging.getLogger('gaia.core.universal_coalgebras').setLevel(logging.DEBUG)
-logging.getLogger('gaia.core.kan_extensions').setLevel(logging.DEBUG)
-logging.getLogger('gaia.models').setLevel(logging.DEBUG)
-logging.getLogger('gaia.training').setLevel(logging.DEBUG)
-
-# Enable ultra-verbose mode for this module
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# Global debug flag
-ULTRA_VERBOSE_DEBUG = True
-logger.info(f"🔧 GLOBAL CONFIG: ULTRA-VERBOSE DEBUG MODE ENABLED = {ULTRA_VERBOSE_DEBUG}")
-logger.info(f"🔧 GLOBAL CONFIG: Root logging level = {logging.getLogger().level}")
-logger.info(f"🔧 GLOBAL CONFIG: GAIA logging level = {logging.getLogger('gaia').level}")
-logger.info(f"🔧 GLOBAL CONFIG: This module logging level = {logger.level}")
+# Initialize GAIA global configuration with ultra-verbose debugging
+GAIAConfig.setup_logging(enable_ultra_verbose=True)
+logger = GAIAConfig.get_logger(__name__)
 
 class GAIALanguageModel(nn.Module):
     """
@@ -267,32 +235,17 @@ class GAIALanguageModel(nn.Module):
         train_texts = texts[:split_idx]
         val_texts = texts[split_idx:] if validation_split > 0 else texts[:100]  # Small val set
         
-        # Create categorical datasets with functors applied directly
-        train_dataset = CategoricalLanguageDataset(
-            train_texts, self.tokenizer, 
-            max_length=self.max_seq_length,
-            apply_yoneda=True,
-            apply_simplicial=True
-        )
-        val_dataset = CategoricalLanguageDataset(
-            val_texts, self.tokenizer, 
-            max_length=self.max_seq_length,
-            apply_yoneda=True,
-            apply_simplicial=True
-        )
+        # Create categorical datasets and loaders using extensible architecture
+        from gaia.data.loaders import create_categorical_language_loaders
         
-        # Create simplicial data loaders
-        train_loader = SimplicalDataLoader(
-            train_dataset, 
-            batch_size=batch_size, 
-            shuffle=True,
-            simplicial_batch_size=batch_size
-        )
-        val_loader = SimplicalDataLoader(
-            val_dataset, 
-            batch_size=batch_size, 
-            shuffle=False,
-            simplicial_batch_size=batch_size
+        train_loader, val_loader = create_categorical_language_loaders(
+            train_texts=train_texts,
+            val_texts=val_texts,
+            tokenizer=self.tokenizer,
+            batch_size=batch_size,
+            max_seq_length=self.max_seq_length,
+            apply_yoneda=True,
+            apply_simplicial=True
         )
         
         # Use the device that was set during model initialization
@@ -1767,290 +1720,6 @@ class GAIALanguageModel(nn.Module):
             'transformer_outputs': transformer_outputs
         }
 
-class CategoricalLanguageDataset(CategoricalDataset):
-    """Categorical language dataset where sentences are objects in a category"""
-    
-    def __init__(self, texts: List[str], tokenizer, max_length: int = 512, 
-                 apply_yoneda: bool = True, apply_simplicial: bool = True):
-        """
-        Initialize categorical language dataset
-        
-        Args:
-            texts: List of text sentences (objects in the category)
-            tokenizer: Tokenizer for text processing
-            max_length: Maximum sequence length
-            apply_yoneda: Whether to apply Yoneda transform
-            apply_simplicial: Whether to apply simplicial transform
-        """
-        self.texts = texts
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-        self.apply_yoneda = apply_yoneda
-        self.apply_simplicial = apply_simplicial
-        
-        # Create categorical transforms
-        self.transforms = []
-        if apply_yoneda:
-            self.yoneda_transform = YonedaTransform(
-                embedding_dim=64,
-                categorical_dims=list(range(max_length)),
-                preserve_structure=True
-            )
-            self.transforms.append(self.yoneda_transform)
-        
-        if apply_simplicial:
-            self.simplicial_transform = SimplicalTransform(
-                simplex_dim=2,
-                normalize=True,
-                add_boundary=True
-            )
-            self.transforms.append(self.simplicial_transform)
-        
-        # Process texts into categorical structure
-        self.categorical_data = self._create_categorical_structure(texts)
-        
-        # Initialize parent with processed data
-        super().__init__(
-            data=self.categorical_data['sentences'],
-            targets=self.categorical_data['targets'],
-            categorical_dims=list(range(max_length)),
-            task_type="classification",
-            auto_preprocess=False  # We handle preprocessing ourselves
-        )
-    
-    def _create_categorical_structure(self, texts: List[str]) -> Dict[str, torch.Tensor]:
-        """Create categorical structure from texts"""
-        sentences = []  # Objects in the category
-        targets = []    # Target objects (next sentences)
-        morphisms = []  # Transformations between sentences
-        
-        for i, text in enumerate(texts):
-            # Tokenize sentence (object representation)
-            tokens = self.tokenizer.encode(text, max_length=self.max_length)
-            if len(tokens) < 2:
-                continue
-                
-            # Sentence as object in category
-            sentence_obj = torch.zeros(self.max_length, dtype=torch.float32)
-            sentence_obj[:len(tokens)] = torch.tensor(tokens, dtype=torch.float32)
-            sentences.append(sentence_obj)
-            
-            # Target (next token prediction as morphism target)
-            target_obj = torch.zeros(self.max_length, dtype=torch.long)
-            target_obj[:len(tokens)-1] = torch.tensor(tokens[1:], dtype=torch.long)
-            targets.append(target_obj)
-            
-            # Create morphisms (transformations)
-            # Shift morphism: sentence -> shifted sentence
-            shift_morphism = self._create_shift_morphism(sentence_obj)
-            morphisms.append(shift_morphism)
-        
-        return {
-            'sentences': torch.stack(sentences) if sentences else torch.empty(0, self.max_length),
-            'targets': torch.stack(targets) if targets else torch.empty(0, self.max_length, dtype=torch.long),
-            'morphisms': torch.stack(morphisms) if morphisms else torch.empty(0, self.max_length, self.max_length)
-        }
-    
-    def _create_shift_morphism(self, sentence: torch.Tensor) -> torch.Tensor:
-        """Create shift morphism matrix for sentence transformation"""
-        # Create shift matrix (morphism in the category)
-        shift_matrix = torch.zeros(self.max_length, self.max_length)
-        for i in range(self.max_length - 1):
-            shift_matrix[i, i + 1] = 1.0  # Shift right by one position
-        return shift_matrix
-    
-    def apply_categorical_functors(self, data: torch.Tensor) -> torch.Tensor:
-        """Apply categorical functors (Yoneda, simplicial) to data"""
-        for transform in self.transforms:
-            data = transform(data)
-        return data
-    
-    def get_morphism(self, idx: int) -> torch.Tensor:
-        """Get morphism for sentence at index"""
-        return self.categorical_data['morphisms'][idx]
-    
-    def __getitem__(self, idx):
-        """Get categorical item with morphism information"""
-        sentence = self.data[idx]  # Object in category
-        target = self.targets[idx] if self.targets is not None else None
-        morphism = self.get_morphism(idx)  # Morphism in category
-        
-        # Apply categorical functors
-        sentence_transformed = self.apply_categorical_functors(sentence.unsqueeze(0)).squeeze(0)
-        
-        return {
-            'sentence': sentence,  # Original object
-            'sentence_transformed': sentence_transformed,  # Functor-transformed object
-            'target': target,  # Target object
-            'morphism': morphism,  # Morphism between objects
-            'input_ids': sentence[:self.max_length-1].long(),
-            'attention_mask': (sentence[:self.max_length-1] != 0).long(),
-            'labels': target[:self.max_length-1] if target is not None else None
-        }
-
-class LanguageModelingDataset(Dataset):
-    """Legacy dataset for backward compatibility"""
-    
-    def __init__(self, texts: List[str], tokenizer, max_length: int = 512):
-        self.texts = texts
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-        
-        # Tokenize all texts
-        self.tokenized_texts = []
-        for text in texts:
-            tokens = tokenizer.encode(text, max_length=max_length)
-            if len(tokens) > 1:  # Need at least 2 tokens for input/target
-                self.tokenized_texts.append(tokens)
-    
-    def __len__(self):
-        return len(self.tokenized_texts)
-    
-    def __getitem__(self, idx):
-        tokens = self.tokenized_texts[idx]
-        
-        # For language modeling: input = tokens[:-1], target = tokens[1:]
-        input_ids = tokens[:-1]
-        target_ids = tokens[1:]
-        
-        # Pad to max_length
-        input_length = len(input_ids)
-        attention_mask = [1] * input_length + [0] * (self.max_length - 1 - input_length)
-        input_ids = input_ids + [0] * (self.max_length - 1 - input_length)
-        target_ids = target_ids + [-100] * (self.max_length - 1 - len(target_ids))  # -100 for ignore_index
-        
-        return {
-            'input_ids': torch.tensor(input_ids[:self.max_length-1], dtype=torch.long),
-            'attention_mask': torch.tensor(attention_mask[:self.max_length-1], dtype=torch.long),
-            'labels': torch.tensor(target_ids[:self.max_length-1], dtype=torch.long)
-        }
-
-class SimpleTokenizer:
-    """Simple tokenizer for language modeling"""
-    
-    def __init__(self, vocab_size: int = 15000):
-        self.vocab_size = vocab_size
-        self.word_to_id = {'<pad>': 0, '<unk>': 1, '<bos>': 2, '<eos>': 3}
-        self.id_to_word = {0: '<pad>', 1: '<unk>', 2: '<bos>', 3: '<eos>'}
-        self.next_id = 4
-    
-    def build_vocab(self, texts: List[str]):
-        """Build vocabulary from texts"""
-        word_counts = {}
-        for text in texts:
-            words = self._tokenize(text)
-            for word in words:
-                word_counts[word] = word_counts.get(word, 0) + 1
-        
-        # Add most frequent words
-        sorted_words = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)
-        for word, count in sorted_words[:self.vocab_size - 4]:
-            if word not in self.word_to_id:
-                self.word_to_id[word] = self.next_id
-                self.id_to_word[self.next_id] = word
-                self.next_id += 1
-    
-    def _tokenize(self, text: str) -> List[str]:
-        """Simple tokenization"""
-        # Basic preprocessing
-        text = text.lower()
-        text = re.sub(r'[^a-zA-Z0-9\s.,!?;:]', ' ', text)
-        words = text.split()
-        return words
-    
-    def encode(self, text: str, max_length: int = 512) -> List[int]:
-        """Encode text to token IDs"""
-        words = self._tokenize(text)
-        tokens = [self.word_to_id.get('<bos>', 2)]  # Start with BOS token
-        
-        for word in words[:max_length-2]:  # Leave space for BOS and EOS
-            token_id = self.word_to_id.get(word, self.word_to_id.get('<unk>', 1))
-            tokens.append(token_id)
-        
-        tokens.append(self.word_to_id.get('<eos>', 3))  # End with EOS token
-        return tokens
-    
-    def decode(self, token_ids: List[int]) -> str:
-        """Decode token IDs back to text"""
-        words = []
-        for token_id in token_ids:
-            word = self.id_to_word.get(token_id, '<unk>')
-            if word not in ['<pad>', '<bos>', '<eos>']:  # Skip special tokens
-                words.append(word)
-        return ' '.join(words)
-
-def create_language_modeling_dataset() -> List[str]:
-    """Create language modeling dataset from TinyStories"""
-    logger.info("Creating language modeling dataset...")
-    
-    if DATASETS_AVAILABLE:
-        try:
-            # Load TinyStories dataset
-            logger.info("Loading TinyStories dataset from HuggingFace...")
-            dataset = load_dataset('roneneldan/TinyStories')
-            
-            # Extract first 12000 stories from the training set
-            texts = dataset['train']['text'][:12000]
-            logger.info(f"Loaded {len(texts)} stories from TinyStories dataset")
-            
-            # Filter out empty or very short texts
-            filtered_texts = [text.strip() for text in texts if text.strip() and len(text.strip()) > 10]
-            logger.info(f"Filtered to {len(filtered_texts)} valid stories")
-            
-            return filtered_texts
-            
-        except Exception as e:
-            logger.error(f"Failed to load TinyStories dataset: {e}")
-            logger.info("Falling back to placeholder data")
-    else:
-        logger.warning("datasets library not available, using placeholder data")
-    
-    # Fallback to original placeholder data
-    logger.info("Using placeholder dataset for demonstration")
-    texts = [
-        "The quick brown fox jumps over the lazy dog.",
-        "Machine learning is a subset of artificial intelligence.",
-        "Natural language processing involves understanding human language.",
-        "Deep learning models can learn complex patterns from data.",
-        "Transformers have revolutionized natural language processing.",
-        "Attention mechanisms allow models to focus on relevant information.",
-        "Language models can generate coherent and contextual text.",
-        "The GAIA framework integrates categorical theory with deep learning.",
-        "Fuzzy sets provide a mathematical foundation for uncertainty.",
-        "Coalgebras model dynamic systems and state transitions."
-    ] * 100  # Repeat for more training data
-    
-    return texts
-
-def compute_perplexity(model, data_loader, device):
-    """Compute perplexity for language model evaluation"""
-    model.eval()
-    total_loss = 0
-    total_tokens = 0
-    
-    with torch.no_grad():
-        for batch in data_loader:
-            input_ids = batch['input_ids'].to(device)
-            attention_mask = batch['attention_mask'].to(device)
-            labels = batch['labels'].to(device)
-            
-            outputs = model(input_ids, attention_mask)
-            logits = outputs['logits']
-            
-            # Compute cross-entropy loss
-            loss_fct = nn.CrossEntropyLoss(ignore_index=-100, reduction='sum')
-            loss = loss_fct(logits.view(-1, logits.size(-1)), labels.view(-1))
-            
-            # Count valid tokens
-            valid_tokens = (labels != -100).sum().item()
-            
-            total_loss += loss.item()
-            total_tokens += valid_tokens
-    
-    avg_loss = total_loss / total_tokens
-    perplexity = math.exp(avg_loss)
-    
-    return perplexity
 
 def train_gaia_language_model():
     """Train GAIA language model with complete categorical framework"""
@@ -2409,18 +2078,15 @@ def train_gaia_language_model():
         avg_loss = running_loss / num_batches
         
         # Validation
-        val_perplexity = compute_perplexity(model, val_loader, device)
         
-        logger.info(f"Epoch {epoch+1}: Loss = {avg_loss:.4f}, Val Perplexity = {val_perplexity:.2f}")
+        logger.info(f"Epoch {epoch+1}: Loss = {avg_loss:.4f}")
         
         model.train()  # Back to training mode
     
     # Final evaluation
     logger.info(" Final evaluation...")
-    final_perplexity = compute_perplexity(model, val_loader, device)
     
     logger.info(f"\n GAIA Language Model Results:")
-    logger.info(f"Final Validation Perplexity: {final_perplexity:.2f}")
     
     return model, final_perplexity
 
@@ -2481,24 +2147,7 @@ def main():
         model, results = demo_gaia_language_model()
         
         logger.info(f"\nCOMPLETE GAIA Language Model Demo Successful!")
-        logger.info(f"📊 Final Results:")
-        logger.info(f"  • Validation Perplexity: {results['final_perplexity']:.2f}")
-        logger.info(f"  • Training Epochs: {len(results['train_losses'])}")
-        logger.info(f"  • All GAIA Components: Active")
-        logger.info(f"\n🔬 GAIA Framework Components Used:")
-        logger.info(f"  • Fuzzy Sets & Categories:")
-        logger.info(f"  • Universal Coalgebras:")
-        logger.info(f"  • Business Unit Hierarchy:")
-        logger.info(f"  • Hierarchical Message Passing:")
-        logger.info(f"  • Yoneda Embeddings:")
-        logger.info(f"  • Kan Extensions (Left & Right):")
-        logger.info(f"  • Ends & Coends:")
-        logger.info(f"\n🚀 Production Interface:")
-        logger.info(f"  • High-level fit() method:")
-        logger.info(f"  • Integrated tokenizer:")
-        logger.info(f"  • Complete GAIA generation:")
-        logger.info(f"  • Real dataset integration:")
-        
+
         return True
         
     except Exception as e:

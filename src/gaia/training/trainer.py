@@ -1,625 +1,556 @@
-"""Production GAIA Neural Network Trainer"""
+"""
+GAIA Unified Trainer
 
-import logging
-import time
-import uuid
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable, Union, Tuple
-import warnings
+This module provides a unified training system that integrates all GAIA components:
+- Fuzzy simplicial sets for data encoding
+- Coalgebras for parameter evolution  
+- Hierarchical message passing
+- Business unit communication
+- Horn filling and Kan conditions
+- Endofunctor dynamics
 
+Replaces the massive trainer.py files with an optimal integrated approach.
+"""
+
+from typing import Any, Dict, List, Optional, Callable, Tuple
+from dataclasses import dataclass, field
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-from torch.cuda.amp import GradScaler, autocast
-from torch.utils.tensorboard import SummaryWriter
+import numpy as np
+from pathlib import Path
+import logging
+from collections import defaultdict
 
-try:
-    import wandb
-    WANDB_AVAILABLE = True
-except ImportError:
-    WANDB_AVAILABLE = False
-    warnings.warn("wandb not available. Install with: pip install wandb")
-
-from .config import TrainingConfig
-from .engine.state import TrainingState
-from .engine.checkpoints import CheckpointManager
-from .engine.loops import TrainingLoop, ValidationLoop
-from .engine.profiler import GAIAProfiler
+from ..core.abstractions import (
+    IntegratedTrainer, GAIAComponent, TrainingState, ComponentRegistry
+)
+from ..core.integrated_structures import (
+    IntegratedFuzzySimplicialSet, IntegratedCoalgebra, TConorm,
+    create_fuzzy_simplicial_set_from_data
+)
+from ..core.simplices import Simplex0, Simplex1, BasisRegistry
 from ..core.functor import SimplicialFunctor
-from ..callbacks import CallbackManager
-from ..metrics import MetricTracker
-from ..utils.device import get_device, setup_distributed
-from ..utils.reproducibility import set_seed
 
-logger = logging.getLogger(__name__)
 
-class GAIATrainer:
-    """ GAIA Neural Network Trainer
+
+@dataclass
+class GAIATrainingConfig:
+    """Configuration for GAIA unified trainer using global config system."""
+    # Model parameters (MLP)
+    input_dim: int = field(default_factory=lambda: _get_global_config().model.input_dim)
+    hidden_dims: List[int] = field(default_factory=lambda: _get_global_config().model.hidden_dims or [256, 128, 64])
+    output_dim: int = field(default_factory=lambda: _get_global_config().model.output_dim)
     
-    Features:
-    - Categorical deep learning with simplicial functors
-    - Mixed precision training
-    - Distributed training support
-    - Advanced checkpointing and resuming
-    - Comprehensive monitoring and profiling
-    - Horn solving and coherence verification
-    - Production-grade error handling
-    """
+    # Transformer parameters
+    vocab_size: int = field(default_factory=lambda: _get_global_config().model.vocab_size)
+    d_model: int = field(default_factory=lambda: _get_global_config().model.d_model)
+    num_heads: int = field(default_factory=lambda: _get_global_config().model.num_heads)
+    num_layers: int = field(default_factory=lambda: _get_global_config().model.num_layers)
+    seq_len: int = field(default_factory=lambda: _get_global_config().model.seq_len)
+    d_ff: int = field(default_factory=lambda: _get_global_config().model.d_ff)
+    max_seq_length: int = field(default_factory=lambda: _get_global_config().model.max_seq_length)
     
-    def __init__(
-        self,
-        model: nn.Module,
-        config: TrainingConfig,
-        train_dataloader: DataLoader,
-        val_dataloader: Optional[DataLoader] = None,
-        test_dataloader: Optional[DataLoader] = None,
-        callbacks: Optional[List[Callable]] = None,
-        **kwargs
-    ):
-        """Initialize GAIA Trainer
+    # Training parameters
+    learning_rate: float = field(default_factory=lambda: _get_global_config().optimization.learning_rate)
+    batch_size: int = field(default_factory=lambda: _get_global_config().data.batch_size)
+    max_epochs: int = field(default_factory=lambda: _get_global_config().epochs)
+    
+    # GAIA-specific parameters
+    fuzzy_k_neighbors: int = field(default_factory=lambda: _get_global_config().data.n_neighbors)
+    coalgebra_steps: int = field(default_factory=lambda: getattr(_get_global_config().model, 'coalgebra_steps', 3))
+    message_passing_levels: int = field(default_factory=lambda: getattr(_get_global_config().model, 'message_passing_levels', 3))
+    horn_filling_tolerance: float = field(default_factory=lambda: getattr(_get_global_config().optimization, 'horn_filling_tolerance', 1e-6))
+    
+    # Optimization parameters
+    use_hierarchical_updates: bool = field(default_factory=lambda: getattr(_get_global_config().optimization, 'use_hierarchical_updates', True))
+    use_business_units: bool = field(default_factory=lambda: getattr(_get_global_config().optimization, 'use_business_units', True))
+    use_kan_verification: bool = field(default_factory=lambda: getattr(_get_global_config().optimization, 'use_kan_verification', True))
+    verify_coalgebra_dynamics: bool = field(default_factory=lambda: getattr(_get_global_config().optimization, 'verify_coalgebra_dynamics', True))
+    
+    # Logging
+    log_level: str = field(default_factory=lambda: getattr(_get_global_config().logging, 'level', "INFO"))
+    checkpoint_dir: str = field(default_factory=lambda: getattr(_get_global_config().logging, 'checkpoint_dir', "checkpoints"))
+    log_interval: int = field(default_factory=lambda: getattr(_get_global_config().logging, 'log_interval', 10))
+
+def _get_global_config():
+    """Helper function to get global configuration with fallback defaults."""
+    try:
+        from .config import TrainingConfig
+        config = TrainingConfig()
+        # Set fallback defaults for missing attributes
+        if not hasattr(config.model, 'input_dim'):
+            config.model.input_dim = 784
+        if not hasattr(config.model, 'output_dim'):
+            config.model.output_dim = 10
+        if not hasattr(config.model, 'vocab_size'):
+            config.model.vocab_size = 1000
+        if not hasattr(config.model, 'd_model'):
+            config.model.d_model = 256
+        if not hasattr(config.model, 'num_heads'):
+            config.model.num_heads = 4
+        if not hasattr(config.model, 'num_layers'):
+            config.model.num_layers = 4
+        if not hasattr(config.model, 'seq_len'):
+            config.model.seq_len = 32
+        if not hasattr(config.model, 'd_ff'):
+            config.model.d_ff = 1024
+        if not hasattr(config.model, 'max_seq_length'):
+            config.model.max_seq_length = 512
+        return config
+    except ImportError:
+        # Fallback to hardcoded defaults if config system not available
+        class FallbackConfig:
+            class ModelConfig:
+                input_dim = 784
+                hidden_dims = [256, 128, 64]
+                output_dim = 10
+                vocab_size = 1000
+                d_model = 256
+                num_heads = 4
+                num_layers = 4
+                seq_len = 32
+                d_ff = 1024
+                max_seq_length = 512
+            class OptimizationConfig:
+                learning_rate = 1e-3
+            class DataConfig:
+                batch_size = 32
+                n_neighbors = 5
+            class LoggingConfig:
+                level = "INFO"
+                checkpoint_dir = "checkpoints"
+                log_interval = 10
+            model = ModelConfig()
+            optimization = OptimizationConfig()
+            data = DataConfig()
+            logging = LoggingConfig()
+            epochs = 100
+        return FallbackConfig()
+
+
+class FuzzyDataEncoder(GAIAComponent):
+    """Component for encoding data as fuzzy simplicial sets."""
+    
+    def __init__(self, config: GAIATrainingConfig):
+        super().__init__("fuzzy_encoder", config.__dict__)
+        self.k = config.fuzzy_k_neighbors
+        self.current_fss: Optional[IntegratedFuzzySimplicialSet] = None
+    
+    def initialize(self) -> None:
+        """Initialize the fuzzy encoder."""
+        logging.info("Initializing fuzzy data encoder")
+    
+    def update(self, state: TrainingState) -> TrainingState:
+        """Update with new data batch."""
+        if 'batch_data' in state.metadata:
+            data = state.metadata['batch_data']
+            self.current_fss = create_fuzzy_simplicial_set_from_data(
+                data, self.k, f"batch_{state.step}"
+            )
+            state.metadata['fuzzy_simplicial_set'] = self.current_fss
         
-        Args:
-            model: PyTorch model to train
-            config: Training configuration
-            train_dataloader: Training data loader
-            val_dataloader: Validation data loader
-            test_dataloader: Test data loader
-            callbacks: List of training callbacks
-        """
-        self.config = config
+        return state
+    
+    def validate(self) -> bool:
+        """Validate encoder state."""
+        return self.current_fss is None or self.current_fss.validate()
+
+
+class CoalgebraEvolution(GAIAComponent):
+    """Component for coalgebraic parameter evolution."""
+    
+    def __init__(self, config: GAIATrainingConfig, model: nn.Module):
+        super().__init__("coalgebra_evolution", config.__dict__)
         self.model = model
-        self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
-        self.test_dataloader = test_dataloader
+        self.steps = config.coalgebra_steps
+        self.coalgebras: Dict[str, IntegratedCoalgebra] = {}
+    
+    def initialize(self) -> None:
+        """Initialize coalgebras for model parameters."""
+        logging.info("Initializing coalgebraic evolution")
         
-        # Setup device and distributed training
-        self.device = get_device(config.device)
-        if config.distributed:
-            setup_distributed(config.world_size, config.rank)
+        # Get gradient step size from global config
+        gradient_step_size = getattr(_get_global_config().optimization, 'gradient_step_size', 0.01)
         
-        # Set reproducibility
-        set_seed(config.data.random_seed)
+        # Create coalgebras for each parameter group
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                # Simple endofunctor: gradient descent step
+                def create_endofunctor(p, step_size):
+                    def endofunctor_apply(state):
+                        if hasattr(p, 'grad') and p.grad is not None:
+                            return state - step_size * p.grad  # Configurable gradient step
+                        return state
+                    return endofunctor_apply
+                
+                class SimpleEndofunctor:
+                    def __init__(self, param, step_size):
+                        self.param = param
+                        self.step_size = step_size
+                    
+                    def apply_to_object(self, state):
+                        if hasattr(self.param, 'grad') and self.param.grad is not None:
+                            return state - self.step_size * self.param.grad
+                        return state
+                
+                endofunctor = SimpleEndofunctor(param, gradient_step_size)
+                coalgebra = IntegratedCoalgebra(
+                    param.data.clone(), endofunctor, f"coalgebra_{name}"
+                )
+                self.coalgebras[name] = coalgebra
+    
+    def update(self, state: TrainingState) -> TrainingState:
+        """Update coalgebras with parameter evolution."""
+        for name, coalgebra in self.coalgebras.items():
+            # Evolve parameters through coalgebra dynamics
+            evolved_trajectory = coalgebra.iterate_dynamics(self.steps)
+            state.metadata[f'coalgebra_trajectory_{name}'] = evolved_trajectory
         
-        # Initialize GAIA categorical components
-        self.functor = None
-        if config.categorical_training:
-            self._setup_categorical_components()
+        return state
+    
+    def validate(self) -> bool:
+        """Validate coalgebra evolution."""
+        return all(coalgebra.validate() for coalgebra in self.coalgebras.values())
+
+
+class HierarchicalCommunication(GAIAComponent):
+    """Component for hierarchical message passing and business unit communication."""
+    
+    def __init__(self, config: GAIATrainingConfig, functor: SimplicialFunctor):
+        super().__init__("hierarchical_communication", config.__dict__)
+        self.functor = functor
+        self.levels = config.message_passing_levels
+        self.message_passing: Optional[Any] = None
+        self.business_units: Optional[Any] = None
+    
+    def initialize(self) -> None:
+        """Initialize hierarchical communication systems."""
+        logging.info("Initializing hierarchical communication")
         
-        # Setup training components
-        self._setup_optimization()
-        self._setup_mixed_precision()
-        self._setup_monitoring()
-        self._setup_checkpointing()
-        
-        # Initialize training state
-        self.state = TrainingState()
-        
-        # Setup callbacks
-        self.callback_manager = CallbackManager(callbacks or [])
-        
-        # Setup training loops
-        self.train_loop = TrainingLoop(
-            model=self.model,
-            criterion=self.criterion,
-            optimizer=self.optimizer,
-            scheduler=self.scheduler,
-            scaler=self.scaler,
-            device=self.device,
-            config=self.config
-        )
-        
-        if self.val_dataloader:
-            self.val_loop = ValidationLoop(
-                model=self.model,
-                criterion=self.criterion,
-                device=self.device,
-                config=self.config
+        if self.config.get('use_hierarchical_updates', True):
+            # Lazy import to avoid circular dependency
+            from .hierarchical_message_passing import HierarchicalMessagePassingSystem
+            self.message_passing = HierarchicalMessagePassingSystem(
+                self.functor, parameter_dim=64
             )
         
-        # Setup profiler
-        self.profiler = GAIAProfiler(enabled=kwargs.get('profile', False))
-        
-        # Setup metrics
-        self.metric_tracker = MetricTracker()
-        
-        logger.info(f"Initialized GAIA Trainer on device: {self.device}")
-        logger.info(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
+        if self.config.get('use_business_units', True):
+            # Lazy import to avoid circular dependency
+            from ..core.business_units import BusinessUnitHierarchy
+            self.business_units = BusinessUnitHierarchy(self.functor)
     
-    def _setup_categorical_components(self) -> None:
-        """Setup GAIA categorical deep learning components"""
-        from ..core.simplices import BasisRegistry
+    def update(self, state: TrainingState) -> TrainingState:
+        """Update hierarchical communication."""
+        if self.message_passing:
+            # Process hierarchical updates (simplified)
+            for level in range(self.levels):
+                if f'level_{level}_gradients' in state.gradients:
+                    gradients = state.gradients[f'level_{level}_gradients']
+                    # Process through message passing system
+                    if hasattr(self.message_passing, 'process_level_gradients'):
+                        processed = self.message_passing.process_level_gradients(level, gradients)
+                        state.gradients[f'level_{level}_processed'] = processed
         
-        # Initialize basis registry and simplicial functor
-        basis_registry = BasisRegistry()
-        self.functor = SimplicialFunctor(
-            name=f"{self.config.model.name}_functor",
-            basis_registry=basis_registry
-        )
+        if self.business_units:
+            # Update business unit communications (simplified)
+            if hasattr(self.business_units, 'update_communications'):
+                self.business_units.update_communications(state.metadata)
         
-        # Setup horn solvers
-        self._setup_horn_solvers()
-        
-        logger.info("Categorical components initialized")
+        return state
     
-    def _setup_horn_solvers(self) -> None:
-        """Setup inner and outer horn solvers"""
-        from .solvers.inner_solver import EndofunctorialSolver
-        from .solvers.outer_solver import UniversalLiftingSolver
-        from .solvers.yoneda_proxy import MetricYonedaProxy
-        
-        # These will be initialized when needed during training
-        self.inner_solver = None
-        self.outer_solver = None
-        self.yoneda_proxy = MetricYonedaProxy(
-            target_dim=self.config.model.categorical_embedding_dim
-        )
+    def validate(self) -> bool:
+        """Validate hierarchical communication."""
+        valid = True
+        if self.message_passing:
+            # Simple validation - check if system is initialized
+            valid &= hasattr(self.message_passing, 'simplicial_functor')
+        if self.business_units:
+            # Simple validation - check if hierarchy is initialized
+            valid &= hasattr(self.business_units, 'functor')
+        return valid
+
+
+class KanVerification(GAIAComponent):
+    """Component for Kan complex verification and horn filling."""
     
-    def _setup_optimization(self) -> None:
-        """Setup optimizer and scheduler"""
-        from .config import OptimizationType, SchedulerType
+    def __init__(self, config: GAIATrainingConfig, functor: SimplicialFunctor):
+        super().__init__("kan_verification", config.__dict__)
+        self.functor = functor
+        self.tolerance = config.horn_filling_tolerance
+        self.verifier: Optional[Any] = None
+    
+    def initialize(self) -> None:
+        """Initialize Kan complex verifier."""
+        logging.info("Initializing Kan complex verification")
         
-        opt_config = self.config.optimization
+        if self.config.get('use_kan_verification', True):
+            # Lazy import to avoid circular dependency
+            from ..core.kan_verification import KanComplexVerifier
+            self.verifier = KanComplexVerifier(self.functor)
+    
+    def update(self, state: TrainingState) -> TrainingState:
+        """Update Kan verification."""
+        if self.verifier:
+            # Verify horn filling conditions (simplified)
+            if hasattr(self.verifier, 'verify_all_conditions'):
+                verification_results = self.verifier.verify_all_conditions()
+                state.metadata['kan_verification'] = verification_results
+                
+                # Log any failures
+                if isinstance(verification_results, dict) and not all(verification_results.values()):
+                    logging.warning(f"Kan verification failures: {verification_results}")
         
-        # Create loss function/criterion
+        return state
+    
+    def validate(self) -> bool:
+        """Validate Kan verification component."""
+        if self.verifier:
+            # Simple validation - check if verifier is initialized
+            return hasattr(self.verifier, 'functor')
+        return True
+
+
+class GAIATrainer(IntegratedTrainer):
+    """Unified trainer integrating all GAIA components."""
+    
+    def __init__(self, model: nn.Module, config: GAIATrainingConfig):
+        self.model = model
+        self.config = config
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        
+        # Setup logging
+        logging.basicConfig(level=getattr(logging, config.log_level))
+        self.logger = logging.getLogger(__name__)
+        
+        # Initialize core GAIA structures
+        self.basis_registry = BasisRegistry()
+        self.functor = SimplicialFunctor("gaia_functor", self.basis_registry)
+        
+        # Create components
+        components = [
+            FuzzyDataEncoder(config),
+            CoalgebraEvolution(config, model),
+            HierarchicalCommunication(config, self.functor),
+            KanVerification(config, self.functor)
+        ]
+        
+        super().__init__(components)
+        
+        # Setup optimizer
+        self.optimizer = optim.Adam(model.parameters(), lr=config.learning_rate)
         self.criterion = nn.CrossEntropyLoss()
         
-        # Create optimizer
-        if opt_config.optimizer == OptimizationType.ADAM:
-            self.optimizer = optim.Adam(
-                self.model.parameters(),
-                lr=opt_config.learning_rate,
-                betas=opt_config.betas,
-                eps=opt_config.eps,
-                weight_decay=opt_config.weight_decay
-            )
-        elif opt_config.optimizer == OptimizationType.ADAMW:
-            self.optimizer = optim.AdamW(
-                self.model.parameters(),
-                lr=opt_config.learning_rate,
-                betas=opt_config.betas,
-                eps=opt_config.eps,
-                weight_decay=opt_config.weight_decay
-            )
-        elif opt_config.optimizer == OptimizationType.SGD:
-            self.optimizer = optim.SGD(
-                self.model.parameters(),
-                lr=opt_config.learning_rate,
-                momentum=opt_config.momentum,
-                weight_decay=opt_config.weight_decay
-            )
-        else:
-            raise ValueError(f"Unsupported optimizer: {opt_config.optimizer}")
-        
-        # Create scheduler
-        if opt_config.scheduler == SchedulerType.COSINE:
-            self.scheduler = optim.lr_scheduler.CosineAnnealingLR(
-                self.optimizer,
-                T_max=self.config.epochs,
-                **opt_config.scheduler_params
-            )
-        elif opt_config.scheduler == SchedulerType.LINEAR:
-            self.scheduler = optim.lr_scheduler.LinearLR(
-                self.optimizer,
-                **opt_config.scheduler_params
-            )
-        elif opt_config.scheduler == SchedulerType.PLATEAU:
-            self.scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-                self.optimizer,
-                mode=self.config.monitor_mode,
-                **opt_config.scheduler_params
-            )
-        else:
-            self.scheduler = None
+        # Training metrics
+        self.metrics = defaultdict(list)
+        self.best_loss = float('inf')
     
-    def _setup_mixed_precision(self) -> None:
-        """Setup mixed precision training"""
-        # Only enable mixed precision for CUDA devices
-        if self.config.mixed_precision and self.device.type == 'cuda':
-            self.scaler = GradScaler()
-            logger.info("Mixed precision training enabled")
-        else:
-            self.scaler = None
-            if self.config.mixed_precision and self.device.type != 'cuda':
-                logger.info(f"Mixed precision disabled for {self.device.type} device")
-    
-    def _setup_monitoring(self) -> None:
-        """Setup monitoring and logging"""
-        # TensorBoard
-        if self.config.use_tensorboard:
-            log_dir = Path("runs") / f"gaia_{int(time.time())}"
-            self.tb_writer = SummaryWriter(log_dir)
-            logger.info(f"TensorBoard logging: {log_dir}")
-        else:
-            self.tb_writer = None
-        
-        # Weights & Biases
-        if self.config.use_wandb and WANDB_AVAILABLE:
-            wandb.init(
-                project=self.config.wandb_project,
-                config=self.config.__dict__,
-                name=f"{self.config.model.name}_{int(time.time())}"
-            )
-            logger.info("W&B logging initialized")
-        else:
-            self.wandb_enabled = False
-    
-    def _setup_checkpointing(self) -> None:
-        """Setup checkpoint management"""
-        self.checkpoint_manager = CheckpointManager(
-            checkpoint_dir=self.config.checkpoint_dir,
-            max_checkpoints=self.config.save_top_k,
-            monitor_metric=self.config.monitor_metric,
-            higher_is_better=(self.config.monitor_mode == 'max')
-        )
-    
-    def train(self) -> Dict[str, Any]:
-        """Main training loop"""
-        logger.info("Starting GAIA training...")
-        
-        try:
-            # Pre-training setup
-            self.callback_manager.on_train_begin(self.state)
-            self._compile_model()
-            
-            # Training loop
-            for epoch in range(self.config.epochs):
-                self.state.epoch = epoch
-                
-                # Epoch callbacks
-                self.callback_manager.on_epoch_begin(self.state)
-                
-                # Training phase
-                train_metrics = self._train_epoch()
-                
-                # Validation phase
-                if self.val_dataloader and epoch % self.config.eval_frequency == 0:
-                    val_metrics = self._validate_epoch()
-                    self.state.val_metrics = val_metrics
-                
-                # GAIA categorical operations
-                if self.config.categorical_training:
-                    self._categorical_operations(epoch)
-                
-                # Update state
-                self.state.train_metrics = train_metrics
-                self.state.step += len(self.train_dataloader)
-                
-                # Logging
-                self._log_metrics(epoch, train_metrics, self.state.val_metrics)
-                
-                # Checkpointing
-                if epoch % self.config.save_frequency == 0:
-                    self._save_checkpoint(epoch)
-                
-                # Early stopping check
-                if self._should_stop_early():
-                    logger.info(f"Early stopping at epoch {epoch}")
-                    break
-                
-                # Epoch callbacks
-                self.callback_manager.on_epoch_end(self.state)
-            
-            # Post-training
-            self.callback_manager.on_train_end(self.state)
-            
-            # Final evaluation
-            if self.test_dataloader:
-                test_metrics = self._test()
-                logger.info(f"Test metrics: {test_metrics}")
-            
-            return self._get_training_summary()
-            
-        except Exception as e:
-            logger.error(f"Training failed: {type(e).__name__}: {str(e)}")
-            logger.error(f"Exception details: {repr(e)}")
-            
-            # Add more detailed error information
-            if isinstance(e, KeyError):
-                logger.error(f"KeyError details - missing key: {e.args[0] if e.args else 'unknown'}")
-                logger.error(f"KeyError key type: {type(e.args[0]) if e.args else 'unknown'}")
-                if hasattr(self, 'metric_tracker'):
-                    logger.error(f"Available metrics: {list(self.metric_tracker.metrics.keys())}")
-                    logger.error(f"Metric tracker state: {self.metric_tracker.__dict__}")
-                
-                # Debug training state
-                logger.error(f"Current epoch: {getattr(self.state, 'epoch', 'unknown')}")
-                logger.error(f"Current step: {getattr(self.state, 'step', 'unknown')}")
-                logger.error(f"Train metrics: {getattr(self.state, 'train_metrics', 'unknown')}")
-                logger.error(f"Val metrics: {getattr(self.state, 'val_metrics', 'unknown')}")
-                
-                # Debug dataloader info
-                logger.error(f"Train dataloader length: {len(self.train_dataloader) if hasattr(self, 'train_dataloader') else 'unknown'}")
-                logger.error(f"Val dataloader length: {len(self.val_dataloader) if hasattr(self, 'val_dataloader') and self.val_dataloader else 'unknown'}")
-                
-                # Print full traceback
-                import traceback
-                logger.error(f"Full traceback:\n{traceback.format_exc()}")
-            
-            self.callback_manager.on_train_error(self.state, e)
-            raise
-        
-        finally:
-            self._cleanup()
-    
-    def _train_epoch(self) -> Dict[str, float]:
-        """Train for one epoch"""
+    def train_step(self) -> TrainingState:
+        """Execute one training step across all components."""
         self.model.train()
         
-        with self.profiler.profile_section("train_epoch"):
-            # Fix: The TrainingLoop's run_epoch handles the iteration over the dataloader.
-            # The previous implementation incorrectly looped over the dataloader here
-            # and called run_epoch for each batch, which is wrong.
-            try:
-                logger.debug(f"Starting training epoch with dataloader length: {len(self.train_dataloader)}")
-                
-                # Call run_epoch once per epoch, not per batch
-                epoch_metrics = self.train_loop.run_epoch(self.train_dataloader)
-                
-                logger.debug(f"Epoch metrics from run_epoch: {epoch_metrics}")
-                logger.debug(f"Epoch metrics type: {type(epoch_metrics)}")
-                
-                # Update metrics tracker
-                self.metric_tracker.update(epoch_metrics)
-                
-                # Compute final metrics for the epoch
-                final_metrics = self.metric_tracker.compute()
-                logger.debug(f"Final computed metrics: {final_metrics}")
-                
-                return final_metrics
-                
-            except Exception as e:
-                logger.error(f"Error in _train_epoch: {type(e).__name__}: {str(e)}")
-                logger.error(f"Epoch metrics at error: {locals().get('epoch_metrics', 'not set')}")
-                logger.error(f"Metric tracker state: {self.metric_tracker.__dict__ if hasattr(self, 'metric_tracker') else 'no tracker'}")
-                raise
+        # Update training state
+        self.state.step += 1
+        
+        # Process through all components
+        for component in self.components.values():
+            self.state = component.update(self.state)
+        
+        # Standard training step
+        if 'batch_data' in self.state.metadata and 'batch_targets' in self.state.metadata:
+            data = self.state.metadata['batch_data']
+            targets = self.state.metadata['batch_targets']
+            
+            # Forward pass
+            outputs = self.model(data)
+            loss = self.criterion(outputs, targets)
+            
+            # Backward pass
+            self.optimizer.zero_grad()
+            loss.backward()
+            
+            # Store gradients in state
+            for name, param in self.model.named_parameters():
+                if param.grad is not None:
+                    self.state.gradients[name] = param.grad.clone()
+            
+            # Optimizer step
+            self.optimizer.step()
+            
+            # Update state
+            self.state.loss = loss.item()
+            self.state.parameters = {name: param.data.clone() 
+                                   for name, param in self.model.named_parameters()}
+        
+        # Log metrics
+        if self.state.step % self.config.log_interval == 0:
+            self._log_metrics()
+        
+        return self.state
     
-    def _validate_epoch(self) -> Dict[str, float]:
-        """Validate for one epoch"""
+    def validate_step(self) -> Dict[str, float]:
+        """Execute validation across all components."""
         self.model.eval()
         
-        with torch.no_grad(), self.profiler.profile_section("val_epoch"):
-            try:
-                logger.debug(f"Starting validation epoch with dataloader length: {len(self.val_dataloader)}")
-                
-                for batch in self.val_dataloader:
-                    metrics = self.val_loop.val_step(batch, self.state)
-                    logger.debug(f"Validation batch metrics: {metrics}")
-                    self.metric_tracker.update(metrics, prefix="val_")
-                
-                val_metrics = self.metric_tracker.compute(prefix="val_")
-                logger.debug(f"Final validation metrics: {val_metrics}")
-                
-                return val_metrics
-                
-            except Exception as e:
-                logger.error(f"Error in _validate_epoch: {type(e).__name__}: {str(e)}")
-                logger.error(f"Metric tracker state: {self.metric_tracker.__dict__ if hasattr(self, 'metric_tracker') else 'no tracker'}")
-                raise
-    
-    def _categorical_operations(self, epoch: int) -> None:
-        """Perform GAIA categorical operations"""
-        if epoch % self.config.horn_solving_frequency == 0:
-            self._solve_horns()
+        validation_metrics = {}
         
-        if epoch % self.config.coherence_check_frequency == 0:
-            self._verify_coherence()
-    
-    def _solve_horns(self) -> None:
-        """Solve inner and outer horns"""
-        if self.functor is None:
-            return
+        # Validate all components
+        for name, component in self.components.items():
+            validation_metrics[f'{name}_valid'] = float(component.validate())
         
-        try:
-            # Inner horn solving
-            if self.inner_solver:
-                inner_results = self.inner_solver.solve_all_horns()
-                logger.debug(f"Inner horn results: {inner_results}")
-            
-            # Outer horn solving  
-            if self.outer_solver:
-                outer_results = self.outer_solver.solve_all_horns()
-                logger.debug(f"Outer horn results: {outer_results}")
+        # Model validation (if validation data available)
+        if 'val_data' in self.state.metadata and 'val_targets' in self.state.metadata:
+            with torch.no_grad():
+                val_data = self.state.metadata['val_data']
+                val_targets = self.state.metadata['val_targets']
                 
-        except Exception as e:
-            logger.warning(f"Horn solving failed: {e}")
-    
-    def _verify_coherence(self) -> None:
-        """Verify categorical coherence"""
-        if self.functor is None:
-            return
-        
-        try:
-            coherence_results = self.functor.verify_simplicial_identities()
-            logger.debug(f"Coherence verification: {coherence_results}")
-            
-            # Log coherence metrics
-            if self.tb_writer:
-                # Fix: Extract a numeric value from the coherence results
-                if isinstance(coherence_results, dict):
-                    # Use a meaningful metric from the results
-                    coherence_value = coherence_results.get('valid', 0.0)
-                    if isinstance(coherence_value, bool):
-                        coherence_value = float(coherence_value)
-                    elif not isinstance(coherence_value, (int, float)):
-                        coherence_value = 0.0
-                else:
-                    coherence_value = float(coherence_results)
-                    
-                self.tb_writer.add_scalar(
-                    "coherence/simplicial_identities",
-                    coherence_value,
-                    self.state.step
-                )
+                val_outputs = self.model(val_data)
+                val_loss = self.criterion(val_outputs, val_targets)
                 
-        except Exception as e:
-            logger.warning(f"Coherence verification failed: {e}")
-            
-    def _compile_model(self) -> None:
-        """Compile model for optimization"""
-        if self.config.compile_model and hasattr(torch, 'compile'):
-            try:
-                self.model = torch.compile(self.model)
-                logger.info("Model compiled for optimization")
-            except Exception as e:
-                logger.warning(f"Model compilation failed: {e}")
-    
-    def _cleanup(self) -> None:
-        """Cleanup resources after training"""
-        try:
-            # Stop profiler
-            if hasattr(self, 'profiler') and self.profiler:
-                self.profiler.reset()
-            
-            # Close TensorBoard writer
-            if hasattr(self, 'tb_writer') and self.tb_writer:
-                self.tb_writer.close()
-            
-            # Finish W&B run
-            if hasattr(self, 'wandb_enabled') and self.wandb_enabled:
-                import wandb
-                wandb.finish()
-            
-            # Clear CUDA cache if using GPU
-            if self.device.type == 'cuda':
-                torch.cuda.empty_cache()
+                # Accuracy
+                _, predicted = torch.max(val_outputs.data, 1)
+                accuracy = (predicted == val_targets).float().mean()
                 
-        except Exception as e:
-            logger.warning(f"Cleanup failed: {e}")
-    
-    def _log_metrics(self, epoch: int, train_metrics: Dict, val_metrics: Dict) -> None:
-        """Log training metrics"""
-        # Console logging
-        log_str = f"Epoch {epoch:3d} | "
-        log_str += f"Train Loss: {train_metrics.get('loss', 0):.4f} | "
-        if val_metrics:
-            log_str += f"Val Loss: {val_metrics.get('val_loss', 0):.4f}"
-        logger.info(log_str)
+                validation_metrics['val_loss'] = val_loss.item()
+                validation_metrics['val_accuracy'] = accuracy.item()
         
-        # TensorBoard logging
-        if self.tb_writer:
-            for name, value in train_metrics.items():
-                self.tb_writer.add_scalar(f"train/{name}", value, epoch)
+        return validation_metrics
+    
+    def train_epoch(self, dataloader) -> Dict[str, float]:
+        """Train for one epoch."""
+        epoch_metrics = defaultdict(list)
+        
+        for batch_idx, (data, targets) in enumerate(dataloader):
+            data, targets = data.to(self.device), targets.to(self.device)
             
-            if val_metrics:
-                for name, value in val_metrics.items():
-                    self.tb_writer.add_scalar(f"val/{name.replace('val_', '')}", value, epoch)
+            # Add batch to training state
+            self.state.metadata['batch_data'] = data
+            self.state.metadata['batch_targets'] = targets
+            
+            # Execute training step
+            self.state = self.train_step()
+            
+            # Collect metrics
+            epoch_metrics['loss'].append(self.state.loss)
+            
+            # Validation step periodically
+            if batch_idx % (len(dataloader) // 4) == 0:
+                val_metrics = self.validate_step()
+                for key, value in val_metrics.items():
+                    epoch_metrics[key].append(value)
         
-        # W&B logging
-        if hasattr(self, 'wandb_enabled') and self.wandb_enabled:
-            log_dict = {f"train/{k}": v for k, v in train_metrics.items()}
-            if val_metrics:
-                log_dict.update({f"val/{k.replace('val_', '')}": v for k, v in val_metrics.items()})
-            wandb.log(log_dict, step=epoch)
+        # Average metrics
+        return {key: np.mean(values) for key, values in epoch_metrics.items()}
     
-    def _log_batch_metrics(self, batch_idx: int, metrics: Dict) -> None:
-        """Log batch-level metrics"""
-        if self.tb_writer:
-            for name, value in metrics.items():
-                self.tb_writer.add_scalar(
-                    f"batch/{name}", 
-                    value, 
-                    self.state.step + batch_idx
-                )
+    def train(self, train_loader, val_loader=None, num_epochs: Optional[int] = None) -> Dict[str, List[float]]:
+        """Full training loop."""
+        num_epochs = num_epochs or self.config.max_epochs
+        
+        self.logger.info(f"Starting GAIA unified training for {num_epochs} epochs")
+        
+        # Initialize all components
+        for component in self.components.values():
+            component.initialize()
+        
+        training_history = defaultdict(list)
+        
+        for epoch in range(num_epochs):
+            self.state.epoch = epoch
+            
+            # Train epoch
+            epoch_metrics = self.train_epoch(train_loader)
+            
+            # Validation
+            if val_loader:
+                val_metrics = self._validate_epoch(val_loader)
+                epoch_metrics.update(val_metrics)
+            
+            # Store metrics
+            for key, value in epoch_metrics.items():
+                training_history[key].append(value)
+            
+            # Logging
+            self.logger.info(f"Epoch {epoch}: {epoch_metrics}")
+            
+            # Checkpointing
+            if epoch_metrics.get('val_loss', epoch_metrics.get('loss', float('inf'))) < self.best_loss:
+                self.best_loss = epoch_metrics.get('val_loss', epoch_metrics.get('loss'))
+                self._save_checkpoint(epoch)
+        
+        self.logger.info("Training completed successfully")
+        return dict(training_history)
     
-    def _save_checkpoint(self, epoch: int) -> None:
-        """Save training checkpoint"""
+    def _validate_epoch(self, val_loader) -> Dict[str, float]:
+        """Validate for one epoch."""
+        val_metrics = defaultdict(list)
+        
+        self.model.eval()
+        with torch.no_grad():
+            for data, targets in val_loader:
+                data, targets = data.to(self.device), targets.to(self.device)
+                
+                self.state.metadata['val_data'] = data
+                self.state.metadata['val_targets'] = targets
+                
+                batch_val_metrics = self.validate_step()
+                for key, value in batch_val_metrics.items():
+                    val_metrics[key].append(value)
+        
+        return {key: np.mean(values) for key, values in val_metrics.items()}
+    
+    def _log_metrics(self):
+        """Log current training metrics."""
+        self.logger.info(f"Step {self.state.step}: Loss = {self.state.loss:.6f}")
+        
+        # Log component-specific metrics
+        for name, component in self.components.items():
+            if hasattr(component, 'get_metrics'):
+                component_metrics = component.get_metrics()
+                self.logger.debug(f"{name} metrics: {component_metrics}")
+    
+    def _save_checkpoint(self, epoch: int):
+        """Save training checkpoint."""
+        checkpoint_dir = Path(self.config.checkpoint_dir)
+        checkpoint_dir.mkdir(exist_ok=True)
+        
         checkpoint = {
             'epoch': epoch,
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
-            'scheduler_state_dict': self.scheduler.state_dict() if self.scheduler else None,
-            'scaler_state_dict': self.scaler.state_dict() if self.scaler else None,
+            'loss': self.best_loss,
             'config': self.config,
-            'state': self.state,
-            'metrics': self.metric_tracker.get_history()
+            'training_state': self.state
         }
         
-        # Add GAIA-specific state
-        if self.functor:
-            checkpoint['functor_state'] = self.functor.state_dict()
-        
-        self.checkpoint_manager.save_checkpoint(
-            model=self.model,
-            training_state=self.state,
-            optimizer=self.optimizer,
-            scheduler=self.scheduler,
-            extra_data=checkpoint
-        )
+        checkpoint_path = checkpoint_dir / f'gaia_checkpoint_epoch_{epoch}.pt'
+        torch.save(checkpoint, checkpoint_path)
+        self.logger.info(f"Checkpoint saved: {checkpoint_path}")
     
-    def _should_stop_early(self) -> bool:
-        """Check early stopping condition"""
-        if not self.config.early_stopping or not self.state.val_metrics:
-            return False
+    def load_checkpoint(self, checkpoint_path: str):
+        """Load training checkpoint."""
+        checkpoint = torch.load(checkpoint_path, map_location=self.device)
         
-        monitor_value = self.state.val_metrics.get(self.config.monitor_metric)
-        if monitor_value is None:
-            return False
+        self.model.load_state_dict(checkpoint['model_state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        self.state = checkpoint['training_state']
+        self.best_loss = checkpoint['loss']
         
-        # Simple early stopping logic (can be enhanced)
-        if not hasattr(self.state, 'best_metric'):
-            self.state.best_metric = monitor_value
-            self.state.patience_counter = 0
-            return False
-        
-        improved = (
-            (self.config.monitor_mode == "min" and monitor_value < self.state.best_metric - self.config.min_delta) or
-            (self.config.monitor_mode == "max" and monitor_value > self.state.best_metric + self.config.min_delta)
-        )
-        
-        if improved:
-            self.state.best_metric = monitor_value
-            self.state.patience_counter = 0
-        else:
-            self.state.patience_counter += 1
-        
-        return self.state.patience_counter >= self.config.patience
+        self.logger.info(f"Checkpoint loaded: {checkpoint_path}")
+        return checkpoint['epoch']
+
+
+# Factory function for easy trainer creation
+def create_gaia_trainer(model: nn.Module, config: Optional[GAIATrainingConfig] = None) -> GAIATrainer:
+    """Create a GAIA unified trainer with default configuration."""
+    if config is None:
+        config = GAIATrainingConfig()
     
-    def _test(self) -> Dict[str, float]:
-        """Run final test evaluation"""
-        self.model.eval()
-        
-        with torch.no_grad():
-            try:
-                logger.debug(f"Starting test evaluation with dataloader length: {len(self.test_dataloader)}")
-                
-                for batch in self.test_dataloader:
-                    metrics = self.val_loop.val_step(batch, self.state)
-                    logger.debug(f"Test batch metrics: {metrics}")
-                    self.metric_tracker.update(metrics, prefix="test_")
-                
-                test_metrics = self.metric_tracker.compute(prefix="test_")
-                logger.debug(f"Final test metrics: {test_metrics}")
-                
-                return test_metrics
-                
-            except Exception as e:
-                logger.error(f"Error in _test: {type(e).__name__}: {str(e)}")
-                logger.error(f"Metric tracker state: {self.metric_tracker.__dict__ if hasattr(self, 'metric_tracker') else 'no tracker'}")
-                raise
-    
-    def _get_training_summary(self) -> Dict[str, Any]:
-        """Get comprehensive training summary"""
-        return {
-            'total_epochs': self.state.epoch + 1,
-            'total_steps': self.state.step,
-            'best_metrics': getattr(self.state, 'best_metric', None),
-            'final_train_metrics': self.state.train_metrics,
-            'final_val_metrics': self.state.val_metrics,
-            'training_time': getattr(self.state, 'training_time', 0),
-            'model_parameters': sum(p.numel() for p in self.model.parameters()),
-            'categorical_coherence': self._get_final_coherence() if self.functor else None
-        }
-    
-    def _get_final_coherence(self) -> Dict[str, Any]:
-        """Get final categorical coherence metrics"""
-        try:
-            return {
-                'simplicial_identities': self.functor.verify_simplicial_identities(),
-                'horn_completeness': self._check_horn_completeness()
-            }
-        except Exception as e:
-            logger.warning(f"Final coherence check failed: {e}")
-            return {}
-    
-   
+    return GAIATrainer(model, config)
+
+
+# Export public interface
+__all__ = [
+    'GAIATrainingConfig', 'FuzzyDataEncoder', 'CoalgebraEvolution',
+    'HierarchicalCommunication', 'KanVerification', 'GAIATrainer',
+    'create_gaia_trainer'
+]

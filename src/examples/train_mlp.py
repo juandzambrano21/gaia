@@ -31,7 +31,7 @@ from gaia.data.fuzzy_encoding import FuzzyEncodingPipeline, UMAPConfig
 from gaia.training.hierarchical_message_passing import HierarchicalMessagePassingSystem
 from gaia.core.business_units import BusinessUnitHierarchy
 from gaia.core.coalgebras import BackpropagationEndofunctor, FCoalgebra
-from gaia.training.unified_trainer import GAIAUnifiedTrainer, GAIATrainingConfig
+from gaia.training.unified_trainer import GAIATrainer, GAIATrainingConfig
 from gaia.data.synthetic import create_synthetic_dataset
 
 # Setup logging
@@ -344,6 +344,10 @@ def demonstrate_production_workflow():
     """
     Demonstrate the complete GAIA production workflow with ALL theoretical components.
     """
+    from gaia.training.config import TrainingConfig
+    
+    training_config = TrainingConfig()
+    
     print("🚀 GAIA FRAMEWORK - COMPLETE PRODUCTION WORKFLOW")
     print("=" * 80)
     print("Demonstrating ALL theoretical components integrated in production:")
@@ -358,11 +362,11 @@ def demonstrate_production_workflow():
     # Configuration for production workflow
     config = GAIATrainingConfig(
         input_dim=64,
-        hidden_dims=[128, 64, 32],
-        output_dim=10,
-        learning_rate=1e-3,
-        batch_size=32,
-        max_epochs=5,
+        hidden_dims=training_config.model.hidden_dims or [128, 64, 32],
+        num_classes=10,
+        learning_rate=training_config.optimization.learning_rate,
+        batch_size=training_config.data.batch_size,
+        max_epochs=training_config.epochs,
         fuzzy_k_neighbors=5,
         coalgebra_steps=3,
         message_passing_levels=3,

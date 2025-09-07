@@ -24,6 +24,9 @@ from .core import (
     get_advanced_components
 )
 
+# Configuration
+from .training.config import GAIAConfig
+
 # Aliases for convenience
 FuzzySet = IntegratedFuzzySet
 FuzzySimplicialSet = IntegratedFuzzySimplicialSet
@@ -106,10 +109,13 @@ __all__ = [
     'KanComplexVerifier',
     'HierarchicalMessagePasser',
     
+    # Configuration
+    'GAIAConfig',
+    
     # Factory functions
     'create_model',
     
-    # Utilities
+    # Utility functions
     'get_training_components',
     'get_advanced_components',
     'version',

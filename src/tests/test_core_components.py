@@ -134,7 +134,9 @@ def test_universal_coalgebras():
     assert torch.equal(parameters, params)
     
     # Test F-coalgebra
-    coalgebra = create_parameter_coalgebra(params, learning_rate=0.01)
+    from gaia.training.config import TrainingConfig
+    training_config = TrainingConfig()
+    coalgebra = create_parameter_coalgebra(params, learning_rate=training_config.optimization.learning_rate)
     
     # Test evolution
     evolved_state = coalgebra.evolve(params)

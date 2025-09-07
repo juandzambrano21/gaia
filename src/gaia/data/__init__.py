@@ -8,6 +8,11 @@ from .fuzzy_encoding import (
     FuzzyEncodingPipeline, UMAPConfig, encode_point_cloud, 
     encode_graph_data, create_synthetic_fuzzy_complex
 )
+from .loaders import (
+    GAIADataManager, DatasetConfig, DataLoaderConfig,
+    DataLoaders, create_standard_language_loaders
+)
+from .dataset import Dataset
 
 __all__ = [
     # Synthetic data generation
@@ -35,7 +40,15 @@ __all__ = [
     'UMAPConfig',
     'encode_point_cloud',
     'encode_graph_data',
-    'create_synthetic_fuzzy_complex'
+    'create_synthetic_fuzzy_complex',
+    
+    # Extensible data loading architecture
+    'GAIADataManager',
+    'DatasetConfig',
+    'DataLoaderConfig',
+    'DataLoaders',
+    'create_standard_language_loaders',
+    'Dataset'
 ]
 
 # Convenience function for quick dataset loading

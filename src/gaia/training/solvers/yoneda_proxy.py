@@ -200,7 +200,9 @@ class SpectralNormalizedMetric(nn.Module):
             
             # Verify with a random test
             with torch.no_grad():
-                batch_size = 100
+                from gaia.training.config import TrainingConfig
+                training_config = TrainingConfig()
+                batch_size = training_config.data.batch_size or 100
                 x1 = torch.randn(batch_size, self.dim, device=device)
                 y1 = torch.randn(batch_size, self.dim, device=device)
                 x2 = torch.randn(batch_size, self.dim, device=device)
@@ -269,7 +271,9 @@ class SpectralNormalizedMetric(nn.Module):
             
             # Also verify with a random test
             with torch.no_grad():
-                batch_size = 100
+                from gaia.training.config import TrainingConfig
+                training_config = TrainingConfig()
+                batch_size = training_config.data.batch_size or 100
                 x1 = torch.randn(batch_size, self.dim, device=device)
                 y1 = torch.randn(batch_size, self.dim, device=device)
                 x2 = torch.randn(batch_size, self.dim, device=device)

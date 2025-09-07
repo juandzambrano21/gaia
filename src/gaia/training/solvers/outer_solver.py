@@ -291,7 +291,9 @@ class UniversalLiftingSolver:
             # For outer horns, we need to create the missing outer face using universal lifting
             
             # Create synthetic data for the lifting problem
-            batch_size = 32  
+            from gaia.training.config import TrainingConfig
+            training_config = TrainingConfig()
+            batch_size = training_config.data.batch_size or 32  
             domain_dim = self.f.domain.dim
             X_A = torch.randn(batch_size, domain_dim).to(DEVICE)
             

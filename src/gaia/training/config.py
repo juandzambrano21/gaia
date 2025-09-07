@@ -7,6 +7,10 @@ import json
 import yaml
 from enum import Enum
 
+import logging
+from typing import Optional
+
+
 class OptimizationType(Enum):
     ADAM = "adam"
     ADAMW = "adamw"
@@ -52,11 +56,20 @@ class ModelConfig:
     name: str = "gaia_model"
     architecture: str = "categorical_mlp"
     
-    # Network architecture
-    hidden_dims: List[int] = field(default_factory=lambda: [512, 256, 128])
+    # Model architecture
+    hidden_dims: List[int] = field(default_factory=lambda: [128, 64, 32])
     activation: str = "relu"
     dropout: float = 0.1
     batch_norm: bool = True
+    
+    # Transformer-specific
+    vocab_size: int = 5000
+    d_model: int = 128
+    num_heads: int = 4
+    num_layers: int = 2
+    d_ff: int = 256
+    max_seq_length: int = 256
+    seq_len: int = 128  # For compatibility
     
     # GAIA-specific categorical structure
     simplicial_depth: int = 3
@@ -71,7 +84,7 @@ class ModelConfig:
 class DataConfig:
     """Data loading and processing configuration"""
     dataset_path: Union[str, Path] = ""
-    batch_size: int = 32
+    batch_size: int = 4
     num_workers: int = 0  # Change from 4 to 0 for macOS compatibility
     pin_memory: bool = False  # Change from True to False for MPS
     persistent_workers: bool = False  # Change from True to False
@@ -86,15 +99,33 @@ class DataConfig:
     test_split: float = 0.1
     random_seed: int = 42
     
+    # UMAP configuration for fuzzy encoding pipeline
+    n_neighbors: int = 15
+    min_dist: float = 0.1
+    spread: float = 1.0
+    metric: str = "euclidean"
+    n_components: int = 2
+    local_connectivity: float = 1.0
+    bandwidth: float = 1.0
+    
     # GAIA-specific categorical data
     categorical_features: List[str] = field(default_factory=list)
     simplicial_structure: Optional[Dict[str, Any]] = None
+    
+    # Dataset configuration
+    use_sample_dataset: bool = True  # Use simple sample dataset to avoid memory issues
+    sample_dataset_size: int = 20
+    
+    # Performance configuration
+    enable_hierarchical_messaging: bool = False  # Disable for faster training
+    enable_horn_detection: bool = False  # Disable for faster training
+    quick_demo_mode: bool = True  # Enable quick demo mode
     
 @dataclass
 class TrainingConfig:
     """Complete training configuration"""
     # Basic training parameters
-    epochs: int = 100
+    epochs: int = 2
     max_steps: Optional[int] = None
     eval_frequency: int = 1000
     save_frequency: int = 5000
@@ -170,3 +201,94 @@ class TrainingConfig:
                 json.dump(config_dict, f, indent=2)
             else:
                 raise ValueError(f"Unsupported config format: {config_path.suffix}")
+
+
+
+class GAIAConfig:
+    """Global configuration class for GAIA framework."""
+    
+    # Global debug flag
+    ULTRA_VERBOSE_DEBUG = True
+    
+    # Default logging configuration
+    DEFAULT_LOG_LEVEL = logging.DEBUG
+    DEFAULT_LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    
+    @classmethod
+    def setup_logging(cls, 
+                     level: Optional[int] = None,
+                     format_str: Optional[str] = None,
+                     enable_ultra_verbose: bool = True) -> None:
+        """Setup global logging configuration for GAIA framework.
+        
+        Args:
+            level: Logging level (default: DEBUG)
+            format_str: Log format string
+            enable_ultra_verbose: Enable ultra-verbose debugging
+        """
+        if level is None:
+            level = cls.DEFAULT_LOG_LEVEL
+        if format_str is None:
+            format_str = cls.DEFAULT_LOG_FORMAT
+            
+        # Configure root logging
+        logging.basicConfig(
+            level=level,
+            format=format_str,
+            handlers=[
+                logging.StreamHandler(),  # Console output
+            ],
+            force=True  # Override any existing configuration
+        )
+        
+        # Set ALL GAIA modules to DEBUG level
+        gaia_loggers = [
+            'gaia',
+            'gaia.core',
+            'gaia.core.universal_coalgebras',
+            'gaia.core.kan_extensions',
+            'gaia.core.hierarchical_messaging',
+            'gaia.core.fuzzy',
+            'gaia.core.metric_yoneda',
+            'gaia.core.ends_coends',
+            'gaia.models',
+            'gaia.training',
+            'gaia.data',
+            'gaia.utils'
+        ]
+        
+        for logger_name in gaia_loggers:
+            logging.getLogger(logger_name).setLevel(level)
+        
+        # Update global debug flag
+        cls.ULTRA_VERBOSE_DEBUG = enable_ultra_verbose
+        
+        # Log configuration status
+        logger = logging.getLogger('gaia.config')
+        logger.info(f"🔧 GAIA CONFIG: ULTRA-VERBOSE DEBUG MODE = {cls.ULTRA_VERBOSE_DEBUG}")
+        logger.info(f"🔧 GAIA CONFIG: Root logging level = {logging.getLogger().level}")
+        logger.info(f"🔧 GAIA CONFIG: GAIA logging level = {logging.getLogger('gaia').level}")
+        
+    @classmethod
+    def is_debug_enabled(cls) -> bool:
+        """Check if ultra-verbose debugging is enabled."""
+        return cls.ULTRA_VERBOSE_DEBUG
+        
+    @classmethod
+    def get_logger(cls, name: str) -> logging.Logger:
+        """Get a logger with GAIA configuration.
+        
+        Args:
+            name: Logger name
+            
+        Returns:
+            Configured logger instance
+        """
+        logger = logging.getLogger(name)
+        if cls.ULTRA_VERBOSE_DEBUG:
+            logger.setLevel(logging.DEBUG)
+        return logger
+
+
+# Initialize default configuration
+GAIAConfig.setup_logging()

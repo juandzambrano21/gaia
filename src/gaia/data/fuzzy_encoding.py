@@ -31,15 +31,50 @@ from ..core import DEVICE
 
 @dataclass
 class UMAPConfig:
-    """Configuration for UMAP-adapted fuzzy encoding pipeline."""
-    n_neighbors: int = 15
-    metric: str = "euclidean"
-    min_dist: float = 0.1
-    spread: float = 1.0
-    local_connectivity: float = 1.0
-    bandwidth: float = 1.0
+    """Configuration for UMAP-adapted fuzzy encoding pipeline using global GAIAConfig."""
+    n_neighbors: int = field(default_factory=lambda: _get_global_config().n_neighbors)
+    metric: str = field(default_factory=lambda: _get_global_config().metric)
+    min_dist: float = field(default_factory=lambda: _get_global_config().min_dist)
+    spread: float = field(default_factory=lambda: _get_global_config().spread)
+    local_connectivity: float = field(default_factory=lambda: _get_global_config().local_connectivity)
+    bandwidth: float = field(default_factory=lambda: _get_global_config().bandwidth)
     t_conorm: Callable[[float, float], float] = TConorm.algebraic_sum
-    random_state: int = 42
+    random_state: int = field(default_factory=lambda: getattr(_get_global_config(), 'random_seed', 42))
+
+def _get_global_config():
+    """Helper function to get global configuration with fallback defaults."""
+    try:
+        from ..training.config import DataConfig
+        config = DataConfig()
+        # Set fallback defaults if config attributes don't exist
+        if not hasattr(config, 'n_neighbors'):
+            config.n_neighbors = 15
+        if not hasattr(config, 'metric'):
+            config.metric = "euclidean"
+        if not hasattr(config, 'min_dist'):
+            config.min_dist = 0.1
+        if not hasattr(config, 'spread'):
+            config.spread = 1.0
+        if not hasattr(config, 'local_connectivity'):
+            config.local_connectivity = 1.0
+        if not hasattr(config, 'bandwidth'):
+            config.bandwidth = 1.0
+        return config
+    except ImportError:
+        # Fallback to hardcoded defaults if config system not available
+        class FallbackConfig:
+            class DataConfig:
+                n_neighbors = 15
+                metric = "euclidean"
+                min_dist = 0.1
+                spread = 1.0
+                local_connectivity = 1.0
+                bandwidth = 1.0
+            class ReproducibilityConfig:
+                seed = 42
+            data = DataConfig()
+            reproducibility = ReproducibilityConfig()
+        return FallbackConfig()
 
 
 class FuzzyEncodingPipeline:
@@ -362,14 +397,19 @@ class FuzzyEncodingPipeline:
         
         return adj_matrix
     
-    def visualize_fuzzy_complex(self, fss: FuzzySimplicialSet, threshold: float = 0.1):
+    def visualize_fuzzy_complex(self, fss: FuzzySimplicialSet, threshold: float = None):
         """
         Visualize fuzzy simplicial complex structure.
         
         Args:
             fss: Fuzzy simplicial set to visualize
-            threshold: Minimum membership threshold for display
+            threshold: Minimum membership threshold for display (uses global config if None)
         """
+        # Use global config default if threshold not provided
+        if threshold is None:
+            global_config = _get_global_config()
+            threshold = getattr(global_config.data, 'visualization_threshold', 0.1)
+            
         print(f"Fuzzy Simplicial Complex: {fss.name}")
         print(f"Dimension: {fss.dimension}")
         
@@ -394,19 +434,26 @@ class FuzzyEncodingPipeline:
 
 # Utility functions for common use cases
 
-def encode_point_cloud(points: np.ndarray, n_neighbors: int = 15, 
-                      min_dist: float = 0.1) -> FuzzySimplicialSet:
+def encode_point_cloud(points: np.ndarray, n_neighbors: int = None, 
+                      min_dist: float = None) -> FuzzySimplicialSet:
     """
     Encode point cloud as fuzzy simplicial set.
     
     Args:
         points: Point cloud of shape (n_points, n_dims)
-        n_neighbors: Number of nearest neighbors
-        min_dist: Minimum distance parameter
+        n_neighbors: Number of nearest neighbors (uses global config if None)
+        min_dist: Minimum distance parameter (uses global config if None)
         
     Returns:
         Fuzzy simplicial set encoding the point cloud
     """
+    # Use global config defaults if parameters not provided
+    global_config = _get_global_config()
+    if n_neighbors is None:
+        n_neighbors = global_config.data.n_neighbors
+    if min_dist is None:
+        min_dist = global_config.data.min_dist
+        
     config = UMAPConfig(n_neighbors=n_neighbors, min_dist=min_dist)
     pipeline = FuzzyEncodingPipeline(config)
     return pipeline.encode(points)
@@ -450,19 +497,27 @@ def encode_graph_data(adjacency_matrix: np.ndarray,
     return fss
 
 
-def create_synthetic_fuzzy_complex(n_points: int = 100, n_dims: int = 2, 
-                                  noise_level: float = 0.1) -> FuzzySimplicialSet:
+def create_synthetic_fuzzy_complex(n_points: int = None, n_dims: int = None, 
+                                  noise_level: float = None) -> FuzzySimplicialSet:
     """
     Create synthetic fuzzy simplicial complex for testing.
     
     Args:
-        n_points: Number of points
-        n_dims: Dimensionality
-        noise_level: Noise level
+        n_points: Number of points (uses global config if None)
+        n_dims: Dimensionality (uses global config if None)
+        noise_level: Noise level (uses global config if None)
         
     Returns:
         Synthetic fuzzy simplicial set
     """
+    # Use global config defaults if parameters not provided
+    global_config = _get_global_config()
+    if n_points is None:
+        n_points = getattr(global_config.data, 'n_synthetic_points', 100)
+    if n_dims is None:
+        n_dims = getattr(global_config.data, 'synthetic_dims', 2)
+    if noise_level is None:
+        noise_level = getattr(global_config.data, 'synthetic_noise_level', 0.1)
     # Generate synthetic data (circle + noise)
     angles = np.linspace(0, 2 * np.pi, n_points, endpoint=False)
     points = np.column_stack([np.cos(angles), np.sin(angles)])

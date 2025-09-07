@@ -967,7 +967,7 @@
 <li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.CoalgebraEvolution"><code class="docutils literal notranslate"><span class="pre">CoalgebraEvolution</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.HierarchicalCommunication"><code class="docutils literal notranslate"><span class="pre">HierarchicalCommunication</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.KanVerification"><code class="docutils literal notranslate"><span class="pre">KanVerification</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer"><code class="docutils literal notranslate"><span class="pre">GAIAUnifiedTrainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer"><code class="docutils literal notranslate"><span class="pre">GAIATrainer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.create_gaia_trainer"><code class="docutils literal notranslate"><span class="pre">create_gaia_trainer()</span></code></a></li>
 </ul>
 </li>
@@ -1549,7 +1549,7 @@
 </li>
         <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainingConfig.__init__">(gaia.training.unified_trainer.GAIATrainingConfig method)</a>
 </li>
-        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.__init__">(gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.__init__">(gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
         <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.HierarchicalCommunication.__init__">(gaia.training.unified_trainer.HierarchicalCommunication method)</a>
 </li>
@@ -1653,7 +1653,7 @@
       <ul>
         <li><a href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.NaturalTransformation.add_component">(gaia.core.kan_extensions.NaturalTransformation method)</a>
 </li>
-        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.add_component">(gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.add_component">(gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
       </ul></li>
       <li><a href="gaia.core.fuzzy.html#gaia.core.fuzzy.FuzzySimplicialSet.add_degeneracy_map">add_degeneracy_map() (gaia.core.fuzzy.FuzzySimplicialSet method)</a>
@@ -2915,7 +2915,7 @@
 </li>
       <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainingConfig">GAIATrainingConfig (class in gaia.training.unified_trainer)</a>
 </li>
-      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer">GAIAUnifiedTrainer (class in gaia.training.unified_trainer)</a>
+      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer">GAIATrainer (class in gaia.training.unified_trainer)</a>
 </li>
       <li><a href="gaia.core.metric_yoneda.html#gaia.core.metric_yoneda.GeneralizedMetricSpace">GeneralizedMetricSpace (class in gaia.core.metric_yoneda)</a>
 
@@ -2952,7 +2952,7 @@
       <ul>
         <li><a href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.NaturalTransformation.get_component">(gaia.core.kan_extensions.NaturalTransformation method)</a>
 </li>
-        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.get_component">(gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.get_component">(gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
       </ul></li>
       <li><a href="gaia.metrics.html#gaia.metrics.MetricTracker.get_current">get_current() (gaia.metrics.MetricTracker method)</a>
@@ -3429,7 +3429,7 @@
 </li>
       <li><a href="gaia.core.kan_extensions.html#gaia.core.kan_extensions.FoundationModelBuilder.list_models">list_models() (gaia.core.kan_extensions.FoundationModelBuilder method)</a>
 </li>
-      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.load_checkpoint">load_checkpoint() (gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.load_checkpoint">load_checkpoint() (gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
       <li><a href="gaia.core.functor.html#gaia.core.functor.SimplicialFunctor.load_state_dict">load_state_dict() (gaia.core.functor.SimplicialFunctor method)</a>
 
@@ -4152,14 +4152,14 @@
 </li>
       <li><a href="gaia.core.ends_coends.html#gaia.core.ends_coends.Topos">Topos (class in gaia.core.ends_coends)</a>
 </li>
-      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.train">train() (gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.train">train() (gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
-      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.train_epoch">train_epoch() (gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+      <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.train_epoch">train_epoch() (gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
       <li><a href="gaia.core.abstractions.html#gaia.core.abstractions.IntegratedTrainer.train_step">train_step() (gaia.core.abstractions.IntegratedTrainer method)</a>
 
       <ul>
-        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.train_step">(gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.train_step">(gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
       </ul></li>
       <li><a href="gaia.training.config.html#gaia.training.config.TrainingConfig">TrainingConfig (class in gaia.training.config)</a>
@@ -4269,7 +4269,7 @@
       <li><a href="gaia.core.abstractions.html#gaia.core.abstractions.IntegratedTrainer.validate_step">validate_step() (gaia.core.abstractions.IntegratedTrainer method)</a>
 
       <ul>
-        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.validate_step">(gaia.training.unified_trainer.GAIAUnifiedTrainer method)</a>
+        <li><a href="gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.validate_step">(gaia.training.unified_trainer.GAIATrainer method)</a>
 </li>
       </ul></li>
       <li><a href="gaia.training.config.html#gaia.training.config.DataConfig.validation_split">validation_split (gaia.training.config.DataConfig attribute)</a>
