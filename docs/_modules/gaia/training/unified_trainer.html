@@ -967,7 +967,7 @@
 <li class="toctree-l4"><a class="reference internal" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.CoalgebraEvolution"><code class="docutils literal notranslate"><span class="pre">CoalgebraEvolution</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.HierarchicalCommunication"><code class="docutils literal notranslate"><span class="pre">HierarchicalCommunication</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.KanVerification"><code class="docutils literal notranslate"><span class="pre">KanVerification</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer"><code class="docutils literal notranslate"><span class="pre">GAIAUnifiedTrainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer"><code class="docutils literal notranslate"><span class="pre">GAIATrainer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.create_gaia_trainer"><code class="docutils literal notranslate"><span class="pre">create_gaia_trainer()</span></code></a></li>
 </ul>
 </li>
@@ -1359,13 +1359,13 @@
 
 
 
-<div class="viewcode-block" id="GAIAUnifiedTrainer">
-<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">GAIAUnifiedTrainer</span><span class="p">(</span><span class="n">IntegratedTrainer</span><span class="p">):</span>
+<div class="viewcode-block" id="GAIATrainer">
+<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GAIATrainer</span><span class="p">(</span><span class="n">IntegratedTrainer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Unified trainer integrating all GAIA components.&quot;&quot;&quot;</span>
     
-<div class="viewcode-block" id="GAIAUnifiedTrainer.__init__">
-<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.__init__">[docs]</a>
+<div class="viewcode-block" id="GAIATrainer.__init__">
+<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">GAIATrainingConfig</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
@@ -1398,8 +1398,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">best_loss</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span></div>
 
     
-<div class="viewcode-block" id="GAIAUnifiedTrainer.train_step">
-<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.train_step">[docs]</a>
+<div class="viewcode-block" id="GAIATrainer.train_step">
+<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.train_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TrainingState</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute one training step across all components.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">train</span><span class="p">()</span>
@@ -1444,8 +1444,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span></div>
 
     
-<div class="viewcode-block" id="GAIAUnifiedTrainer.validate_step">
-<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.validate_step">[docs]</a>
+<div class="viewcode-block" id="GAIATrainer.validate_step">
+<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.validate_step">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">validate_step</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute validation across all components.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
@@ -1475,8 +1475,8 @@
         <span class="k">return</span> <span class="n">validation_metrics</span></div>
 
     
-<div class="viewcode-block" id="GAIAUnifiedTrainer.train_epoch">
-<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.train_epoch">[docs]</a>
+<div class="viewcode-block" id="GAIATrainer.train_epoch">
+<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.train_epoch">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataloader</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Train for one epoch.&quot;&quot;&quot;</span>
         <span class="n">epoch_metrics</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
@@ -1504,8 +1504,8 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">epoch_metrics</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
     
-<div class="viewcode-block" id="GAIAUnifiedTrainer.train">
-<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.train">[docs]</a>
+<div class="viewcode-block" id="GAIATrainer.train">
+<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.train">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_loader</span><span class="p">,</span> <span class="n">val_loader</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_epochs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Full training loop.&quot;&quot;&quot;</span>
         <span class="n">num_epochs</span> <span class="o">=</span> <span class="n">num_epochs</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">max_epochs</span>
@@ -1591,8 +1591,8 @@
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Checkpoint saved: </span><span class="si">{</span><span class="n">checkpoint_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
     
-<div class="viewcode-block" id="GAIAUnifiedTrainer.load_checkpoint">
-<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIAUnifiedTrainer.load_checkpoint">[docs]</a>
+<div class="viewcode-block" id="GAIATrainer.load_checkpoint">
+<a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.GAIATrainer.load_checkpoint">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">load_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load training checkpoint.&quot;&quot;&quot;</span>
         <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -1611,19 +1611,19 @@
 <span class="c1"># Factory function for easy trainer creation</span>
 <div class="viewcode-block" id="create_gaia_trainer">
 <a class="viewcode-back" href="../../../gaia.training.unified_trainer.html#gaia.training.unified_trainer.create_gaia_trainer">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_gaia_trainer</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GAIATrainingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GAIAUnifiedTrainer</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_gaia_trainer</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">GAIATrainingConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">GAIATrainer</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a GAIA unified trainer with default configuration.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">GAIATrainingConfig</span><span class="p">()</span>
     
-    <span class="k">return</span> <span class="n">GAIAUnifiedTrainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">GAIATrainer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></div>
 
 
 
 <span class="c1"># Export public interface</span>
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s1">&#39;GAIATrainingConfig&#39;</span><span class="p">,</span> <span class="s1">&#39;FuzzyDataEncoder&#39;</span><span class="p">,</span> <span class="s1">&#39;CoalgebraEvolution&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;HierarchicalCommunication&#39;</span><span class="p">,</span> <span class="s1">&#39;KanVerification&#39;</span><span class="p">,</span> <span class="s1">&#39;GAIAUnifiedTrainer&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;HierarchicalCommunication&#39;</span><span class="p">,</span> <span class="s1">&#39;KanVerification&#39;</span><span class="p">,</span> <span class="s1">&#39;GAIATrainer&#39;</span><span class="p">,</span>
     <span class="s1">&#39;create_gaia_trainer&#39;</span>
 <span class="p">]</span>
 </pre></div>

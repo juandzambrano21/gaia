@@ -185,7 +185,9 @@ class TestCompleteGAIAIntegration:
         assert hasattr(param_dist, 'sample')
         
         # Test F-coalgebra
-        coalgebra = create_parameter_coalgebra(params, learning_rate=0.01)
+        from gaia.training.config import TrainingConfig
+        training_config = TrainingConfig()
+        coalgebra = create_parameter_coalgebra(params, learning_rate=training_config.optimization.learning_rate)
         
         # Test evolution
         evolved_state = coalgebra.evolve(params)
@@ -207,7 +209,7 @@ class TestCompleteGAIAIntegration:
         """Test hierarchical message passing system."""
         # Create hierarchical system
         hierarchical_system = HierarchicalMessagePassingSystem(
-            self.functor, parameter_dim=8, learning_rate=0.01
+            self.functor, parameter_dim=8, learning_rate=training_config.optimization.learning_rate
         )
         
         # Test system initialization

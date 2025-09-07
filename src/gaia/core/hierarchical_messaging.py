@@ -536,7 +536,9 @@ if __name__ == "__main__":
     print(f"   Dimensions: {triangle_state['simplices_by_dimension']}")
     
     # Run message passing
-    triangle_results = triangle_hmp.full_hierarchical_message_passing(num_steps=5, learning_rate=0.01)
+    from gaia.training.config import TrainingConfig
+    training_config = TrainingConfig()
+    triangle_results = triangle_hmp.full_hierarchical_message_passing(num_steps=5, learning_rate=training_config.optimization.learning_rate)
     print(f"   Message passing completed: {len(triangle_results['losses_by_step'])} steps")
     
     # Test 2: Tetrahedron complex
@@ -547,7 +549,7 @@ if __name__ == "__main__":
     print(f"   Dimensions: {tetrahedron_state['simplices_by_dimension']}")
     
     # Run message passing
-    tetrahedron_results = tetrahedron_hmp.full_hierarchical_message_passing(num_steps=3, learning_rate=0.01)
+    tetrahedron_results = tetrahedron_hmp.full_hierarchical_message_passing(num_steps=3, learning_rate=training_config.optimization.learning_rate)
     print(f"   Message passing completed: {len(tetrahedron_results['losses_by_step'])} steps")
     
     print("\n✅ Hierarchical Message Passing implementation complete!")

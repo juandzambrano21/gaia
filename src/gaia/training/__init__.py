@@ -14,14 +14,16 @@ All training components integrate with the core categorical structures.
 """
 
 # New unified training system (recommended)
-from .unified_trainer import (
-    GAIAUnifiedTrainer, GAIATrainingConfig, FuzzyDataEncoder,
+from .trainer import (
+    GAIATrainer, GAIATrainingConfig, FuzzyDataEncoder,
     CoalgebraEvolution, HierarchicalCommunication, KanVerification,
     create_gaia_trainer
 )
+from .categorical_losses import CategoricalLossComputer, CategoricalLoss
+from .categorical_operations import CategoricalOperations, CategoricalOps
 
 # Legacy training system (for backward compatibility)
-from .unified_trainer import GAIAUnifiedTrainer as GAIATrainer
+from .trainer import GAIATrainer as GAIATrainer
 from .config import TrainingConfig, ModelConfig, DataConfig, OptimizationConfig
 
 # Categorical solvers
@@ -41,9 +43,13 @@ from .hierarchical_message_passing import (
 
 __all__ = [
     # New unified system
-    'GAIAUnifiedTrainer', 'GAIATrainingConfig', 'FuzzyDataEncoder',
+    'GAIATrainer', 'GAIATrainingConfig', 'FuzzyDataEncoder',
     'CoalgebraEvolution', 'HierarchicalCommunication', 'KanVerification',
     'create_gaia_trainer',
+    
+    # Categorical training components
+    'CategoricalLossComputer', 'CategoricalLoss',
+    'CategoricalOperations', 'CategoricalOps',
     
     # Legacy training
     'GAIATrainer',

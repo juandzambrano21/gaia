@@ -130,7 +130,9 @@ class BackpropagationFunctor(Endofunctor[torch.Tensor]):
             target_mean = self.target_data.float().mean()
             
             # Create a small perturbation based on data characteristics
-            learning_rate = 0.01
+            from gaia.training.config import TrainingConfig
+            training_config = TrainingConfig()
+            learning_rate = training_config.optimization.learning_rate
             gradient_direction = torch.randn_like(params) * 0.1
             
             # Scale gradient by data statistics to create meaningful updates

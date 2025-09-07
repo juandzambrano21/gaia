@@ -970,7 +970,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#gaia.training.unified_trainer.CoalgebraEvolution"><code class="docutils literal notranslate"><span class="pre">CoalgebraEvolution</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#gaia.training.unified_trainer.HierarchicalCommunication"><code class="docutils literal notranslate"><span class="pre">HierarchicalCommunication</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#gaia.training.unified_trainer.KanVerification"><code class="docutils literal notranslate"><span class="pre">KanVerification</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer"><code class="docutils literal notranslate"><span class="pre">GAIAUnifiedTrainer</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#gaia.training.unified_trainer.GAIATrainer"><code class="docutils literal notranslate"><span class="pre">GAIATrainer</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#gaia.training.unified_trainer.create_gaia_trainer"><code class="docutils literal notranslate"><span class="pre">create_gaia_trainer()</span></code></a></li>
 </ul>
 </li>
@@ -1349,70 +1349,70 @@
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer">
-<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gaia.training.unified_trainer.</span></span><span class="sig-name descname"><span class="pre">GAIAUnifiedTrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIAUnifiedTrainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">gaia.training.unified_trainer.</span></span><span class="sig-name descname"><span class="pre">GAIATrainer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIATrainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="gaia.core.abstractions.html#gaia.core.abstractions.IntegratedTrainer" title="gaia.core.abstractions.IntegratedTrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntegratedTrainer</span></code></a></p>
 <p>Unified trainer integrating all GAIA components.</p>
 <dl class="field-list simple">
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIAUnifiedTrainer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.__init__" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIATrainer.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.__init__" title="Link to this definition"></a></dt>
 <dd><dl class="field-list simple">
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.train_step">
-<span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIAUnifiedTrainer.train_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.train_step" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.train_step">
+<span class="sig-name descname"><span class="pre">train_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIATrainer.train_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.train_step" title="Link to this definition"></a></dt>
 <dd><p>Execute one training step across all components.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.validate_step">
-<span class="sig-name descname"><span class="pre">validate_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIAUnifiedTrainer.validate_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.validate_step" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.validate_step">
+<span class="sig-name descname"><span class="pre">validate_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIATrainer.validate_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.validate_step" title="Link to this definition"></a></dt>
 <dd><p>Execute validation across all components.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.train_epoch">
-<span class="sig-name descname"><span class="pre">train_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIAUnifiedTrainer.train_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.train_epoch" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.train_epoch">
+<span class="sig-name descname"><span class="pre">train_epoch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataloader</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIATrainer.train_epoch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.train_epoch" title="Link to this definition"></a></dt>
 <dd><p>Train for one epoch.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.train">
-<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_loader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_loader</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIAUnifiedTrainer.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.train" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_loader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_loader</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_epochs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIATrainer.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.train" title="Link to this definition"></a></dt>
 <dd><p>Full training loop.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.load_checkpoint">
-<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIAUnifiedTrainer.load_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.load_checkpoint" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.load_checkpoint">
+<span class="sig-name descname"><span class="pre">load_checkpoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">checkpoint_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/gaia/training/unified_trainer.html#GAIATrainer.load_checkpoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.load_checkpoint" title="Link to this definition"></a></dt>
 <dd><p>Load training checkpoint.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.add_component">
-<span class="sig-name descname"><span class="pre">add_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.add_component" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.add_component">
+<span class="sig-name descname"><span class="pre">add_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">component</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.add_component" title="Link to this definition"></a></dt>
 <dd><p>Add a component to the trainer.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIAUnifiedTrainer.get_component">
-<span class="sig-name descname"><span class="pre">get_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gaia.training.unified_trainer.GAIAUnifiedTrainer.get_component" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="gaia.training.unified_trainer.GAIATrainer.get_component">
+<span class="sig-name descname"><span class="pre">get_component</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#gaia.training.unified_trainer.GAIATrainer.get_component" title="Link to this definition"></a></dt>
 <dd><p>Get a component by name.</p>
 <dl class="field-list simple">
 </dl>
