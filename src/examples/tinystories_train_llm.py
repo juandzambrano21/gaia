@@ -43,7 +43,7 @@ def create_config() -> Dict[str, Any]:
         max_seq_length=128,
         seq_len=128,
         
-        # GAIA Categorical Components 
+        # GAIA Categorical Components
         enable_fuzzy_components=True,
         enable_simplicial_structure=True,
         enable_coalgebras=True,
@@ -52,6 +52,17 @@ def create_config() -> Dict[str, Any]:
         enable_yoneda_embeddings=True,
         enable_kan_extensions=True,
         enable_ends_coends=True,
+        
+        # UMAP Configuration for Fuzzy Encoding Pipeline (F1-F4)
+        # According to GAIA paper: "UMAP forms a Kan complex" - critical for categorical structure
+        umap_n_neighbors=21,           # Number of nearest neighbors for k-NN (F1)
+        umap_min_dist=0.05,           # Minimum distance for local structure preservation
+        umap_spread=1.2,              # Spread parameter for global structure
+        umap_metric='cosine',         # Distance metric - cosine for language embeddings
+        umap_local_connectivity=1.5,  # Local connectivity parameter
+        umap_bandwidth=1.0,           # Bandwidth for fuzzy set membership
+        umap_n_components=2,          # Dimensionality for visualization (if needed)
+        umap_random_state=42,         # Reproducibility seed
         
         # Production parameters
         hierarchical_steps=4,
@@ -69,7 +80,7 @@ def create_config() -> Dict[str, Any]:
         version="2.1.0"
     )
     
-    # Production Training Configuration
+    # Production Training Configuration with UMAP Integration
     training_config = TrainingConfig(
         epochs=5,
         eval_frequency=25,
@@ -94,6 +105,16 @@ def create_config() -> Dict[str, Any]:
         categorical_training=True,
         hierarchical_learning=True
     )
+    
+    # Configure UMAP parameters in DataConfig for fuzzy encoding pipeline
+    training_config.data.n_neighbors = 21        # k-NN parameter for F1 step
+    training_config.data.min_dist = 0.05         # Local structure preservation
+    training_config.data.spread = 1.2            # Global structure parameter
+    training_config.data.metric = 'cosine'       # Distance metric for language data
+    training_config.data.local_connectivity = 1.5 # Local connectivity
+    training_config.data.bandwidth = 1.0         # Fuzzy membership bandwidth
+    training_config.data.n_components = 2        # Dimensionality for UMAP
+    training_config.data.random_seed = 42        # Reproducibility
     
     return {
         'model_config': model_config,

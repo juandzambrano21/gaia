@@ -131,6 +131,16 @@ class GAIALanguageModelConfig(ModelConfig):
     # Component Factory Configuration
     component_factory_class: str = "ModelInit"  # Can be overridden for custom factories
     
+
+    umap_n_neighbors: int = 21           # Number of nearest neighbors for k-NN (F1)
+    umap_min_dist: float = 0.05          # Minimum distance for local structure preservation
+    umap_spread: float = 1.2             # Spread parameter for global structure
+    umap_metric: str = 'cosine'          # Distance metric - cosine for language embeddings
+    umap_local_connectivity: float = 1.5 # Local connectivity parameter
+    umap_bandwidth: float = 1.0          # Bandwidth for fuzzy set membership
+    umap_n_components: int = 2           # Dimensionality for visualization (if needed)
+    umap_random_state: int = 42          # Reproducibility seed
+    
     # Model type identifier
     model_type: str = "gaia_language_model"
     version: str = "1.0.0"
