@@ -313,15 +313,15 @@ class GAIAModelInitializer:
         """Initialize Kan extensions for compositional understanding."""
         logger.debug("Initializing Kan extensions...")
         
-        # Create categories for language modeling
+        # Create fuzzy simplicial categories for language modeling
         syntax_category = GenerativeAICategory("Syntax")
         semantics_category = GenerativeAICategory("Semantics")
         pragmatics_category = GenerativeAICategory("Pragmatics")
         
-        # Add objects to categories
-        syntax_category.add_object("tokens")
-        semantics_category.add_object("meanings")
-        pragmatics_category.add_object("contexts")
+        # Add fuzzy objects to categories with appropriate dimensions and memberships
+        syntax_category.add_fuzzy_object("tokens", dimension=0, membership=0.9)  # Tokens as vertices
+        semantics_category.add_fuzzy_object("meanings", dimension=1, membership=0.85)  # Meanings as edges
+        pragmatics_category.add_fuzzy_object("contexts", dimension=2, membership=0.8)  # Contexts as faces
         
         # Create functors for compositional understanding
         syntax_to_semantics = NeuralFunctor(syntax_category, semantics_category)

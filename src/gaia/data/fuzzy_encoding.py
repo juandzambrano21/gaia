@@ -294,9 +294,7 @@ class FuzzyEncodingPipeline:
         """
         if not local_fuzzy_sets:
             return FuzzySimplicialSet("empty", 0)
-        
-        logger.debug(f"🔍 F4 COEND MERGE: Processing {len(local_fuzzy_sets)} local sets")
-        
+                
         # Fast path for single set
         if len(local_fuzzy_sets) == 1:
             single_fss = next(iter(local_fuzzy_sets.values()))
@@ -343,7 +341,6 @@ class FuzzyEncodingPipeline:
             
             global_fss.fuzzy_sets[dim] = fuzzy_set
         
-        logger.debug(f"🔍 F4 COEND MERGE: Completed batch merging")
         return global_fss
     
     def encode(self, X: np.ndarray) -> FuzzySimplicialSet:

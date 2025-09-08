@@ -59,11 +59,27 @@ class CategoricalOperations:
             generative_coalgebra, coalgebra_optimizer, coalgebra_loss_fn
         )
         
-        # Update coalgebra carrier to start from given state
-        trainer.coalgebra.carrier = state
+        # Ensure state tensor matches coalgebra parameter size
+        if generative_coalgebra and hasattr(generative_coalgebra, 'carrier'):
+            expected_size = generative_coalgebra.carrier.numel()
+            if state.numel() != expected_size:
+                # Don't update carrier if sizes don't match - use original model parameters
+                pass
+            else:
+                # Update coalgebra carrier to start from given state
+                trainer.coalgebra.carrier = state
+        else:
+            # Fallback: use state as-is if no coalgebra available
+            trainer.coalgebra.carrier = state
         
         try:
-            # Evolve through training steps
+            # Detach state from main computational graph to prevent conflicts
+            with torch.no_grad():
+                # Clone and detach the coalgebra carrier to isolate from main graph
+                if hasattr(trainer.coalgebra, 'carrier'):
+                    trainer.coalgebra.carrier = trainer.coalgebra.carrier.detach().clone().requires_grad_(True)
+            
+            # Evolve through training steps in isolated context
             evolved_states = trainer.evolve_coalgebra(steps=steps)
             
             # Apply backpropagation functor transformation to final state
@@ -97,19 +113,18 @@ class CategoricalOperations:
                         reshaped_params = transformed_params
                     
                     if self._check_bisimilarity_with_tolerance(state, reshaped_params):
-                        logger.debug(f"Bisimulation preserved after {steps} evolution steps")
+                        pass  # Bisimulation preserved
                     else:
-                        logger.debug(f"Bisimulation not preserved - states differ by more than tolerance")
+                        pass  # Bisimulation not preserved
                 except Exception as shape_error:
-                    logger.debug(f"Shape compatibility error in bisimulation check: {shape_error}")
+                    pass  # Shape compatibility error in bisimulation check
             elif backprop_functor is None:
-                logger.debug("BackpropagationFunctor not initialized - skipping transformation")
+                pass  # BackpropagationFunctor not initialized
             
-            logger.debug(f"Coalgebra evolved through {steps} training steps")
             return evolved_states
             
         except Exception as e:
-            logger.debug(f"Coalgebra evolution failed: {e}")
+            pass  # Coalgebra evolution failed
             return [state]
     
     def _check_bisimilarity_with_tolerance(self, state1: torch.Tensor, state2: torch.Tensor) -> bool:
@@ -134,7 +149,7 @@ class CategoricalOperations:
         This updates the sample data used by the coalgebra structure.
         Must be called before using the coalgebra for training.
         """
-        logger.debug(f"Updating coalgebra training data: input {input_data.shape}, target {target_data.shape}")
+        # Updating coalgebra training data
         
         try:
             generative_coalgebra.update_training_data(input_data, target_data)
@@ -162,13 +177,13 @@ class CategoricalOperations:
                             return result
                     
                     state_coalgebra.structure_map = backprop_structure_map
-                    logger.debug("BackpropagationFunctor initialized and wired to state coalgebra")
+                    # BackpropagationFunctor initialized and wired to state coalgebra
                     
                 except Exception as e:
                     logger.error(f"Exception in BackpropagationFunctor initialization: {e}")
                     self._backprop_functor = None
             else:
-                logger.debug("BackpropagationFunctor class not provided - skipping initialization")
+                # BackpropagationFunctor class not provided - skipping initialization
                 self._backprop_functor = None
     
     def apply_compositional_kan_extensions(
@@ -237,9 +252,9 @@ class CategoricalOperations:
         """
         try:
             # End computation for universal properties
-            logger.debug(f"🔍 STARTING END COMPUTATION...")
+            # Starting end computation
             end_result = end_computation.compute_integral()
-            logger.debug(f"🔍 END COMPUTATION COMPLETED")
+            # End computation completed
             # Convert to tensor if needed
             if isinstance(end_result, dict) and 'result' in end_result:
                 end_result = torch.tensor(end_result['result'], device=functors.device)
@@ -247,14 +262,14 @@ class CategoricalOperations:
                 # Create tensor with same shape as functors for proper broadcasting
                 end_result = torch.zeros_like(functors)
         except Exception as e:
-            logger.debug(f"End computation failed: {e}")
+            # End computation failed
             end_result = torch.zeros_like(functors)
         
         try:
             # Coend computation for colimits
-            logger.debug(f"🔍 STARTING COEND COMPUTATION...")
+            # Starting coend computation
             coend_result = coend_computation.compute_integral()
-            logger.debug(f"🔍 COEND COMPUTATION COMPLETED")
+            # Coend computation completed
             # Convert to tensor if needed
             if isinstance(coend_result, dict) and 'result' in coend_result:
                 coend_result = torch.tensor(coend_result['result'], device=functors.device)
@@ -262,7 +277,7 @@ class CategoricalOperations:
                 # Create tensor with same shape as functors for proper broadcasting
                 coend_result = torch.zeros_like(functors)
         except Exception as e:
-            logger.debug(f"Coend computation failed: {e}")
+            # Coend computation failed
             coend_result = torch.zeros_like(functors)
         
         return end_result, coend_result
@@ -300,12 +315,7 @@ class CategoricalOperations:
             torch.tensor(0.0, device=normalized_norms.device)
         )
         
-        # Debug logging for training batches
-        if batch_size == 4 and seq_len <= 128:
-            logger.debug(
-                f"Fuzzy membership computed - Content mean: {content_membership.mean().item():.6f}, "
-                f"Function mean: {function_membership.mean().item():.6f}"
-            )
+        # Fuzzy membership computed
         
         return {
             'content': content_membership,

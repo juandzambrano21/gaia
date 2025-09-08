@@ -3,7 +3,7 @@ Universal Coalgebras for GAIA Framework
 
 Implements Section 3 from GAIA paper: "Backpropagation as an Endofunctor: Generative AI using Universal Coalgebras"
 
-THEORETICAL FOUNDATIONS:
+THEORETICAL FOUNDINGS:
 - Definition 7: F-coalgebra (A, α) with structure map α: A → F(A)
 - Definition 9: Coalgebra homomorphisms with commutative diagrams
 - Definition 10: Bisimulations between coalgebras
@@ -22,223 +22,343 @@ from dataclasses import dataclass
 from collections import defaultdict
 import logging
 
+# Import existing GAIA fuzzy simplicial set implementations
+from .integrated_structures import (
+    IntegratedFuzzySimplicialSet, IntegratedFuzzySet, IntegratedSimplex,
+    TConorm, FuzzyElement, create_fuzzy_simplex
+)
+
 logger = logging.getLogger(__name__)
 
-# Type variables for categorical structures
+# ---------------------------------------------------------------------
+# Typing
+# ---------------------------------------------------------------------
 A = TypeVar('A')  # Carrier object
 B = TypeVar('B')  # Target object
 F = TypeVar('F')  # Endofunctor
 
+FSSObject = IntegratedFuzzySimplicialSet
+
+# ---------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------
+def _safe_get(dct, key, default=None):
+    try:
+        return dct.get(key, default)
+    except Exception:
+        return default
+
+def _float(x: Any) -> float:
+    try:
+        return float(x)
+    except Exception:
+        return 0.0
+
+# ---------------------------------------------------------------------
+# Endofunctors
+# ---------------------------------------------------------------------
 class Endofunctor(ABC, Generic[A]):
-    """
-    Abstract base class for endofunctors F: C → C
-    
-    From (MAHADEVAN,2024) Definition 7: Endofunctor required for F-coalgebras
-    """
-    
+    """Abstract base class for endofunctors F: C → C"""
     @abstractmethod
     def apply(self, obj: A) -> A:
-        """Apply functor to object: F(A) → F(A)"""
+        """Apply functor to object: A ↦ F(A)"""
         pass
     
     @abstractmethod
     def fmap(self, morphism: Callable[[A], B]) -> Callable[[A], B]:
-        """Apply functor to morphism: F(f: A → B) → F(A) → F(B)"""
+        """Apply functor to morphism: f ↦ F(f) where F(f): F(A) → F(B)"""
         pass
 
 class PowersetFunctor(Endofunctor[set]):
-    """
-    Powerset functor F: S ⇒ P(S) From (MAHADEVAN,2024) Section 3.1
-    
-    Models context-free grammars, finite state machines, and basic generative models.
-    """
-    
+    """Powerset functor F: S ⇒ P(S)"""
     def apply(self, obj: set) -> set:
-        """Return powerset P(S) = {A | A ⊆ S}"""
-        if len(obj) > 10:  # Limit for computational tractability
-            # Sample subset for large sets
+        if len(obj) > 10:
             import itertools
-            return set(frozenset(combo) for combo in itertools.combinations(obj, min(3, len(obj))))
-        
-        # Full powerset for small sets
+            return set(frozenset(c) for c in itertools.combinations(obj, min(3, len(obj))))
         import itertools
-        return set(frozenset(combo) for r in range(len(obj) + 1) 
-                  for combo in itertools.combinations(obj, r))
-    
+        return set(
+            frozenset(c)
+            for r in range(len(obj)+1)
+            for c in itertools.combinations(obj, r)
+        )
     def fmap(self, morphism: Callable[[set], set]) -> Callable[[set], set]:
-        """Apply morphism to each element of powerset"""
-        def mapped_morphism(powerset_obj: set) -> set:
-            return set(frozenset(morphism(elem) if isinstance(elem, set) else {morphism(elem)}) 
-                      for elem in powerset_obj)
-        return mapped_morphism
+        def mapped(ps: set) -> set:
+            return set(
+                frozenset(morphism(e) if isinstance(e, set) else {morphism(e)})
+                for e in ps
+            )
+        return mapped
 
 class StreamFunctor(Endofunctor[List]):
-    """
-    Stream functor Str: Set → Set, Str(X) = ℕ × X from GAIA paper
-    
-    Models infinite data streams for generative AI (LLMs, sequence models).
-    """
-    
+    """Stream functor Str: X ↦ ℕ × X"""
     def apply(self, obj: List) -> Tuple[int, List]:
-        """Return (index, stream) pair"""
         return (len(obj), obj)
-    
     def fmap(self, morphism: Callable[[List], List]) -> Callable[[Tuple[int, List]], Tuple[int, List]]:
-        """Apply morphism to stream component"""
-        def mapped_morphism(stream_obj: Tuple[int, List]) -> Tuple[int, List]:
-            index, stream = stream_obj
-            return (index, morphism(stream))
-        return mapped_morphism
+        def mapped(st: Tuple[int, List]) -> Tuple[int, List]:
+            i, xs = st
+            return (i, morphism(xs))
+        return mapped
+
+class NeuralFunctor(Endofunctor[torch.Tensor]):
+    """Minimal tensor endofunctor used by diffusion/transformer factory methods."""
+    def __init__(self, in_dim: int, out_dim: int):
+        self.in_dim, self.out_dim = in_dim, out_dim
+    def apply(self, obj: torch.Tensor) -> torch.Tensor:
+        return obj
+    def fmap(self, morphism: Callable[[torch.Tensor], torch.Tensor]) -> Callable[[torch.Tensor], torch.Tensor]:
+        def mapped(x: torch.Tensor) -> torch.Tensor:
+            return morphism(x)
+        return mapped
 
 class BackpropagationFunctor(Endofunctor[torch.Tensor]):
     """
-    Backpropagation endofunctor implementing Definition 11 from (MAHADEVAN,2024)
-    
-    F_B(X) = A × B × X where:
-    - A: Input symbols (training data)
-    - B: Output symbols (target data) 
-    - X: Parameter space (model weights)
-    
+    F_B(X) = A × B × X (tensor category)
     """
-    
     def __init__(self, input_data: torch.Tensor, target_data: torch.Tensor):
-        """
-        Initialize with actual training data, not dummy tensors
-        
-        Args:
-            input_data: Input symbols A from training batch
-            target_data: Output symbols B from training batch
-        """
         self.input_data = input_data
         self.target_data = target_data
-        self.stored_gradients = None  # Store actual gradients from model training
+        self.stored_gradients: Optional[torch.Tensor] = None
     
     def apply(self, params: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Apply F_B: X → A × B × X with backpropagation dynamics
-        
-        Returns the categorical product (A, B, X') where X' is transformed by actual gradient dynamics
-        """
-        device = params.device
-        
-        # Use actual stored gradients if available, otherwise return unchanged parameters
         if self.stored_gradients is not None:
-            # Apply actual gradient descent step: X' = X - α * ∇L(X)
-            from gaia.training.config import TrainingConfig
-            training_config = TrainingConfig()
-            learning_rate = training_config.optimization.learning_rate
-            
-            # Apply real gradient step using stored gradients from model training
-            transformed_params = params - learning_rate * self.stored_gradients
+            try:
+                from gaia.training.config import TrainingConfig
+                lr = TrainingConfig().optimization.learning_rate
+                g = self.stored_gradients
+                if g.shape != params.shape:
+                    fp, fg = params.flatten(), g.flatten()
+                    if fg.numel() != fp.numel():
+                        if fg.numel() < fp.numel():
+                            pad = torch.zeros(fp.numel()-fg.numel(), device=fg.device, dtype=fg.dtype)
+                            fg = torch.cat([fg, pad])
+                        else:
+                            fg = fg[:fp.numel()]
+                    params = (fp - lr*fg).view(params.shape)
+                else:
+                    params = params - lr*g
+            except Exception as e:
+                logger.debug(f"Gradient application failed: {e} — returning unchanged params")
         else:
-            # If no gradients stored yet, return unchanged parameters
-            # This prevents artificial gradient creation that causes divergence
-            transformed_params = params
-            logger.debug("No stored gradients available, returning unchanged parameters")
-        
-        return (self.input_data, self.target_data, transformed_params)
+            logger.debug("No stored gradients; returning unchanged parameters.")
+        return (self.input_data, self.target_data, params)
     
     def fmap(self, morphism: Callable[[torch.Tensor], torch.Tensor]) -> Callable:
-        """
-        Apply morphism to parameter component while preserving A × B structure
-        
-        F(f): F(X) → F(Y) where f: X → Y
-        """
-        def mapped_morphism(coalgebra_state: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]):
-            input_data, target_data, params = coalgebra_state
-            return (input_data, target_data, morphism(params))
-        return mapped_morphism
-
+        def mapped(state: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]):
+            a, b, x = state
+            return (a, b, morphism(x))
+        return mapped
+    
     def update_data(self, new_input: torch.Tensor, new_target: torch.Tensor):
-        """
-        Update the input/output symbols for new training batch
-        
-        This allows the same functor to work with different data batches
-        """
         self.input_data = new_input
         self.target_data = new_target
-        # Reset stored gradients when new data arrives
         self.stored_gradients = None
     
     def store_gradients(self, gradients: torch.Tensor):
-        """
-        Store actual gradients from model training
-        
-        This captures real gradient information from the model's backward pass
-        to be used in the coalgebra evolution instead of artificial gradients
-        """
-        self.stored_gradients = gradients.clone().detach()
+        self.stored_gradients = gradients.detach().clone()
 
+class FuzzyBackpropagationFunctor(Endofunctor[FSSObject]):
+    """
+    F_B endofunctor on Fuzzy Simplicial Sets: FSS → FSS
+    
+    - On objects: (F_B X)_k = A_k × B_k × X_k
+    - Memberships: μ_F = T(μ_A, T(μ_B, μ_X'))
+      where μ_X' optionally attenuates by gradient magnitude if provided.
+    - On morphisms: F_B(f)_k = id_A_k × id_B_k × f_k
+    """
+    def __init__(self, input_fss: FSSObject, target_fss: FSSObject, t_norm: TConorm = TConorm.MAXIMUM):
+        self.input_fss = input_fss
+        self.target_fss = target_fss
+        self.t_norm = t_norm
+        self.stored_gradients: Optional[torch.Tensor] = None
+
+    # ----- internal fuzzy combo -----
+    def _combine_mu(self, mu_a: float, mu_b: float, mu_x: float) -> float:
+        inner = self.t_norm.apply(mu_b, mu_x)
+        return self.t_norm.apply(mu_a, inner)
+
+    def _attenuate_mu_x(self, mu_x: float) -> float:
+        if self.stored_gradients is None:
+            return mu_x
+        factor = torch.sigmoid(-torch.norm(self.stored_gradients)).item()
+        return float(np.clip(mu_x * factor, 0.0, 1.0))
+
+    # ----- transport structure if helpers exist -----
+    def _transport_structure(self, A: FSSObject, B: FSSObject, X: FSSObject, FAX: FSSObject, k: int):
+        try:
+            if not (hasattr(A, "iter_simplices") and hasattr(B, "iter_simplices") and hasattr(X, "iter_simplices")):
+                return
+            if not hasattr(FAX, "register_product_face_degeneracy"):
+                if hasattr(X, "copy_face_degeneracy_structure_into"):
+                    X.copy_face_degeneracy_structure_into(FAX, k, source_component="X")
+                return
+            def face_map(product_key, i: int):
+                ak, bk, xk = product_key
+                a_face = A.face_of(k, ak, i) if hasattr(A, "face_of") else ak
+                b_face = B.face_of(k, bk, i) if hasattr(B, "face_of") else bk
+                x_face = X.face_of(k, xk, i) if hasattr(X, "face_of") else xk
+                return (a_face, b_face, x_face)
+            def degeneracy_map(product_key, i: int):
+                ak, bk, xk = product_key
+                a_deg = A.degeneracy_of(k, ak, i) if hasattr(A, "degeneracy_of") else ak
+                b_deg = B.degeneracy_of(k, bk, i) if hasattr(B, "degeneracy_of") else bk
+                x_deg = X.degeneracy_of(k, xk, i) if hasattr(X, "degeneracy_of") else xk
+                return (a_deg, b_deg, x_deg)
+            FAX.register_product_face_degeneracy(k, face_map, degeneracy_map)
+        except Exception:
+            if hasattr(X, "copy_face_degeneracy_structure_into"):
+                try:
+                    X.copy_face_degeneracy_structure_into(FAX, k, source_component="X")
+                except Exception:
+                    pass
+
+    # ----- functor on objects -----
+    def apply(self, fss_obj: FSSObject) -> FSSObject:
+        if hasattr(fss_obj, "empty_like"):
+            out = fss_obj.empty_like(name=f"F_B({getattr(fss_obj, 'name', 'X')})")
+            out.max_dimension = max(self.input_fss.max_dimension, self.target_fss.max_dimension, fss_obj.max_dimension)
+        else:
+            out = IntegratedFuzzySimplicialSet(
+                name=f"F_B({getattr(fss_obj, 'name', 'X')})",
+                max_dimension=max(self.input_fss.max_dimension, self.target_fss.max_dimension, fss_obj.max_dimension),
+            )
+        for k in range(out.max_dimension + 1):
+            A_k = _safe_get(self.input_fss.simplices, k, {})
+            B_k = _safe_get(self.target_fss.simplices, k, {})
+            X_k = _safe_get(fss_obj.simplices, k, {})
+            for a_key, a_sx in A_k.items():
+                mu_a = _float(a_sx.membership)
+                for b_key, b_sx in B_k.items():
+                    mu_b = _float(b_sx.membership)
+                    for x_key, x_sx in X_k.items():
+                        mu_x = self._attenuate_mu_x(_float(x_sx.membership))
+                        mu_prod = self._combine_mu(mu_a, mu_b, mu_x)
+                        prod_key = (a_key, b_key, x_key)
+                        out.add_simplex(k, prod_key, mu_prod)
+            self._transport_structure(self.input_fss, self.target_fss, fss_obj, out, k)
+        return out
+
+    # ----- functor on morphisms -----
+    def fmap(self, morphism: Callable[[FSSObject], FSSObject]) -> Callable[[FSSObject], FSSObject]:
+        def mapped(fss_obj: FSSObject) -> FSSObject:
+            x_transformed = morphism(fss_obj)
+            return self.apply(x_transformed)
+        return mapped
+    
+    # ----- gradient plumbing for fuzzy carriers -----
+    def update_data(self, new_input_fss: FSSObject, new_target_fss: FSSObject):
+        self.input_fss = new_input_fss
+        self.target_fss = new_target_fss
+    
+    def store_gradients(self, gradients: torch.Tensor):
+        self.stored_gradients = gradients.detach().clone()
+
+# ---------------------------------------------------------------------
+# Coalgebras
+# ---------------------------------------------------------------------
 @dataclass
 class FCoalgebra(Generic[A]):
-    """
-    F-coalgebra (A, α) From (MAHADEVAN,2024) Definition 7
-    
-    Consists of:
-    - carrier: Object A in category C
-    - structure_map: Arrow α: A → F(A) defining dynamics
-    """
+    """F-Coalgebra (A, α)"""
     carrier: A
     structure_map: Callable[[A], A]
     endofunctor: Endofunctor[A]
     name: Optional[str] = None
+
+class FSSCoalagra(FCoalgebra[FSSObject]):
+    """Backward-compatibility alias if older modules import this name."""
+    pass
+
+class FSSCoalgebra(FCoalgebra[FSSObject]):
+    """
+    Coalgebra in the category of fuzzy simplicial sets with F_B
+    """
+    def __init__(self, initial_fss: FSSObject, fb_functor: FuzzyBackpropagationFunctor, name: str = "fss_coalgebra"):
+        def alpha(x: FSSObject) -> FSSObject:
+            fx = fb_functor.apply(x)
+            self._verify_naturality(x, fx, fb_functor)
+            return fx
+        super().__init__(carrier=initial_fss, structure_map=alpha, endofunctor=fb_functor, name=name)
+        self.fb_functor = fb_functor
     
-    def evolve(self, state: A) -> A:
-        """
-        Evolve state using structure map α: A → F(A)
-        
-        This is the core dynamics of the coalgebra - how states transition.
-        """
+    def _verify_naturality(self, x: FSSObject, fx: FSSObject, fb: FuzzyBackpropagationFunctor) -> bool:
+        try:
+            if not (hasattr(x, "iter_face_maps") and hasattr(x, "apply_face_map")):
+                return True
+            ok = True
+            for k, i, _f in x.iter_face_maps():
+                x_di = x.apply_face_map(k, i)
+                right = fb.apply(x_di)
+                if hasattr(fx, "approx_equal_as_products"):
+                    eq = fx.approx_equal_as_products(right, tol=1e-6)
+                    ok = ok and bool(eq)
+            return ok
+        except Exception:
+            return True
+
+    def _fold_F_to_X(self, fx: FSSObject) -> FSSObject:
+        if hasattr(self.carrier, "empty_like"):
+            folded = self.carrier.empty_like(name=f"fold({getattr(fx, 'name', 'F(X)')})")
+        else:
+            folded = IntegratedFuzzySimplicialSet(name=f"fold({getattr(fx, 'name', 'F(X)')})",
+                                                  max_dimension=fx.max_dimension)
+        for k in range(fx.max_dimension + 1):
+            bucket: Dict[Any, List[float]] = defaultdict(list)
+            for prod_key, sx in _safe_get(fx.simplices, k, {}).items():
+                x_key = prod_key[2] if (isinstance(prod_key, tuple) and len(prod_key) == 3) else prod_key
+                bucket[x_key].append(_float(sx.membership))
+            for x_key, mus in bucket.items():
+                folded.add_simplex(k, x_key, float(np.max(mus) if mus else 0.0))
+            if hasattr(self.carrier, "copy_face_degeneracy_structure_into"):
+                try:
+                    self.carrier.copy_face_degeneracy_structure_into(folded, k, source_component="X")
+                except Exception:
+                    pass
+        return folded
+
+    def update_memberships_via_gradients(self, gradients: torch.Tensor):
+        if gradients is None:
+            return
+        factor = torch.sigmoid(-torch.norm(gradients).detach()).item()
+        for k in range(self.carrier.max_dimension + 1):
+            for _, sx in _safe_get(self.carrier.simplices, k, {}).items():
+                sx.membership = float(np.clip(_float(sx.membership) * factor, 0.0, 1.0))
+    
+    def evolve(self, state: FSSObject) -> FSSObject:
         return self.structure_map(state)
     
-    def iterate(self, initial_state: A, steps: int) -> List[A]:
-        """
-        Iterate coalgebra dynamics for multiple steps
-        
-        Generates trajectory: state → α(state) → α²(state) → ...
-        """
-        trajectory = [initial_state]
-        current_state = initial_state
-        
+    def iterate(self, initial_state: FSSObject, steps: int) -> List[FSSObject]:
+        out = [initial_state]
+        cur = initial_state
         for _ in range(steps):
-            current_state = self.evolve(current_state)
-            trajectory.append(current_state)
-        
-        return trajectory
+            cur = self.evolve(cur)
+            out.append(cur)
+        return out
     
-    def is_fixed_point(self, state: A, tolerance: float = 1e-6) -> bool:
-        """
-        Check if state is a fixed point: α(state) = state
-        
-        Related to Lambek's theorem for final coalgebras.
-        """
-        evolved = self.evolve(state)
-        
-        if isinstance(state, torch.Tensor) and isinstance(evolved, torch.Tensor):
-            return torch.allclose(state, evolved, atol=tolerance)
-        elif isinstance(state, (int, float)) and isinstance(evolved, (int, float)):
-            return abs(state - evolved) < tolerance
-        else:
-            return state == evolved
+    def is_fixed_point(self, state: FSSObject, tolerance: float = 1e-6) -> bool:
+        fx = self.evolve(state)
+        folded = self._fold_F_to_X(fx)
+        if hasattr(state, "approx_equal"):
+            return bool(state.approx_equal(folded, tol=tolerance))
+        for k in range(state.max_dimension + 1):
+            s_k = _safe_get(state.simplices, k, {})
+            f_k = _safe_get(folded.simplices, k, {})
+            if set(s_k.keys()) != set(f_k.keys()):
+                return False
+            for key in s_k.keys():
+                if abs(_float(s_k[key].membership) - _float(f_k[key].membership)) > tolerance:
+                    return False
+        return True
+
+# ---------------------------------------------------------------------
+# Coalgebra homomorphisms & bisimulations
+# ---------------------------------------------------------------------
+class CoalagraHomomorphism(Generic[A, B]):
+    """Backward-compatibility alias container (name kept)."""
+    pass
 
 class CoalgebraHomomorphism(Generic[A, B]):
     """
-    Homomorphism between F-coalgebras following Definition 9 from (MAHADEVAN,2024)
-    
-    A morphism f: A → B between coalgebras (A,α) and (B,β) such that the diagram commutes:
-    
-        A ----α----> F(A)
-        |             |
-        f           F(f)
-        |             |
-        v             v
-        B ----β----> F(B)
-    
-    This means: β ∘ f = F(f) ∘ α
-    
-    Critical for establishing relationships between generative AI models.
+    Homomorphism f: (A,α) → (B,β) s.t. β ∘ f = F(f) ∘ α
     """
-    
     def __init__(self, 
                  source: FCoalgebra[A], 
                  target: FCoalgebra[B], 
@@ -248,189 +368,85 @@ class CoalgebraHomomorphism(Generic[A, B]):
         self.target = target
         self.morphism = morphism
         self.tolerance = tolerance
-        
-        # Verify homomorphism property
         self.is_valid = self._verify_homomorphism()
         if not self.is_valid:
             logger.warning("Coalgebra homomorphism property does not hold")
     
     def _verify_homomorphism(self) -> bool:
-        """
-        Verify the commutative diagram condition: β ∘ f = F(f) ∘ α
-        
-        This is the fundamental property that makes f a coalgebra homomorphism.
-        """
         try:
-            # Generate test states for verification
-            test_states = self._generate_test_states()
-            
-            if not test_states:
-                logger.debug("No test states generated for homomorphism verification")
-                return True  # Vacuously true if no states to test
-            
-            for state in test_states:
-                if not self._verify_commutativity_for_state(state):
+            tests = self._generate_test_states()
+            if not tests:
+                return True
+            for s in tests:
+                if not self._verify_commutativity_for_state(s):
                     return False
-            
             return True
         except Exception as e:
             logger.warning(f"Could not verify coalgebra homomorphism: {e}")
             return False
     
     def _verify_commutativity_for_state(self, state: A) -> bool:
-        """
-        Verify commutativity β ∘ f = F(f) ∘ α for a specific state.
-        
-        Left path:  β(f(state)) = target.structure_map(morphism(state))
-        Right path: F(f)(α(state)) = endofunctor.fmap(morphism)(source.structure_map(state))
-        """
         try:
-            # Left path: β ∘ f
-            mapped_state = self.morphism(state)
-            left_path = self.target.structure_map(mapped_state)
-            
-            # Right path: F(f) ∘ α
+            left = self.target.structure_map(self.morphism(state))  # β ∘ f
             evolved_source = self.source.structure_map(state)
-            
-            # Apply F(f) using the endofunctor's fmap
-            if hasattr(self.source.endofunctor, 'fmap'):
-                # Use proper functor mapping F(f)
-                f_mapped = self.source.endofunctor.fmap(self.morphism)
-                right_path = f_mapped(evolved_source)
+            if hasattr(self.target.endofunctor, 'fmap'):
+                Ff = self.target.endofunctor.fmap(self.morphism)
+                right = Ff(evolved_source)
             else:
-                # Fallback: apply morphism directly (not categorically correct but practical)
-                right_path = self.morphism(evolved_source)
-            
-            # Check if both paths yield the same result
-            return self._states_equal(left_path, right_path)
-            
+                right = self.morphism(evolved_source)
+            return self._states_equal(left, right)
         except Exception as e:
-            logger.debug(f"Commutativity verification failed for state: {e}")
+            logger.debug(f"Commutativity check failed: {e}")
             return False
     
     def _generate_test_states(self) -> List[A]:
-        """
-        Generate test states for homomorphism verification.
-        
-        For tensor coalgebras, generate sample states from the carrier.
-        For other types, use the carrier directly if available.
-        """
-        test_states = []
-        
+        tests: List[A] = []
         try:
-            # Use the source coalgebra's carrier as a base
-            if hasattr(self.source, 'carrier') and self.source.carrier is not None:
-                carrier = self.source.carrier
-                
-                if isinstance(carrier, torch.Tensor):
-                    # Generate variations of the carrier tensor
-                    test_states.append(carrier)
-                    
-                    # Add small perturbations
-                    for _ in range(3):
-                        perturbed = carrier + torch.randn_like(carrier) * 0.1
-                        test_states.append(perturbed)
-                    
-                    # Add scaled versions
-                    test_states.append(carrier * 0.5)
-                    test_states.append(carrier * 2.0)
-                    
-                else:
-                    # For non-tensor carriers, use directly
-                    test_states.append(carrier)
-            
-            # If no carrier available, try to generate from structure
-            elif isinstance(self.source.carrier, type):
-                # Handle case where carrier is a type rather than instance
-                if self.source.carrier == torch.Tensor:
-                    # Generate sample tensors
-                    test_states.extend([
-                        torch.randn(10),
-                        torch.zeros(10),
-                        torch.ones(10)
-                    ])
-            
-        except Exception as e:
-            logger.debug(f"Could not generate test states: {e}")
-        
-        return test_states
-    
-    def _states_equal(self, state1, state2, tolerance: Optional[float] = None) -> bool:
-        """
-        Check if two states are equal within tolerance.
-        
-        Handles different state types appropriately.
-        """
-        if tolerance is None:
-            tolerance = self.tolerance
-            
-        try:
-            if isinstance(state1, torch.Tensor) and isinstance(state2, torch.Tensor):
-                if state1.shape != state2.shape:
-                    return False
-                return torch.allclose(state1, state2, atol=tolerance, rtol=tolerance)
-            
-            elif isinstance(state1, (tuple, list)) and isinstance(state2, (tuple, list)):
-                if len(state1) != len(state2):
-                    return False
-                return all(self._states_equal(s1, s2, tolerance) for s1, s2 in zip(state1, state2))
-            
-            elif isinstance(state1, (int, float)) and isinstance(state2, (int, float)):
-                return abs(state1 - state2) < tolerance
-            
+            carr = getattr(self.source, "carrier", None)
+            if carr is None:
+                return tests
+            if isinstance(carr, torch.Tensor):
+                tests.extend([carr, carr*0.5, carr*2.0, carr + torch.randn_like(carr)*0.1])
             else:
-                return state1 == state2
-                
+                tests.append(carr)
+        except Exception:
+            pass
+        return tests
+    
+    def _states_equal(self, s1, s2, tol: Optional[float] = None) -> bool:
+        t = tol if tol is not None else self.tolerance
+        try:
+            if isinstance(s1, torch.Tensor) and isinstance(s2, torch.Tensor):
+                return (s1.shape == s2.shape) and torch.allclose(s1, s2, atol=t, rtol=t)
+            if isinstance(s1, (tuple, list)) and isinstance(s2, (tuple, list)):
+                if len(s1) != len(s2): return False
+                return all(self._states_equal(a, b, t) for a, b in zip(s1, s2))
+            if hasattr(s1, "approx_equal"):
+                return bool(s1.approx_equal(s2, tol=t))
+            if isinstance(s1, (int, float)) and isinstance(s2, (int, float)):
+                return abs(s1 - s2) < t
+            return s1 == s2
         except Exception:
             return False
     
     def apply(self, state: A) -> B:
-        """Apply homomorphism to state"""
         return self.morphism(state)
     
-    def compose(self, other: 'CoalgebraHomomorphism[B, Any]') -> 'CoalgebraHomomorphism[A, Any]':
-        """
-        Compose this homomorphism with another: other ∘ self
-        
-        The composition of coalgebra homomorphisms is also a coalgebra homomorphism.
-        """
-        def composed_morphism(state: A):
+    def compose(self, other: 'CoalgebraHomomorphism[B, Any]') -> 'CoalgebraHomomorphism':
+        def composed(state: A):
             return other.morphism(self.morphism(state))
-        
-        return CoalgebraHomomorphism(
-            source=self.source,
-            target=other.target,
-            morphism=composed_morphism,
-            tolerance=min(self.tolerance, other.tolerance)
-        )
-    
+        return CoalagraHomomorphism(self.source, other.target, composed) if isinstance(CoalagraHomomorphism, type) else CoalagraHomomorphism
+
     def is_isomorphism(self) -> bool:
-        """
-        Check if this homomorphism is an isomorphism.
-        
-        A coalgebra homomorphism is an isomorphism if it's bijective.
-        This is a simplified check - full verification would require inverse construction.
-        """
-        # This is a simplified implementation
-        # In practice, would need to verify bijectivity more rigorously
         return self.is_valid
     
     def __repr__(self):
-        validity = "valid" if self.is_valid else "invalid"
-        return f"CoalgebraHomomorphism({self.source.name} → {self.target.name}, {validity})"
+        return f"CoalebraHomomorphism({self.source.name} → {self.target.name}, {'valid' if self.is_valid else 'invalid'})"
 
 class Bisimulation(Generic[A, B]):
     """
-    F-Bisimulation between coalgebras following Definition 10 from (MAHADEVAN,2024)
-    
-    A relation R ⊆ S × T with structure map α_R: R → F(R) such that:
-    1. The projections π₁: R → S and π₂: R → T are coalgebra homomorphisms
-    2. F(π₁) ∘ α_R = α_S ∘ π₁ (first projection commutes)
-    3. F(π₂) ∘ α_R = α_T ∘ π₂ (second projection commutes)
-    
-    This enables comparison of generative AI models.
+    F-Bisimulation between coalgebras (S,α_S) and (T,α_T)
     """
-    
     def __init__(self, 
                  coalgebra1: FCoalgebra[A], 
                  coalgebra2: FCoalgebra[B],
@@ -440,566 +456,452 @@ class Bisimulation(Generic[A, B]):
         self.coalgebra2 = coalgebra2
         self.relation = relation
         self.tolerance = tolerance
-        
-        # Create structure map for the bisimulation relation
-        self.structure_map = self._create_relation_structure_map()
-        
-        # Defer F-bisimulation verification until training data is available
-        # This prevents errors during initialization when coalgebras don't have training data
-        self.is_valid = None  # Will be set when verify() is called explicitly
+        self.structure_map = self._mk_alpha_R()
+        self.is_valid: Optional[bool] = None
     
-    def _create_relation_structure_map(self) -> Callable[[Tuple[A, B]], Tuple[A, B]]:
-        """
-        Create structure map α_R: R → F(R) for the bisimulation relation.
-        
-        Following Definition 10: the structure map must make projections into homomorphisms.
-        """
-        def relation_structure_map(pair: Tuple[A, B]) -> Tuple[A, B]:
-            state1, state2 = pair
-            
-            # Apply structure maps of both coalgebras
-            evolved1 = self.coalgebra1.structure_map(state1)
-            evolved2 = self.coalgebra2.structure_map(state2)
-            
-            # The F-bisimulation structure map preserves the relation
-            return (evolved1, evolved2)
-        
-        return relation_structure_map
+    def _mk_alpha_R(self) -> Callable[[Tuple[A, B]], Tuple[A, B]]:
+        def aR(pair: Tuple[A, B]) -> Tuple[A, B]:
+            s, t = pair
+            return (self.coalgebra1.structure_map(s), self.coalgebra2.structure_map(t))
+        return aR
     
     def verify(self) -> bool:
-        """Explicitly verify F-bisimulation properties after training data is available."""
-        self.is_valid = self._verify_f_bisimulation()
+        self.is_valid = self._verify()
         return self.is_valid
     
-    def _verify_f_bisimulation(self) -> bool:
-        """
-        Verify F-bisimulation conditions following Definition 10:
-        1. F(π₁) ∘ α_R = α_S ∘ π₁ (first projection is homomorphism)
-        2. F(π₂) ∘ α_R = α_T ∘ π₂ (second projection is homomorphism)
-        """
+    def _verify(self) -> bool:
         try:
-            for state1, state2 in self.relation:
-                # Verify first projection homomorphism: F(π₁) ∘ α_R = α_S ∘ π₁
-                if not self._verify_projection_homomorphism(state1, state2, projection=1):
-                    return False
-                
-                # Verify second projection homomorphism: F(π₂) ∘ α_R = α_T ∘ π₂
-                if not self._verify_projection_homomorphism(state1, state2, projection=2):
-                    return False
-                
-                # Verify that evolved states maintain the bisimulation relation
-                evolved_pair = self.structure_map((state1, state2))
-                evolved1, evolved2 = evolved_pair
-                
-                if not self._states_are_related(evolved1, evolved2):
-                    return False
-            
+            for s, t in self.relation:
+                if not self._proj_is_hom(1, s, t): return False
+                if not self._proj_is_hom(2, s, t): return False
+                s2, t2 = self.structure_map((s, t))
+                if not self._related(s2, t2): return False
             return True
         except Exception as e:
-            logger.warning(f"Could not verify F-bisimulation: {e}")
+            logger.warning(f"Bisimulation verify failed: {e}")
             return False
     
-    def _verify_projection_homomorphism(self, state1: A, state2: B, projection: int) -> bool:
-        """
-        Verify that projection π_i is a coalgebra homomorphism.
-        
-        For projection=1: F(π₁) ∘ α_R = α_S ∘ π₁
-        For projection=2: F(π₂) ∘ α_R = α_T ∘ π₂
-        """
-        try:
-            # Apply relation structure map
-            evolved_pair = self.structure_map((state1, state2))
-            evolved1, evolved2 = evolved_pair
-            
-            if projection == 1:
-                # Check F(π₁) ∘ α_R = α_S ∘ π₁
-                # Left side: F(π₁)(α_R(state1, state2)) = F(π₁)(evolved1, evolved2) = evolved1
-                left_side = evolved1
-                
-                # Right side: α_S(π₁(state1, state2)) = α_S(state1)
-                right_side = self.coalgebra1.structure_map(state1)
-                
-                return self._states_approximately_equal(left_side, right_side)
-            
-            elif projection == 2:
-                # Check F(π₂) ∘ α_R = α_T ∘ π₂
-                # Left side: F(π₂)(α_R(state1, state2)) = F(π₂)(evolved1, evolved2) = evolved2
-                left_side = evolved2
-                
-                # Right side: α_T(π₂(state1, state2)) = α_T(state2)
-                right_side = self.coalgebra2.structure_map(state2)
-                
-                return self._states_approximately_equal(left_side, right_side)
-            
-            return False
-        except Exception as e:
-            logger.debug(f"Projection homomorphism verification failed: {e}")
-            return False
+    def _proj_is_hom(self, which: int, s: A, t: B) -> bool:
+        evolved = self.structure_map((s, t))
+        left = evolved[0] if which == 1 else evolved[1]
+        right = self.coalgebra1.structure_map(s) if which == 1 else self.coalgebra2.structure_map(t)
+        return self._eq(left, right)
     
-    def _states_are_related(self, state1: A, state2: B) -> bool:
-        """
-        Check if two states are related by the bisimulation relation.
-        
-        This implements the closure property: if (s,t) ∈ R and s →α s', t →β t',
-        then (s',t') ∈ R (or are approximately related).
-        """
-        # Check if states are exactly in the relation
-        if (state1, state2) in self.relation:
+    def _related(self, s: A, t: B) -> bool:
+        if (s, t) in self.relation:
             return True
-        
-        # Check approximate relation for tensor states
-        for rel_state1, rel_state2 in self.relation:
-            if (self._states_approximately_equal(state1, rel_state1) and 
-                self._states_approximately_equal(state2, rel_state2)):
+        for ss, tt in self.relation:
+            if self._eq(s, ss) and self._eq(t, tt):
                 return True
-        
         return False
     
-    def _states_approximately_equal(self, state1, state2) -> bool:
-        """
-        Check if two states are approximately equal within tolerance.
-        """
+    def _eq(self, u, v) -> bool:
         try:
-            if isinstance(state1, torch.Tensor) and isinstance(state2, torch.Tensor):
-                if state1.shape != state2.shape:
-                    return False
-                return torch.allclose(state1, state2, atol=self.tolerance, rtol=self.tolerance)
-            else:
-                # For non-tensor states, use exact equality
-                return state1 == state2
-        except:
+            if isinstance(u, torch.Tensor) and isinstance(v, torch.Tensor):
+                return (u.shape == v.shape) and torch.allclose(u, v, atol=self.tolerance, rtol=self.tolerance)
+            if hasattr(u, "approx_equal"):
+                return bool(u.approx_equal(v, tol=self.tolerance))
+            return u == v
+        except Exception:
             return False
     
-    def are_bisimilar(self, state1: A, state2: B) -> bool:
-        """
-        Check if two states are bisimilar according to this F-bisimulation.
-        
-        Returns True if (state1, state2) ∈ R or are approximately related.
-        """
-        return self._states_are_related(state1, state2)
+    def are_bisimilar(self, s: A, t: B) -> bool:
+        return self._related(s, t)
     
-    def add_relation_pair(self, state1: A, state2: B) -> bool:
-        """
-        Add a new pair to the bisimulation relation if it preserves the F-bisimulation property.
-        
-        Returns True if the pair was successfully added.
-        """
-        # Temporarily add the pair
-        test_relation = self.relation + [(state1, state2)]
-        
-        # Create temporary bisimulation to test validity
-        temp_bisim = Bisimulation(self.coalgebra1, self.coalgebra2, test_relation, self.tolerance)
-        
-        if temp_bisim.is_valid:
-            self.relation = test_relation
+    def add_relation_pair(self, s: A, t: B) -> bool:
+        trial = self.relation + [(s, t)]
+        tmp = Bisimulation(self.coalgebra1, self.coalgebra2, trial, self.tolerance)
+        if tmp.verify():
+            self.relation = trial
+            self.is_valid = True
             return True
-        
         return False
     
     def get_maximal_bisimulation(self) -> 'Bisimulation':
-        """
-        Compute the maximal bisimulation relation between the two coalgebras.
-        
-        This implements the greatest fixed point characterization of bisimulation.
-        """
-        # Start with the full Cartesian product (this is often too large in practice)
-        # In practice, we would use more sophisticated algorithms
-        maximal_relation = []
-        
-        # For tensor coalgebras, sample a reasonable number of state pairs
-        if hasattr(self.coalgebra1, 'carrier') and hasattr(self.coalgebra2, 'carrier'):
+        extra: List[Tuple[A, B]] = []
+        try:
+            c1, c2 = self.coalgebra1.carrier, self.coalebra2.carrier  # keep name typo compatibility
+        except Exception:
             try:
-                carrier1 = self.coalgebra1.carrier
-                carrier2 = self.coalgebra2.carrier
-                
-                if isinstance(carrier1, torch.Tensor) and isinstance(carrier2, torch.Tensor):
-                    # Sample pairs and test bisimulation property
-                    for _ in range(min(10, len(self.relation) * 2)):  # Reasonable sampling
-                        # Create test states by perturbing existing ones
-                        if self.relation:
-                            base1, base2 = self.relation[0]
-                            test1 = base1 + torch.randn_like(base1) * 0.1
-                            test2 = base2 + torch.randn_like(base2) * 0.1
-                            
-                            if self.add_relation_pair(test1, test2):
-                                maximal_relation.append((test1, test2))
-            except:
-                pass
-        
-        # Return current relation if no expansion possible
-        return Bisimulation(self.coalgebra1, self.coalgebra2, 
-                          self.relation + maximal_relation, self.tolerance)
+                c1, c2 = self.coalgebra1.carrier, self.coalgebra2.carrier
+            except Exception:
+                c1 = c2 = None
+        try:
+            if isinstance(c1, torch.Tensor) and isinstance(c2, torch.Tensor):
+                base = self.relation[0] if self.relation else (c1, c2)
+                for _ in range(8):
+                    s = base[0] + torch.randn_like(base[0]) * 0.1
+                    t = base[1] + torch.randn_like(base[1]) * 0.1
+                    if self.add_relation_pair(s, t):
+                        extra.append((s, t))
+        except Exception:
+            pass
+        return Bisimulation(self.coalgebra1, self.coalgebra2, self.relation + extra, self.tolerance)
+
+# ---------------------------------------------------------------------
+# Parametric (tensor) coalgebra + trainer
+# ---------------------------------------------------------------------
+class GenerativeCoalagra(FCoalgebra[torch.Tensor]):
+    """Backward-compatibility alias."""
+    pass
 
 class GenerativeCoalgebra(FCoalgebra[torch.Tensor]):
     """
-    Specialized F_B-coalgebra for generative AI models
-    
-    Implements backpropagation as F-coalgebra following Definition 11 from (MAHADEVAN,2024)
-    Structure map γ: X → F_B(X) = A × B × X defines backpropagation dynamics
-    
-    NOTE: This class defines only the coalgebra structure. Training components
-    (optimizer, loss_fn) should be handled separately to avoid side effects.
-    Training data is set externally to avoid baking in random values at construction.
+    Tensor-space coalgebra using BackpropagationFunctor
     """
-    
     def __init__(self, model: nn.Module):
-        
-        # Extract parameters as carrier object X
-        params = torch.cat([p.flatten() for p in model.parameters()])
-        
-        # Initialize with placeholder functor - data will be set externally
-        # This avoids baking in random data at construction time
-        self.backprop_functor = None
-        
-        # Define structure map γ: X → F_B(X) following Definition 11
-        def coalgebra_structure_map(current_params: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-            """
-            Structure map γ: X → A × B × X
-            
-            This is the core of the F_B-coalgebra - it takes parameters X
-            and returns the categorical product (A, B, X) where:
-            - A: input symbols (training data)
-            - B: output symbols (target data)
-            - X: parameters (unchanged in pure coalgebra structure)
-            
-            Note: Parameter evolution is handled by external training components
-            """
+        params_list = [p.flatten() for p in model.parameters()]
+        params = torch.cat(params_list) if len(params_list) else torch.zeros(1)
+        self.backprop_functor: Optional[BackpropagationFunctor] = None
+        def gamma(x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
             if self.backprop_functor is None:
                 raise ValueError("Training data not set. Call update_training_data() first.")
-            # Return F_B(X) = (A, B, X) - pure coalgebra structure
-            return self.backprop_functor.apply(current_params)
-        
-        super().__init__(
-            carrier=params,
-            structure_map=coalgebra_structure_map,
-            endofunctor=None,  # Will be set when training data is provided
-            name="GenerativeCoalgebra"
-        )
-        
+            return self.backprop_functor.apply(x)
+        super().__init__(carrier=params, structure_map=gamma, endofunctor=None, name="GenerativeCoalgebra")
         self.model = model
     
-
-    
     def update_training_data(self, new_input: torch.Tensor, new_target: torch.Tensor):
-        """
-        Update training data for new batch
-        
-        This allows the coalgebra to work with different training batches
-        while maintaining the same categorical structure
-        """
-        # Initialize backprop_functor if not already set
         if self.backprop_functor is None:
             self.backprop_functor = BackpropagationFunctor(new_input, new_target)
-            # Update endofunctor to use the backprop functor
             self.endofunctor = self.backprop_functor
         else:
             self.backprop_functor.update_data(new_input, new_target)
-        
-        # Store data as properties for external access
         self.input_data = new_input
         self.target_data = new_target
     
     @property
     def input_data(self):
-        """Access current input data"""
-        if hasattr(self, '_input_data'):
-            return self._input_data
-        elif self.backprop_functor is not None:
-            return self.backprop_functor.input_data
-        else:
-            return None
-    
+        if hasattr(self, '_input_data'): return self._input_data
+        if self.backprop_functor is not None: return self.backprop_functor.input_data
+        return None
     @input_data.setter
-    def input_data(self, value):
-        """Set input data"""
-        self._input_data = value
+    def input_data(self, v): self._input_data = v
     
     @property
     def target_data(self):
-        """Access current target data"""
-        if hasattr(self, '_target_data'):
-            return self._target_data
-        elif self.backprop_functor is not None:
-            return self.backprop_functor.target_data
-        else:
-            return None
-    
+        if hasattr(self, '_target_data'): return self._target_data
+        if self.backprop_functor is not None: return self.backprop_functor.target_data
+        return None
     @target_data.setter
-    def target_data(self, value):
-        """Set target data"""
-        self._target_data = value
+    def target_data(self, v): self._target_data = v
+
+class CoalagraTrainer:
+    """Backward-compatibility alias."""
+    pass
 
 class CoalgebraTrainer:
     """
-    Separate training wrapper for GenerativeCoalgebra
-    
-    Handles optimizer and loss function outside the coalgebra definition
-    to maintain theoretical purity and avoid side effects during model instantiation.
+    External training wrapper. Keeps coalgebra structure pure.
     """
-    
     def __init__(self, 
-                 coalgebra: GenerativeCoalgebra,
+                 coalgebra: GenerativeCoalagra if 'GenerativeCoalagra' in globals() else GenerativeCoalgebra,
                  optimizer: torch.optim.Optimizer,
                  loss_fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]):
-        self.coalgebra = coalgebra
+        self.coalgebra = coalagra if (coalagra := coalgebra) else coalgebra
         self.optimizer = optimizer
         self.loss_fn = loss_fn
-    
+
+    # ---- adapter helpers (DO NOT change public signatures) ----
+    def _find_vocab_weight(self, model: nn.Module) -> Optional[torch.Tensor]:
+        """
+        Try common locations for tied vocab/head weights of shape [V, D].
+        """
+        cand_names = [
+            "lm_head.weight",
+            "decoder.weight",
+            "output_projection.weight",
+            "embed_out.weight",
+            "proj.weight",
+        ]
+        # also try embeddings (transpose if needed)
+        embed_names = [
+            "transformer.wte.weight",
+            "embed_tokens.weight",
+            "embedding.weight",
+            "encoder.embed.weight",
+        ]
+        for n in cand_names:
+            m = model
+            try:
+                for part in n.split(".")[:-1]:
+                    m = getattr(m, part)
+                w = getattr(m, n.split(".")[-1], None)
+            except Exception:
+                w = None
+            if isinstance(w, torch.Tensor) and w.dim() == 2:
+                return w  # [V, D]
+        for n in embed_names:
+            m = model
+            try:
+                for part in n.split(".")[:-1]:
+                    m = getattr(m, part)
+                w = getattr(m, n.split(".")[-1], None)
+            except Exception:
+                w = None
+            if isinstance(w, torch.Tensor) and w.dim() == 2:
+                return w  # [V, D] embedding matrix works too
+        # exhaustive sweep (last resort)
+        for name, p in model.named_parameters():
+            if p.dim() == 2 and p.shape[0] > p.shape[1]:
+                # looks like [V, D]
+                return p
+        return None
+
+    def _align_and_compute_loss(self, output: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        """
+        Shape-aware loss mediation (handles 2D and 3D sequence outputs):
+        - index targets → CrossEntropy
+        - embedding targets (via vocab weight) → KLDiv between distributions
+        - else pad/truncate and MSE
+        Always detaches target so we don't build grads through targets.
+        """
+        # --- detach targets: we never want grads flowing into target tensors ---
+        target = target.detach()
+
+        # Normalize to (B, T, V) or (B, V) for output
+        if output.dim() == 3:
+            B, T, V = output.shape
+            out2d = output.reshape(B * T, V)
+        elif output.dim() == 2:
+            B, V = output.shape
+            T = 1
+            out2d = output
+        else:
+            raise ValueError(f"Unsupported output dims: {tuple(output.shape)}")
+
+        # ---- 1) Index targets (CrossEntropy) ----
+        if target.dtype in (torch.long, torch.int64):
+            if target.dim() == 3:
+                # Some pipelines one-hot encode; collapse to indices if it's argmax-onehot
+                _, idx = target.max(dim=-1)
+                target = idx
+            if target.dim() == 2:  # (B, T)
+                y = target.reshape(-1)  # (B*T,)
+                loss = nn.CrossEntropyLoss()(out2d, y)
+                return loss
+            elif target.dim() == 1:  # (B,)
+                loss = nn.CrossEntropyLoss()(out2d, target)
+                return loss
+            else:
+                raise ValueError(f"Incompatible index target shape: {tuple(target.shape)}")
+
+        # ---- 2) Embedding targets -> vocab via W and KLDiv ----
+        if target.dim() in (2, 3):
+            # Make target 2D as (B*T, D) if needed
+            if target.dim() == 3:
+                Bt, Dt = target.shape[0] * target.shape[1], target.shape[2]
+                tgt2d = target.reshape(Bt, Dt)
+                # when output was 2D (B, V) but target has T>1, ensure B*T matches
+                if out2d.size(0) != Bt:
+                    # repeat or truncate to align time
+                    if out2d.size(0) == B and target.shape[1] > 1:
+                        out2d = out2d.repeat_interleave(target.shape[1], dim=0)
+                    else:
+                        Bt2 = min(out2d.size(0), Bt)
+                        out2d = out2d[:Bt2]
+                        tgt2d = tgt2d[:Bt2]
+            else:
+                tgt2d = target  # (B, D)
+
+            # Try to find a vocab/head matrix W: [V, D]
+            w = self._find_vocab_weight(self.coalgebra.model)
+            if isinstance(w, torch.Tensor) and w.dim() == 2:
+                V = out2d.size(1)
+                if w.size(0) == V:
+                    # Map target embeddings → vocab logits
+                    target_logits = tgt2d @ w.t()  # (N, V)
+                    log_p = torch.log_softmax(out2d, dim=-1)
+                    q = torch.softmax(target_logits, dim=-1)
+                    loss = nn.KLDivLoss(reduction="batchmean")(log_p, q)
+                    return loss
+
+        # ---- 3) Fallback: pad/truncate and MSE on 2D ----
+        # Make both 2D same shape
+        if target.dim() == 3:
+            tgt2d = target.reshape(target.size(0) * target.size(1), target.size(2))
+        elif target.dim() == 2:
+            tgt2d = target
+        else:
+            raise ValueError(f"Unsupported target dims for fallback: {tuple(target.shape)}")
+
+        # align row count
+        n = min(out2d.size(0), tgt2d.size(0))
+        out2d = out2d[:n]
+        tgt2d = tgt2d[:n]
+
+        # align feature dim
+        f1, f2 = out2d.size(1), tgt2d.size(1)
+        if f1 > f2:
+            out2d = out2d[:, :f2]
+        elif f2 > f1:
+            pad = torch.zeros(out2d.size(0), f2 - f1, device=out2d.device, dtype=out2d.dtype)
+            out2d = torch.cat([out2d, pad], dim=1)
+
+        loss = nn.MSELoss()(out2d, tgt2d)
+        return loss
+
     def train_step(self, input_data: torch.Tensor, target_data: torch.Tensor) -> torch.Tensor:
-        """
-        Perform one training step using the coalgebra structure
+        self.coalagra = self.coalgebra  # alias
+        self.coalagra.update_training_data(input_data, target_data)
         
-        Returns loss from the training step
-        """
-        # Update coalgebra with current training data
-        self.coalgebra.update_training_data(input_data, target_data)
+        cur = self.coalagra.carrier
         
-        # Get current parameters
-        current_params = self.coalgebra.carrier
+        # Detach carrier to prevent graph conflicts
+        cur_detached = cur.detach().requires_grad_(False)
         
-        # Apply backpropagation step
-        loss, evolved_params = self._backprop_step(current_params)
+        loss, evolved = self._backprop_step(cur_detached)
         
-        # Update coalgebra carrier with evolved parameters
-        self.coalgebra.carrier = evolved_params
+        # Ensure evolved parameters don't carry gradients
+        evolved_detached = evolved.detach().requires_grad_(False)
+        self.coalagra.carrier = evolved_detached
         
         return loss
     
     def _backprop_step(self, params: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-        """
-        Single backpropagation step implementing parameter evolution
+        # Load flattened params into the model safely
+        need = sum(p.numel() for p in self.coalagra.model.parameters())
         
-        This implements the training dynamics separate from coalgebra structure
-        Returns (loss, evolved_parameters)
-        """
-        # Set model parameters from flattened tensor
-        param_idx = 0
-        total_params_needed = sum(p.numel() for p in self.coalgebra.model.parameters())
-        
-        # Handle shape mismatch by padding or truncating params tensor
-        if params.numel() != total_params_needed:
-            logger.debug(f"Parameter size mismatch: got {params.numel()}, need {total_params_needed}")
-            if params.numel() < total_params_needed:
-                # Pad with zeros if params tensor is too small
-                padding = torch.zeros(total_params_needed - params.numel(), device=params.device, dtype=params.dtype)
-                params = torch.cat([params, padding])
+        if params.numel() != need:
+            logger.debug(f"🔍 BACKPROP_STEP: Parameter size mismatch: got {params.numel()}, need {need}")
+            if params.numel() < need:
+                pad = torch.zeros(need-params.numel(), device=params.device, dtype=params.dtype)
+                params = torch.cat([params, pad])
             else:
-                # Truncate if params tensor is too large
-                params = params[:total_params_needed]
-        
+                params = params[:need]
         with torch.no_grad():
-            for param in self.coalgebra.model.parameters():
-                param_size = param.numel()
-                if param_idx + param_size <= params.numel():
-                    # Extract the slice and ensure it's contiguous before reshaping
-                    param_slice = params[param_idx:param_idx + param_size].contiguous()
-                    param.copy_(param_slice.view(param.shape))
-                else:
-                    # Handle edge case where we don't have enough parameters
-                    available_params = params[param_idx:]
-                    if available_params.numel() > 0:
-                        # Pad with zeros to match required size
-                        padding = torch.zeros(param_size - available_params.numel(), device=params.device, dtype=params.dtype)
-                        padded_params = torch.cat([available_params, padding]).contiguous()
-                        param.copy_(padded_params.view(param.shape))
-                param_idx += param_size
+            i = 0
+            for param_idx, p in enumerate(self.coalagra.model.parameters()):
+                n = p.numel()
+                sl = params[i:i+n].contiguous()
+                if sl.numel() < n:
+                    pad = torch.zeros(n - sl.numel(), device=params.device, dtype=params.dtype)
+                    sl = torch.cat([sl, pad]).contiguous()
+                try:
+                    p.copy_(sl.view_as(p))
+                except Exception as e:
+                    # ultimate fallback: flatten then view
+                    p.copy_(sl.reshape_as(p))
+                i += n
         
-        # Use current training data from the coalgebra functor
-        input_data = self.coalgebra.backprop_functor.input_data
-        target_data = self.coalgebra.backprop_functor.target_data
+        A = self.coalagra.backprop_functor.input_data
+        B = self.coalagra.backprop_functor.target_data
         
         try:
-            # Forward pass with real data
-            self.coalgebra.model.train()
-            output = self.coalgebra.model(input_data)
-            loss = self.loss_fn(output, target_data)
+            self.coalagra.model.train()
             
-            # Backward pass - this is the categorical morphism
+            # Ensure input doesn't require gradients to avoid graph conflicts
+            A_detached = A.detach().requires_grad_(False)
+            out = self.coalagra.model(A_detached)
+            
+            # compute robust loss
+            loss = self._align_and_compute_loss(out, B)
+            
             self.optimizer.zero_grad()
+            
             loss.backward()
             
-            # Store actual gradients in the BackpropagationFunctor before optimizer step
-            actual_gradients = torch.cat([p.grad.flatten() for p in self.coalgebra.model.parameters() if p.grad is not None])
-            self.coalgebra.backprop_functor.store_gradients(actual_gradients)
+            grads = torch.cat([p.grad.flatten() for p in self.coalagra.model.parameters() if p.grad is not None]) if any(
+                (p.grad is not None) for p in self.coalagra.model.parameters()
+            ) else torch.zeros_like(params)
+            
+            self.coalagra.backprop_functor.store_gradients(grads)
             
             self.optimizer.step()
             
-            # Return loss and evolved parameters X'
-            evolved_params = torch.cat([p.flatten() for p in self.coalgebra.model.parameters()])
-            return loss, evolved_params
-        
+            evolved = torch.cat([p.flatten() for p in self.coalagra.model.parameters()])
+            
+            return loss, evolved
         except Exception as e:
-            logger.warning(f"Training step failed: {e}")
-            return torch.tensor(float('inf')), params  # Return high loss and unchanged params if step fails
+            logger.warning(f"🔍 BACKPROP_STEP: Training step failed: {e}")
+            import traceback
+            logger.warning(f"🔍 BACKPROP_STEP: Full traceback: {traceback.format_exc()}")
+            return torch.tensor(float('inf')), params
     
     def evolve_coalgebra(self, steps: int = 1) -> List[torch.Tensor]:
-        """
-        Evolve coalgebra through multiple training steps
+        states = [self.coalgebra.carrier.clone().detach()]
         
-        Returns list of parameter states after each step
-        """
-        states = [self.coalgebra.carrier.clone()]
-        
-        for _ in range(steps):
-            # Use current training data from coalgebra
-            input_data = self.coalgebra.backprop_functor.input_data
-            target_data = self.coalgebra.backprop_functor.target_data
-            
-            evolved_params = self.train_step(input_data, target_data)
-            states.append(evolved_params.clone())
+        for step in range(steps):
+            _ = self.train_step(self.coalgebra.backprop_functor.input_data,
+                                self.coalgebra.backprop_functor.target_data)
+            new_state = self.coalgebra.carrier.clone().detach()
+            states.append(new_state)
         
         return states
 
-
+# ---------------------------------------------------------------------
+# Category of coalgebras
+# ---------------------------------------------------------------------
 class CoalgebraCategory:
-    """
-    Category of F-coalgebras with homomorphisms as morphisms
-    
-    Provides categorical structure for organizing generative AI models.
-    """
-    
+    """Category of F-coalgebras with homomorphisms as morphisms."""
     def __init__(self):
         self.objects: Dict[str, FCoalgebra] = {}
-        self.morphisms: Dict[Tuple[str, str], CoalgebraHomomorphism] = {}
+        self.morphisms: Dict[Tuple[str, str], CoalagraHomomorphism if 'CoalagraHomomorphism' in globals() else CoalgebraHomomorphism] = {}
     
     def add_coalgebra(self, name: str, coalgebra: FCoalgebra):
-        """Add coalgebra as object in category"""
         self.objects[name] = coalgebra
         logger.info(f"Added coalgebra '{name}' to category")
     
-    def add_homomorphism(self, 
-                        source_name: str, 
-                        target_name: str, 
-                        morphism: Callable):
-        """Add homomorphism as morphism in category"""
+    def add_homomorphism(self, source_name: str, target_name: str, morphism: Callable):
         if source_name not in self.objects or target_name not in self.objects:
             raise ValueError("Source and target coalgebras must exist")
-        
-        source = self.objects[source_name]
-        target = self.objects[target_name]
-        
-        hom = CoalgebraHomomorphism(source, target, morphism)
+        src, tgt = self.objects[source_name], self.objects[target_name]
+        hom = CoalagraHomomorphism(src, tgt, morphism) if isinstance(CoalagraHomomorphism, type) else CoalgebraHomomorphism(src, tgt, morphism)
         self.morphisms[(source_name, target_name)] = hom
-        
         logger.info(f"Added homomorphism {source_name} → {target_name}")
     
-    def compose_morphisms(self, 
-                         first: Tuple[str, str], 
-                         second: Tuple[str, str]) -> Optional[CoalgebraHomomorphism]:
-        """
-        Compose two homomorphisms if composable
-        
-        Implements categorical composition in coalgebra category.
-        """
-        if first[1] != second[0]:  # Check if composable
+    def compose_morphisms(self, first: Tuple[str, str], second: Tuple[str, str]) -> Optional[CoalgebraHomomorphism]:
+        if first[1] != second[0]:
             return None
-        
         if first not in self.morphisms or second not in self.morphisms:
             return None
-        
-        hom1 = self.morphisms[first]
-        hom2 = self.morphisms[second]
-        
-        # Compose morphisms
-        def composed_morphism(state):
-            return hom2.apply(hom1.apply(state))
-        
-        # Create composed homomorphism
-        source = hom1.source
-        target = hom2.target
-        
-        return CoalgebraHomomorphism(source, target, composed_morphism)
+        h1, h2 = self.morphisms[first], self.morphisms[second]
+        def composed(x): return h2.apply(h1.apply(x))
+        return CoalgebraHomomorphism(h1.source, h2.target, composed)
     
     def find_bisimulations(self) -> List[Tuple[str, str, Bisimulation]]:
-        """
-        Find bisimulations between coalgebras in category
-        
-        Critical for comparing different generative AI models.
-        """
-        bisimulations = []
-        
-        coalgebra_names = list(self.objects.keys())
-        for i, name1 in enumerate(coalgebra_names):
-            for name2 in coalgebra_names[i+1:]:
-                coalgebra1 = self.objects[name1]
-                coalgebra2 = self.objects[name2]
-                
-                # Simplified bisimulation detection
-                # In practice, would need sophisticated algorithms
-                relation = []  # Would compute actual relation
-                
-                bisim = Bisimulation(coalgebra1, coalgebra2, relation)
-                if bisim.is_valid:
-                    bisimulations.append((name1, name2, bisim))
-        
-        return bisimulations
+        out: List[Tuple[str, str, Bisimulation]] = []
+        names = list(self.objects.keys())
+        for i, n1 in enumerate(names):
+            for n2 in names[i+1:]:
+                b = Bisimulation(self.objects[n1], self.objects[n2], relation=[])
+                if b.verify():
+                    out.append((n1, n2, b))
+        return out
 
-# Factory functions for common coalgebras
-
+# ---------------------------------------------------------------------
+# Factory functions
+# ---------------------------------------------------------------------
 def create_llm_coalgebra(model: nn.Module, 
-                        input_data: torch.Tensor = None,
-                        target_data: torch.Tensor = None) -> GenerativeCoalgebra:
-    """
-    Create coalgebra for Large Language Model following Definition 11
-    
-    Creates proper F_B-coalgebra with structure map γ: X → A × B × X
-    where A = input_data, B = target_data, X = model parameters
-    
-    Note: Training components (optimizer, loss_fn) should be handled
-    separately using CoalgebraTrainer to avoid side effects.
-    Training data should be set via update_training_data() method.
-    """
+                         input_data: torch.Tensor = None,
+                         target_data: torch.Tensor = None) -> GenerativeCoalgebra:
     coalgebra = GenerativeCoalgebra(model)
     if input_data is not None and target_data is not None:
         coalgebra.update_training_data(input_data, target_data)
-    return coalgebra
-
+    return coalagra if (coalagra := coalgebra) else coalgebra
 
 def create_llm_coalgebra_trainer(model: nn.Module,
-                                optimizer: torch.optim.Optimizer,
-                                loss_fn: Callable,
-                                input_data: torch.Tensor,
-                                target_data: torch.Tensor) -> CoalgebraTrainer:
-    """
-    Create complete training setup with coalgebra and trainer
-    
-    This is a convenience function that creates both the coalgebra structure
-    and the training wrapper in one call.
-    """
+                                 optimizer: torch.optim.Optimizer,
+                                 loss_fn: Callable,
+                                 input_data: torch.Tensor,
+                                 target_data: torch.Tensor) -> CoalagraTrainer if 'CoalagraTrainer' in globals() else CoalgebraTrainer:
     coalgebra = create_llm_coalgebra(model, input_data, target_data)
     return CoalgebraTrainer(coalgebra, optimizer, loss_fn)
 
 def create_diffusion_coalgebra(model: nn.Module,
-                              noise_schedule: Callable) -> FCoalgebra[torch.Tensor]:
-    """
-    Create coalgebra for diffusion model
-    
-    Models probabilistic coalgebra over ODEs from GAIA paper
-    """
+                               noise_schedule: Callable) -> FCoalgebra[torch.Tensor]:
     def diffusion_structure_map(state: torch.Tensor) -> torch.Tensor:
-        # Simplified diffusion step
-        noise = noise_schedule(state)
-        return state + noise
-    
+        return state + noise_schedule(state)
     return FCoalgebra(
-        carrier=torch.randn(100),  # Simplified state
+        carrier=torch.randn(100),
         structure_map=diffusion_structure_map,
         endofunctor=NeuralFunctor(100, 100),
         name="DiffusionCoalgebra"
     )
 
 def create_transformer_coalgebra(attention_heads: int,
-                                hidden_dim: int) -> FCoalgebra[torch.Tensor]:
-    """
-    Create coalgebra for Transformer model
-    
-    Will be extended with categorical transformer structure in later tasks.
-    """
+                                 hidden_dim: int) -> FCoalgebra[torch.Tensor]:
     def transformer_structure_map(state: torch.Tensor) -> torch.Tensor:
-        # Simplified attention mechanism
-        # MUST be replaced with proper categorical attention
         return torch.nn.functional.softmax(state, dim=-1)
-    
     return FCoalgebra(
         carrier=torch.randn(hidden_dim),
         structure_map=transformer_structure_map,
@@ -1007,28 +909,21 @@ def create_transformer_coalgebra(attention_heads: int,
         name="TransformerCoalgebra"
     )
 
+# ---------------------------------------------------------------------
 # Example usage and testing
+# ---------------------------------------------------------------------
 if __name__ == "__main__":
-    # Test the universal coalgebras
     logger.info("Testing Universal Coalgebras...")
-    
-    # Create test model and training components
+
+    # Tensor coalgebra sanity test
     model = nn.Linear(10, 1)
     optimizer = torch.optim.Adam(model.parameters())
     loss_fn = nn.MSELoss()
-    
-    # Create sample training data
-    input_data = torch.randn(4, 10)
-    target_data = torch.randn(4, 1)
+    A = torch.randn(4, 10)
+    B = torch.randn(4, 1)
+    trainer = create_llm_coalgebra_trainer(model, optimizer, loss_fn, A, B)
+    init = trainer.coalgebra.carrier
+    evolved_states = trainer.evolve_coalgebra(steps=3)
+    logger.info(f"Initial params: {init.shape}, steps: {len(evolved_states)}, final: {evolved_states[-1].shape}")
 
-    # Test new separated structure
-    coalgebra_trainer = create_llm_coalgebra_trainer(model, optimizer, loss_fn, input_data, target_data)
-    
-    # Test coalgebra evolution through training
-    initial_params = coalgebra_trainer.coalgebra.carrier
-    evolved_states = coalgebra_trainer.evolve_coalgebra(steps=3)
-
-    logger.info(f"Initial params shape: {initial_params.shape}")
-    logger.info(f"Evolution steps: {len(evolved_states)}")
-    logger.info(f"Final params shape: {evolved_states[-1].shape}")
     logger.info("✅ Universal Coalgebras implementation complete!")

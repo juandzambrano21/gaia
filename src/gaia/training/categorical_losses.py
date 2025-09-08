@@ -54,62 +54,59 @@ class CategoricalLossComputer:
         naturality_loss = torch.tensor(0.0, device=self.device)
         universal_property_loss = torch.tensor(0.0, device=self.device)
         
-        try:
-            # Check configuration flags to disable expensive computations
-            config = model_components.get('config')
-            enable_hierarchical = True
-            enable_horn_detection = True
-            
-            if config and hasattr(config, 'data'):
-                enable_hierarchical = getattr(config.data, 'enable_hierarchical_messaging', True)
-                enable_horn_detection = getattr(config.data, 'enable_horn_detection', True)
-            
-            # 1. YONEDA ISOMORPHISM ENFORCEMENT (always enabled for basic functionality)
-            yoneda_isomorphism_loss = self._compute_yoneda_isomorphism_loss(
+
+        # Check configuration flags to disable expensive computations
+        config = model_components.get('config')
+        enable_hierarchical = True
+        enable_horn_detection = True
+        
+        if config and hasattr(config, 'data'):
+            enable_hierarchical = getattr(config.data, 'enable_hierarchical_messaging', True)
+            enable_horn_detection = getattr(config.data, 'enable_horn_detection', True)
+        
+        # 1. YONEDA ISOMORPHISM ENFORCEMENT (always enabled for basic functionality)
+        yoneda_isomorphism_loss = self._compute_yoneda_isomorphism_loss(
+            outputs, model_components, epoch, num_batches
+        )
+        
+        # 2. COALGEBRA RECURRENCE LAW ENFORCEMENT (always enabled for basic functionality)
+        coalgebra_recurrence_loss = self._compute_coalgebra_recurrence_loss(
+            outputs, sentences, targets, model_components, epoch, num_batches
+        )
+        
+        # 3. COLIMIT/LIMIT COMPUTATION WITH HORN FILLING (conditional)
+        if enable_horn_detection:
+            colimit_limit_loss = self._compute_colimit_limit_loss(
                 outputs, model_components, epoch, num_batches
             )
-            
-            # 2. COALGEBRA RECURRENCE LAW ENFORCEMENT (always enabled for basic functionality)
-            coalgebra_recurrence_loss = self._compute_coalgebra_recurrence_loss(
-                outputs, sentences, targets, model_components, epoch, num_batches
-            )
-            
-            # 3. COLIMIT/LIMIT COMPUTATION WITH HORN FILLING (conditional)
-            if enable_horn_detection:
-                colimit_limit_loss = self._compute_colimit_limit_loss(
-                    outputs, model_components, epoch, num_batches
-                )
-            else:
-                colimit_limit_loss = torch.tensor(0.0, device=self.device)
-            
-            # 4. BISIMULATION PRESERVATION (conditional)
-            if enable_hierarchical:
-                bisimulation_loss = self._compute_bisimulation_loss(
-                    outputs, epoch, num_batches
-                )
-            else:
-                bisimulation_loss = torch.tensor(0.0, device=self.device)
-            
-            # 5. NATURALITY CONDITIONS (conditional)
-            if enable_hierarchical:
-                naturality_loss = self._compute_naturality_loss(
-                    outputs, epoch, num_batches
-                )
-            else:
-                naturality_loss = torch.tensor(0.0, device=self.device)
-            
-            # 6. UNIVERSAL PROPERTY SATISFACTION (conditional)
-            if enable_hierarchical:
-                universal_property_loss = self._compute_universal_property_loss(
-                    outputs, model_components, epoch, num_batches
-                )
-            else:
-                universal_property_loss = torch.tensor(0.0, device=self.device)
-            
-        except Exception as e:
-            if epoch == 0 and num_batches == 0:
-                logger.debug(f"Categorical loss computation error: {e}")
+        else:
+            colimit_limit_loss = torch.tensor(0.0, device=self.device)
         
+        # 4. BISIMULATION PRESERVATION (conditional)
+        if enable_hierarchical:
+            bisimulation_loss = self._compute_bisimulation_loss(
+                outputs, epoch, num_batches
+            )
+        else:
+            bisimulation_loss = torch.tensor(0.0, device=self.device)
+        
+        # 5. NATURALITY CONDITIONS (conditional)
+        if enable_hierarchical:
+            naturality_loss = self._compute_naturality_loss(
+                outputs, epoch, num_batches
+            )
+        else:
+            naturality_loss = torch.tensor(0.0, device=self.device)
+        
+        # 6. UNIVERSAL PROPERTY SATISFACTION (conditional)
+        if enable_hierarchical:
+            universal_property_loss = self._compute_universal_property_loss(
+                outputs, model_components, epoch, num_batches
+            )
+        else:
+            universal_property_loss = torch.tensor(0.0, device=self.device)
+
+    
         # Combine categorical losses with appropriate weights
         total_categorical_loss = (
             yoneda_isomorphism_loss * 1.0 +      # Primary: Yoneda isomorphism
@@ -146,9 +143,7 @@ class CategoricalLossComputer:
         
         yoneda_embedded = outputs['yoneda_embedded']
         
-        if epoch == 0 and num_batches == 0:
-            logger.debug(f"CATEGORICAL: Enforcing Yoneda isomorphism Nat(Hom(C,-), F) ≅ F(C)")
-        
+       
         try:
             metric_yoneda = model_components.get('metric_yoneda')
             
@@ -159,7 +154,7 @@ class CategoricalLossComputer:
                     embed_result = metric_yoneda.embed(sample_embedding)
                     hom_functor_repr = yoneda_embedded
                 except Exception as e:
-                    logger.debug(f"Yoneda embed failed: {e}")
+                    # Yoneda embed failed
                     hom_functor_repr = yoneda_embedded
             elif metric_yoneda and hasattr(metric_yoneda, '__call__'):
                 hom_functor_repr = metric_yoneda(yoneda_embedded)
@@ -194,9 +189,6 @@ class CategoricalLossComputer:
         
         coalgebra_evolved = outputs['coalgebra_evolved']
         
-        if epoch == 0 and num_batches == 0:
-            logger.debug(f"CATEGORICAL: Enforcing coalgebra recurrence γ: X → F(X)")
-        
         try:
             # Use model hidden states as the coalgebra carrier
             hs = outputs.get('hidden_states', None)
@@ -225,7 +217,7 @@ class CategoricalLossComputer:
             return F.mse_loss(gamma_x, f_x)
             
         except Exception as e:
-            logger.debug(f"Coalgebra recurrence computation failed: {e}")
+            # Coalgebra recurrence computation failed
             return torch.tensor(0.0, device=self.device)
     
     def _compute_colimit_limit_loss(
@@ -260,57 +252,52 @@ class CategoricalLossComputer:
         # Horn filling verification (only if enabled)
         gaia_transformer = model_components.get('gaia_transformer')
         if gaia_transformer and hasattr(gaia_transformer, 'functor'):
-            try:
-                horn_verifier = HornFillingVerifier(gaia_transformer.functor)
-                
-                # Check inner horns (limit to 1 for performance)
-                inner_horns = gaia_transformer.functor.find_horns(level=2, horn_type="inner")
-                for simplex_id, horn_index in inner_horns[:1]:  # Reduced from 3 to 1
-                    try:
-                        verification_result = horn_verifier.verify_inner_horn_filling(simplex_id, horn_index)
-                        if not verification_result.satisfied:
-                            horn_filling_violations += 1
-                    except Exception:
-                        horn_filling_violations += 1
-                
-                # Check outer horns
-                outer_horns = gaia_transformer.functor.find_horns(level=2, horn_type="outer")
-                for simplex_id, horn_index in outer_horns[:2]:  # Limit for performance
-                    try:
-                        verification_result = horn_verifier.verify_outer_horn_filling(simplex_id, horn_index)
-                        if not verification_result.satisfied:
-                            horn_filling_violations += 0.5
-                    except Exception:
-                        horn_filling_violations += 0.5
-            except Exception as e:
-                logger.debug(f"Horn filling verification failed: {e}")
-        
-        # Compute colimits and limits using framework
-        try:
-            left_kan_extension = model_components.get('left_kan_extension')
-            right_kan_extension = model_components.get('right_kan_extension')
+
+            horn_verifier = HornFillingVerifier(gaia_transformer.functor)
             
-            if left_kan_extension and right_kan_extension:
-                # Compute colimit using Coend
-                coend_computer = Coend(right_kan_extension.F, "LanguageCoend")
-                colimit_result = coend_computer.compute_integral()
-                
-                # Compute limit using End
-                end_computer = End(left_kan_extension.F, "LanguageEnd")
-                limit_result = end_computer.compute_integral()
-                
-                # Verify universal properties
-                colimit_universality = 0.0 if coend_computer.verify_universal_property() else 1.0
-                limit_universality = 0.0 if end_computer.verify_universal_property() else 1.0
-                
-                return torch.tensor(
-                    colimit_universality + limit_universality + horn_filling_violations * 0.1,
-                    device=self.device
-                )
-        except Exception as e:
-            logger.debug(f"Colimit/limit computation failed: {e}")
+            # Check inner horns (limit to 1 for performance)
+            inner_horns = gaia_transformer.functor.find_horns(level=2, horn_type="inner")
+            for simplex_id, horn_index in inner_horns[:1]:  # Reduced from 3 to 1
+                try:
+                    verification_result = horn_verifier.verify_inner_horn_filling(simplex_id, horn_index)
+                    if not verification_result.satisfied:
+                        horn_filling_violations += 1
+                except Exception:
+                    horn_filling_violations += 1
+            
+            # Check outer horns
+            outer_horns = gaia_transformer.functor.find_horns(level=2, horn_type="outer")
+            for simplex_id, horn_index in outer_horns[:2]:  # Limit for performance
+                try:
+                    verification_result = horn_verifier.verify_outer_horn_filling(simplex_id, horn_index)
+                    if not verification_result.satisfied:
+                        horn_filling_violations += 0.5
+                except Exception:
+                    horn_filling_violations += 0.5
+
         
-        return torch.tensor(0.0, device=self.device)
+
+        left_kan_extension = model_components.get('left_kan_extension')
+        right_kan_extension = model_components.get('right_kan_extension')
+        
+        if left_kan_extension and right_kan_extension:
+            # Compute colimit using Coend
+            coend_computer = Coend(right_kan_extension.F, "LanguageCoend")
+            colimit_result = coend_computer.compute_integral()
+            
+            # Compute limit using End
+            end_computer = End(left_kan_extension.F, "LanguageEnd")
+            limit_result = end_computer.compute_integral()
+            
+            # Verify universal properties
+            colimit_universality = 0.0 if coend_computer.verify_universal_property() else 1.0
+            limit_universality = 0.0 if end_computer.verify_universal_property() else 1.0
+            
+            return torch.tensor(
+                colimit_universality + limit_universality + horn_filling_violations * 0.1,
+                device=self.device
+            )
+        
     
     def _compute_bisimulation_loss(
         self,
@@ -380,33 +367,29 @@ class CategoricalLossComputer:
         compositional_repr = outputs['compositional_repr']
         target_representations = outputs['logits']
         
-        try:
-            left_kan_extension = model_components.get('left_kan_extension')
-            right_kan_extension = model_components.get('right_kan_extension')
-            
-            if left_kan_extension and right_kan_extension:
-                # Project to same dimension if needed
-                if target_representations.shape[-1] != compositional_repr.shape[-1]:
-                    d_model = compositional_repr.shape[-1]
-                    projection = torch.randn(
-                        target_representations.shape[-1], d_model, 
-                        device=self.device
-                    ) * 0.1
-                    target_representations = torch.matmul(target_representations, projection)
-                
-                # Compute universal property losses
-                left_kan_loss = left_kan_extension.compute_universal_property_loss(
-                    compositional_repr, target_representations
-                )
-                right_kan_loss = right_kan_extension.compute_universal_property_loss(
-                    compositional_repr, target_representations
-                )
-                
-                return (left_kan_loss + right_kan_loss) / 2
-        except Exception as e:
-            logger.debug(f"Universal property computation failed: {e}")
+        left_kan_extension = model_components.get('left_kan_extension')
+        right_kan_extension = model_components.get('right_kan_extension')
         
-        return torch.tensor(0.0, device=self.device)
+        if left_kan_extension and right_kan_extension:
+            # Project to same dimension if needed
+            if target_representations.shape[-1] != compositional_repr.shape[-1]:
+                d_model = compositional_repr.shape[-1]
+                projection = torch.randn(
+                    target_representations.shape[-1], d_model, 
+                    device=self.device
+                ) * 0.1
+                target_representations = torch.matmul(target_representations, projection)
+            
+            # Compute universal property losses
+            left_kan_loss = left_kan_extension.compute_universal_property_loss(
+                compositional_repr, target_representations
+            )
+            right_kan_loss = right_kan_extension.compute_universal_property_loss(
+                compositional_repr, target_representations
+            )
+            
+            return (left_kan_loss + right_kan_loss) / 2
+
     
     def __call__(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
         """Make CategoricalLossComputer callable like a standard loss function.

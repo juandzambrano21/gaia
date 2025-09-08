@@ -22,7 +22,7 @@ sys.path.insert(0, str(project_root / "src"))
 # GAIA Framework Imports
 from gaia.training.config import GAIAConfig, GAIALanguageModelConfig, TrainingConfig
 from gaia.models import GAIALanguageModel
-from gaia.data import DatasetFactory, DataLoaders, create_gaia_dataset
+from gaia.data import create_gaia_dataset
 from gaia.training.engine import CheckpointManager
 
 # Initialize GAIA framework logging
@@ -30,16 +30,9 @@ GAIAConfig.setup_logging(enable_ultra_verbose=True)
 logger = GAIAConfig.get_logger('gaia_production_training')
 
 
-# ============================================================================
-# GAIA FRAMEWORK CONFIGURATION
-# ============================================================================
-
-def create_production_config() -> Dict[str, Any]:
-    """Create production-ready GAIA configuration with full framework usage."""
+def create_config() -> Dict[str, Any]:
+    """This is a showcase of all configs in framework. for further details explore training.config.py"""
     
-    logger.info("🏗️ Creating production GAIA configuration...")
-    
-    # Model Configuration - Full GAIA Architecture
     model_config = GAIALanguageModelConfig(
         # Core Architecture
         vocab_size=1000,
@@ -50,7 +43,7 @@ def create_production_config() -> Dict[str, Any]:
         max_seq_length=128,
         seq_len=128,
         
-        # GAIA Categorical Components - FULL FRAMEWORK
+        # GAIA Categorical Components 
         enable_fuzzy_components=True,
         enable_simplicial_structure=True,
         enable_coalgebras=True,
@@ -155,34 +148,22 @@ def create_gaia_dataset():
             'total_samples': len(emergency_texts)
         }
 
-# ============================================================================
-# SIMPLE TRAINING PIPELINE
-# ============================================================================
-
-def run_production_training():
+def run_training():
     """Execute production-ready training with full GAIA framework integration."""
     logger = GAIAConfig.get_logger('gaia_production_training')
     
-    logger.info("🎯 STARTING GAIA PRODUCTION TRAINING WITH SIMPLICIAL DATASET")
+    logger.info("STARTING GAIA LANGUAGE MODEL TRAINING WITH SIMPLICIAL DATASET")
     logger.info("=" * 60)
     
     try:
         # Create production configuration
-        logger.info("📋 Creating production configuration...")
-        configs = create_production_config()
+        configs = create_config()
         model_config = configs['model_config']
         training_config = configs['training_config']
         
-        # Log configuration details
-        logger.info(f"🏗️ Model: {model_config.hidden_dim}d, {model_config.num_heads}h, {model_config.num_layers}l")
-        logger.info(f"🔺 Simplicial features enabled: {model_config.enable_simplicial_structure}")
-        logger.info(f"📊 Categorical features enabled: {model_config.enable_fuzzy_components}")
-        
         # Create dataset using GAIA framework
-        logger.info("🔺 Creating dataset with GAIA framework...")
         dataset_info = create_gaia_dataset()
-        logger.info(f"📊 Dataset size: {dataset_info['total_samples']} samples")
-        
+
         # Build simple tokenizer from dataset first
         logger.info("📝 Building simple tokenizer from dataset...")
         tokenizer_texts = dataset_info['train_texts'] + dataset_info['val_texts']
@@ -234,17 +215,13 @@ def run_production_training():
         
         model = GAIALanguageModel(model_config, device=str(device))
         param_count = sum(p.numel() for p in model.parameters())
-        logger.info(f"🔧 Model initialized with {param_count:,} parameters")
-        logger.info(f"🔺 GAIA framework components initialized successfully")
-        logger.info(f"📊 Model ready for training with full GAIA integration")
-        
+
         model.tokenizer = simple_tokenizer
         vocab_size = len(model.tokenizer.word_to_id)
         logger.info(f"📖 Using simple tokenizer with vocab size: {vocab_size}")
         
         # Update model vocab size if needed
         if vocab_size != model.vocab_size:
-            logger.info(f"🔄 Updating model vocab size from {model.vocab_size} to {vocab_size}")
             model.vocab_size = vocab_size
             
             # Recreate transformer with correct vocab size
@@ -280,16 +257,16 @@ def run_production_training():
         try:
             if data_loaders is not None:
                 # Use GAIA training with data loaders
-                logger.info("🔺 Training with GAIA data loaders...")
+                logger.info("Training with GAIA data loaders...")
                 results = model.fit_with_loaders(
                      train_loader=data_loaders['train'],
                      val_loader=data_loaders['val'],
                      epochs=training_config.epochs,
-                     learning_rate=1e-3,  # Default learning rate
+                     learning_rate=1e-3,
                      checkpoint_manager=checkpoint_manager
                  )
             else:
-                logger.info("🔄 Training with dataset texts...")
+                logger.info("Training with dataset texts...")
                 # Combine train and val texts for the dataset parameter
                 all_texts = dataset_info['train_texts'] + dataset_info['val_texts']
                 results = model.fit(
@@ -313,7 +290,7 @@ def run_production_training():
                 logger.info(f"💾 Final checkpoint saved: {final_checkpoint}")
             
         except Exception as train_error:
-            logger.error(f"❌ Production training failed: {train_error}")
+            logger.error(f"❌ Language model training failed: {train_error}")
             logger.info("🔄 Attempting emergency checkpoint save...")
             
             try:
@@ -322,8 +299,6 @@ def run_production_training():
             except Exception as checkpoint_error:
                 logger.error(f"❌ Emergency checkpoint save failed: {checkpoint_error}")
         
-        # Test text generation
-        logger.info("🎨 Testing text generation...")
         try:
             # Test with prompts
             test_prompts = [
@@ -367,30 +342,19 @@ def run_production_training():
         
         raise e
 
-# ============================================================================
-# MAIN EXECUTION
-# ============================================================================
 
 if __name__ == "__main__":
-    print("🚀 Starting GAIA Production Training with Full Framework Integration...")
-    print("🔺 Simplicial Dataset | 📊 Categorical Structure | 🎯 Production Ready")
+    print("Starting GAIA LLM training.")
     print("=" * 70)
     
     # Initialize GAIA framework logging system
     GAIAConfig.setup_logging()
     logger = GAIAConfig.get_logger('gaia_production_main')
-    
-    logger.info("🎯 GAIA Production Training Session Started")
-    logger.info("🔺 GAIA framework data loading enabled")
-    logger.info("📊 Complete GAIA training pipeline enabled")
-    
+        
     try:
         # Execute production training with full GAIA framework
-        logger.info("🚀 Launching production training pipeline...")
-        model = run_production_training()
-        
-        logger.info("🏆 GAIA PRODUCTION TRAINING COMPLETED SUCCESSFULLY!")
-        
+        model = run_training()
+                
         # Display final model capabilities
         if hasattr(model, 'get_model_stats'):
             stats = model.get_model_stats()
@@ -408,19 +372,18 @@ if __name__ == "__main__":
         try:
             import traceback
             full_traceback = traceback.format_exc()
-            logger.error(f"📋 Complete error traceback:\n{full_traceback}")
+            logger.error(f"Complete error traceback:\n{full_traceback}")
             
-            # Try to identify specific failure points
             if "DataLoaders" in str(e):
-                logger.error("🔺 Data loading failed - check GAIA data utilities")
+                logger.error("Data loading failed - check GAIA data utilities")
             elif "Dataset" in str(e):
-                logger.error("📊 Dataset creation failed - check GAIA dataset modules")
+                logger.error("Dataset creation failed - check GAIA dataset modules")
             elif "GAIALanguageModel" in str(e):
-                logger.error("🤖 Model initialization failed - check GAIA model configuration")
+                logger.error("Model initialization failed - check GAIA model configuration")
             
         except Exception as log_error:
             print(f"Additional logging error: {log_error}")
     
     finally:
-        logger.info("🎯 GAIA Production Training session ended")
-        print("\n👋 GAIA Framework Training Session Complete!")
+        logger.info(" GAIA LLM Training session ended")
+        print("\n GAIA Framework Training Session Complete!")

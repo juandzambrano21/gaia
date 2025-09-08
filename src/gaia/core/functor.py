@@ -285,9 +285,7 @@ class SimplicialFunctor:
                         horns.append((s_id, i))
                     else:
                         logger.debug(f"🔍 HORN DETECTION: Horn at ({str(s_id)[:8]}..., {i}) doesn't match type '{horn_type}'")
-        
-        logger.debug(f"🔍 HORN DETECTION: Completed - found {len(horns)} total horns of type '{horn_type}'")
-        
+                
         # Update cache
         self._horn_cache[cache_key] = horns
         return horns

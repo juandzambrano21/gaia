@@ -321,7 +321,6 @@ class HierarchicalMessagePasser:
                 logger.warning(f"Non-finite loss detected in {dim}: {loss}")
                 total_losses[dim] = 0.0
         
-        logger.debug(f"Hierarchical update completed. Losses: {total_losses}")
         return total_losses
     
     def percolate_information_up(self) -> Dict[str, torch.Tensor]:

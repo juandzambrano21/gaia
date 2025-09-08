@@ -52,6 +52,9 @@ def get_advanced_components():
         from .universal_coalgebras import (
             FCoalgebra, GenerativeCoalgebra, CoalgebraCategory
         )
+        from .coalgebras import (
+            create_parameter_coalgebra, BackpropagationEndofunctor
+        )
         from .metric_yoneda import (
             GeneralizedMetricSpace, UniversalRepresenter
         )
@@ -66,6 +69,8 @@ def get_advanced_components():
             'FCoalgebra': FCoalgebra,
             'GenerativeCoalgebra': GenerativeCoalgebra,
             'CoalgebraCategory': CoalgebraCategory,
+            'create_parameter_coalgebra': create_parameter_coalgebra,
+            'BackpropagationEndofunctor': BackpropagationEndofunctor,
             'GeneralizedMetricSpace': GeneralizedMetricSpace,
             'UniversalRepresenter': UniversalRepresenter,
             'HierarchicalMessagePasser': HierarchicalMessagePasser,

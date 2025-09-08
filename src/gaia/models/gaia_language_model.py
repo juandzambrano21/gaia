@@ -735,43 +735,115 @@ class GAIALanguageModel(BaseGAIAModel):
         """Forward pass with comprehensive categorical operations pipeline."""
         import time
         start_time = time.time()
-        logger.debug(f"🔍 FORWARD PASS START - Batch shape: {input_ids.shape}")
+        
+        # ULTRA DETAILED LOGGING - INITIALIZATION
+        logger.info(f"🚀 ===== GAIA FORWARD PASS START ===== ")
+        logger.info(f"📊 INPUT TENSOR ANALYSIS:")
+        logger.info(f"   • Batch shape: {input_ids.shape}")
+        logger.info(f"   • Input device: {input_ids.device}")
+        logger.info(f"   • Input dtype: {input_ids.dtype}")
+        logger.info(f"   • Input min/max: {input_ids.min().item():.4f}/{input_ids.max().item():.4f}")
+        logger.info(f"   • Input mean/std: {input_ids.float().mean().item():.4f}/{input_ids.float().std().item():.4f}")
+        
+        if attention_mask is not None:
+            logger.info(f"   • Attention mask shape: {attention_mask.shape}")
+            logger.info(f"   • Attention mask sum: {attention_mask.sum().item()}")
+        else:
+            logger.info(f"   • No attention mask provided")
         
         batch_size, seq_len = input_ids.shape
+        logger.info(f"📏 SEQUENCE ANALYSIS: batch_size={batch_size}, seq_len={seq_len}")
         
         # Ensure tensors are on correct device
         device_start = time.time()
+        logger.info(f"🔧 DEVICE MANAGEMENT:")
+        logger.info(f"   • Model device: {self.device}")
+        logger.info(f"   • Input device: {input_ids.device}")
+        
         if input_ids.device != self.device:
+            logger.info(f"   • Moving input_ids from {input_ids.device} to {self.device}")
             input_ids = input_ids.to(self.device)
+            logger.info(f"   • Input transfer completed")
+        
         if attention_mask is not None and attention_mask.device != self.device:
+            logger.info(f"   • Moving attention_mask from {attention_mask.device} to {self.device}")
             attention_mask = attention_mask.to(self.device)
-        logger.debug(f"🔍 DEVICE TRANSFER: {time.time() - device_start:.4f}s")
+            logger.info(f"   • Attention mask transfer completed")
+        
+        device_time = time.time() - device_start
+        logger.info(f"   • Device transfer time: {device_time:.4f}s")
         
         # Initialize forward pass counter
         if not hasattr(self, '_forward_count'):
             self._forward_count = 0
         self._forward_count += 1
-        logger.debug(f"🔍 FORWARD COUNT: {self._forward_count}")
+        logger.info(f"🔢 FORWARD PASS COUNTER: #{self._forward_count}")
         
         # Add positional embeddings (matching gaia_llm_train.py)
         pos_start = time.time()
+        logger.info(f"🎯 ===== POSITIONAL EMBEDDINGS COMPUTATION =====")
+        logger.info(f"📍 Creating position IDs for sequence length: {seq_len}")
+        
         position_ids = torch.arange(seq_len, device=self.device, dtype=torch.long).unsqueeze(0).expand(batch_size, -1)
+        logger.info(f"   • Position IDs shape: {position_ids.shape}")
+        logger.info(f"   • Position IDs range: {position_ids.min().item()} to {position_ids.max().item()}")
+        
+        logger.info(f"🔮 Computing positional embeddings...")
         position_embeddings = self.position_embeddings(position_ids)
-        logger.debug(f"🔍 POSITIONAL EMBEDDINGS: {time.time() - pos_start:.4f}s")
+        logger.info(f"   • Position embeddings shape: {position_embeddings.shape}")
+        logger.info(f"   • Position embeddings stats: mean={position_embeddings.mean().item():.4f}, std={position_embeddings.std().item():.4f}")
+        logger.info(f"   • Position embeddings min/max: {position_embeddings.min().item():.4f}/{position_embeddings.max().item():.4f}")
+        
+        pos_time = time.time() - pos_start
+        logger.info(f"   • Positional embeddings computation time: {pos_time:.4f}s")
         
         # GAIA Transformer forward
         transformer_start = time.time()
-        logger.debug(f"🔍 STARTING GAIA TRANSFORMER FORWARD...")
+        logger.info(f"🤖 ===== GAIA TRANSFORMER FORWARD PASS =====")
+        logger.info(f"🔧 Transformer configuration:")
+        logger.info(f"   • Model dimension: {getattr(self.gaia_transformer, 'd_model', 'unknown')}")
+        logger.info(f"   • Number of layers: {getattr(self.gaia_transformer, 'num_layers', 'unknown')}")
+        logger.info(f"   • Number of heads: {getattr(self.gaia_transformer, 'num_heads', 'unknown')}")
+        logger.info(f"   • Vocabulary size: {getattr(self.gaia_transformer, 'vocab_size', 'unknown')}")
+        
+        logger.info(f"🚀 Executing GAIA transformer forward pass...")
         transformer_outputs = self.gaia_transformer(input_ids, attention_mask)
+        
+        logger.info(f"📤 GAIA Transformer outputs analysis:")
+        logger.info(f"   • Output keys: {list(transformer_outputs.keys())}")
+        
         hidden_states = transformer_outputs['last_hidden_state']
+        logger.info(f"   • Hidden states shape: {hidden_states.shape}")
+        logger.info(f"   • Hidden states stats: mean={hidden_states.mean().item():.4f}, std={hidden_states.std().item():.4f}")
+        logger.info(f"   • Hidden states min/max: {hidden_states.min().item():.4f}/{hidden_states.max().item():.4f}")
+        
+        logger.info(f"➕ Adding positional embeddings to hidden states...")
+        hidden_states_before = hidden_states.clone()
         hidden_states = hidden_states + position_embeddings
-        logger.debug(f"🔍 GAIA TRANSFORMER: {time.time() - transformer_start:.4f}s")
+        
+        logger.info(f"   • Combined hidden states stats: mean={hidden_states.mean().item():.4f}, std={hidden_states.std().item():.4f}")
+        logger.info(f"   • Position embedding contribution: {(hidden_states - hidden_states_before).abs().mean().item():.4f}")
+        
+        transformer_time = time.time() - transformer_start
+        logger.info(f"   • GAIA transformer total time: {transformer_time:.4f}s")
         
         # HIERARCHICAL MESSAGE PASSING
         hierarchical_start = time.time()
+        logger.info(f"📡 ===== HIERARCHICAL MESSAGE PASSING =====")
+        logger.info(f"🔧 HMP Configuration:")
+        logger.info(f"   • Message passing enabled: {self.config.enable_message_passing}")
+        logger.info(f"   • Message passing object exists: {self.message_passing is not None}")
+        
         if self.config.enable_message_passing and self.message_passing:
-            logger.debug(f"🔍 STARTING HIERARCHICAL MESSAGE PASSING (forward #{self._forward_count})...")
+            logger.info(f"🚀 STARTING HIERARCHICAL MESSAGE PASSING (forward #{self._forward_count})")
+            logger.info(f"📊 HMP Parameters:")
+            logger.info(f"   • Hierarchical steps: {self.config.hierarchical_steps}")
+            logger.info(f"   • Max hierarchical steps: {self.config.max_hierarchical_steps}")
+            logger.info(f"   • Convergence threshold: {getattr(self.config, 'convergence_threshold', 1e-3)}")
+            logger.info(f"   • Learning rate: 1e-4 (default)")
+            
             try:
+                logger.info(f"🔄 Executing full hierarchical message passing...")
                 # Use default hierarchical steps since GAIAConfig doesn't have get_training_config
                 message_results = self.message_passing.full_hierarchical_message_passing(
                 num_steps=self.config.hierarchical_steps,
@@ -779,83 +851,219 @@ class GAIALanguageModel(BaseGAIAModel):
                 convergence_threshold=getattr(self.config, 'convergence_threshold', 1e-3),
                 max_steps=self.config.max_hierarchical_steps
                  )
-                logger.debug(f"🔍 HIERARCHICAL MESSAGE PASSING COMPLETED: {time.time() - hierarchical_start:.4f}s")
+                
+                hierarchical_time = time.time() - hierarchical_start
+                logger.info(f"✅ HIERARCHICAL MESSAGE PASSING COMPLETED:")
+                logger.info(f"   • Execution time: {hierarchical_time:.4f}s")
+                logger.info(f"   • Message results type: {type(message_results)}")
+                if hasattr(message_results, 'keys'):
+                    logger.info(f"   • Message results keys: {list(message_results.keys())}")
+                elif isinstance(message_results, (list, tuple)):
+                    logger.info(f"   • Message results length: {len(message_results)}")
+                
             except Exception as e:
-                logger.warning(f"🔍 HMP FAILED: {e} - Using identity transformation")
+                hierarchical_time = time.time() - hierarchical_start
+                logger.error(f"❌ HMP FAILED after {hierarchical_time:.4f}s:")
+                logger.error(f"   • Error type: {type(e).__name__}")
+                logger.error(f"   • Error message: {str(e)}")
+                logger.error(f"   • Using identity transformation fallback")
+        else:
+            logger.info(f"⏭️  HIERARCHICAL MESSAGE PASSING SKIPPED:")
+            if not self.config.enable_message_passing:
+                logger.info(f"   • Reason: Message passing disabled in config")
+            if not self.message_passing:
+                logger.info(f"   • Reason: Message passing object not initialized")
         
         # FUZZY ENCODING
         fuzzy_start = time.time()
-        # Starting fuzzy encoding
+        logger.info(f"🌊 ===== FUZZY ENCODING PIPELINE =====")
+        logger.info(f"🔧 Fuzzy Configuration:")
+        logger.info(f"   • Fuzzy components enabled: {self.config.enable_fuzzy_components}")
+        logger.info(f"   • Fuzzy encoding pipeline exists: {self.fuzzy_encoding_pipeline is not None}")
+        
         fuzzy_encoded = None
         if self.config.enable_fuzzy_components and self.fuzzy_encoding_pipeline:
+            logger.info(f"🚀 STARTING FUZZY ENCODING")
+            logger.info(f"📊 Input analysis for fuzzy encoding:")
+            logger.info(f"   • Hidden states shape: {hidden_states.shape}")
+            logger.info(f"   • Hidden states device: {hidden_states.device}")
+            logger.info(f"   • Hidden states requires_grad: {hidden_states.requires_grad}")
+            
+            # Prepare data for fuzzy encoding
+            logger.info(f"🔄 Preparing data for fuzzy encoding...")
             hidden_states_cpu = hidden_states.detach().cpu() if hidden_states.device.type == 'mps' else hidden_states.detach()
+            logger.info(f"   • Converted to device: {hidden_states_cpu.device}")
+            logger.info(f"   • CPU tensor stats: mean={hidden_states_cpu.mean().item():.4f}, std={hidden_states_cpu.std().item():.4f}")
+            
+            logger.info(f"🌊 Executing fuzzy encoding pipeline...")
             fuzzy_encoded = self.fuzzy_encoding_pipeline.encode(hidden_states_cpu)
-            # Fuzzy encoding completed
+            
+            fuzzy_time = time.time() - fuzzy_start
+            logger.info(f"✅ FUZZY ENCODING COMPLETED:")
+            logger.info(f"   • Execution time: {fuzzy_time:.4f}s")
+            logger.info(f"   • Fuzzy encoded type: {type(fuzzy_encoded)}")
+            if fuzzy_encoded is not None:
+                if hasattr(fuzzy_encoded, 'shape'):
+                    logger.info(f"   • Fuzzy encoded shape: {fuzzy_encoded.shape}")
+                elif hasattr(fuzzy_encoded, '__len__'):
+                    logger.info(f"   • Fuzzy encoded length: {len(fuzzy_encoded)}")
+        else:
+            logger.info(f"⏭️  FUZZY ENCODING SKIPPED:")
+            if not self.config.enable_fuzzy_components:
+                logger.info(f"   • Reason: Fuzzy components disabled in config")
+            if not self.fuzzy_encoding_pipeline:
+                logger.info(f"   • Reason: Fuzzy encoding pipeline not initialized")
 
         # Use original hidden states for membership computation
         fuzzy_input = hidden_states
+        logger.info(f"📋 Using hidden states as fuzzy input: shape={fuzzy_input.shape}")
         
         # FUZZY MEMBERSHIP COMPUTATION
         membership_start = time.time()
-        logger.debug("Computing fuzzy membership")
+        logger.info(f"🎯 ===== FUZZY MEMBERSHIP COMPUTATION =====")
+        logger.info(f"🔧 Membership Configuration:")
+        logger.info(f"   • Fuzzy components enabled: {self.config.enable_fuzzy_components}")
+        logger.info(f"   • Categorical ops exists: {self.categorical_ops is not None}")
+        
         fuzzy_memberships = None
         if self.config.enable_fuzzy_components:
+            logger.info(f"🚀 STARTING FUZZY MEMBERSHIP COMPUTATION")
+            logger.info(f"📊 Fuzzy input analysis:")
+            logger.info(f"   • Input shape: {fuzzy_input.shape}")
+            logger.info(f"   • Input stats: mean={fuzzy_input.mean().item():.4f}, std={fuzzy_input.std().item():.4f}")
+            logger.info(f"   • Input min/max: {fuzzy_input.min().item():.4f}/{fuzzy_input.max().item():.4f}")
+            
             try:
+                logger.info(f"🔄 Computing token fuzzy membership...")
                 fuzzy_memberships = self.categorical_ops.compute_token_fuzzy_membership(fuzzy_input)
-                logger.debug(f"🔍 FUZZY MEMBERSHIP: {time.time() - membership_start:.4f}s")
+                
+                membership_time = time.time() - membership_start
+                logger.info(f"✅ FUZZY MEMBERSHIP COMPLETED:")
+                logger.info(f"   • Execution time: {membership_time:.4f}s")
+                logger.info(f"   • Membership type: {type(fuzzy_memberships)}")
+                if fuzzy_memberships is not None:
+                    if hasattr(fuzzy_memberships, 'shape'):
+                        logger.info(f"   • Membership shape: {fuzzy_memberships.shape}")
+                        logger.info(f"   • Membership stats: mean={fuzzy_memberships.mean().item():.4f}, std={fuzzy_memberships.std().item():.4f}")
+                    elif hasattr(fuzzy_memberships, '__len__'):
+                        logger.info(f"   • Membership length: {len(fuzzy_memberships)}")
+                        
             except Exception as e:
-                logger.debug(f"🔍 FUZZY MEMBERSHIP FAILED: {e}")
+                membership_time = time.time() - membership_start
+                logger.error(f"❌ FUZZY MEMBERSHIP FAILED after {membership_time:.4f}s:")
+                logger.error(f"   • Error type: {type(e).__name__}")
+                logger.error(f"   • Error message: {str(e)}")
+                logger.error(f"   • Fuzzy memberships set to None")
+        else:
+            logger.info(f"⏭️  FUZZY MEMBERSHIP COMPUTATION SKIPPED:")
+            logger.info(f"   • Reason: Fuzzy components disabled in config")
         
         # COALGEBRA EVOLUTION
         coalgebra_start = time.time()
-        logger.debug(f"🔍 STARTING COALGEBRA EVOLUTION (forward #{self._forward_count})...")
+        logger.info(f"🧬 ===== COALGEBRA EVOLUTION =====")
+        logger.info(f"🔧 Coalgebra Configuration:")
+        logger.info(f"   • Coalgebras enabled: {self.config.enable_coalgebras}")
+        logger.info(f"   • Forward pass count: #{self._forward_count}")
+        logger.info(f"   • Evolution frequency: {getattr(self.config, 'coalgebra_evolution_frequency', 5)}")
+        logger.info(f"   • Evolution steps: {getattr(self.config, 'coalgebra_evolution_steps', 3)}")
+        
         evolved_state = fuzzy_input
+        logger.info(f"📋 Initial evolved state: shape={evolved_state.shape}, mean={evolved_state.mean().item():.4f}")
         
         if self.config.enable_coalgebras:
+            logger.info(f"🚀 STARTING COALGEBRA EVOLUTION (forward #{self._forward_count})")
+            
+            # Check evolution frequency
+            evolution_frequency = getattr(self.config, 'coalgebra_evolution_frequency', 5)
+            should_evolve = self._forward_count % evolution_frequency == 0
+            logger.info(f"📊 Evolution frequency check:")
+            logger.info(f"   • Current forward pass: {self._forward_count}")
+            logger.info(f"   • Evolution frequency: {evolution_frequency}")
+            logger.info(f"   • Should evolve: {should_evolve}")
+            
             try:
                 # Only run coalgebra evolution every N forward passes for efficiency
-                if self._forward_count % getattr(self.config, 'coalgebra_evolution_frequency', 5) == 0:
-                    logger.debug(f"🔍 RUNNING FULL COALGEBRA EVOLUTION...")
+                if should_evolve:
+                    logger.info(f"🔄 FULL COALGEBRA EVOLUTION TRIGGERED")
                     
-                    # Update coalgebra training data with actual input/output from forward pass
-                    coalgebra_input = input_ids.float()  # Use actual input tokens
-                    coalgebra_target = fuzzy_input.mean(dim=1)  # Use processed hidden states as target
+                    # Update coalgebra training data with properly shaped tensors
+                    logger.info(f"📊 Preparing coalgebra training data:")
+                    logger.info(f"   • Fuzzy input shape: {fuzzy_input.shape}")
                     
-                    logger.debug(f"🔍 UPDATING COALGEBRA TRAINING DATA: input {coalgebra_input.shape}, target {coalgebra_target.shape}")
-                    self.categorical_ops.update_coalgebra_training_data(
-                        self.components.get('generative_coalgebra'),
-                        coalgebra_input,
-                        coalgebra_target,
-                        self.components.get('backprop_functor_class'),
-                        self.components.get('state_coalgebra')
-                    )
+                    # Use mean-pooled hidden states for both input and target to ensure consistent dimensions
+                    coalgebra_input = fuzzy_input.mean(dim=1)  # [batch_size, hidden_dim]
+                    coalgebra_target = fuzzy_input.mean(dim=1)  # [batch_size, hidden_dim] - same shape
                     
-                    evolution_start = time.time()
-                    coalgebra_trajectory = self.categorical_ops.evolve_generative_coalgebra(
-                        fuzzy_input.mean(dim=1),
-                        self.components.get('generative_coalgebra'),
-                        self.components.get('coalgebra_optimizer'),
-                        self.components.get('coalgebra_loss_fn'),
-                        getattr(self.categorical_ops, '_backprop_functor', None),
-                        steps=getattr(self.config, 'coalgebra_evolution_steps', 3)
-                    )
-                    evolved_state = coalgebra_trajectory[-1].unsqueeze(1).expand(-1, seq_len, -1)
-                    logger.debug(f"🔍 COALGEBRA EVOLUTION COMPLETED: {time.time() - evolution_start:.4f}s")
+                    logger.info(f"   • Coalgebra input shape: {coalgebra_input.shape}")
+                    logger.info(f"   • Coalgebra target shape: {coalgebra_target.shape}")
+                    logger.info(f"   • Coalgebra input stats: mean={coalgebra_input.mean().item():.4f}, std={coalgebra_input.std().item():.4f}")
+                    logger.info(f"   • Coalgebra target stats: mean={coalgebra_target.mean().item():.4f}, std={coalgebra_target.std().item():.4f}")
+                    
+                    logger.info(f"🔧 Available coalgebra components:")
+                    logger.info(f"   • Generative coalgebra: {self.components.get('generative_coalgebra') is not None}")
+                    logger.info(f"   • Backprop functor class: {self.components.get('backprop_functor_class') is not None}")
+                    logger.info(f"   • State coalgebra: {self.components.get('state_coalgebra') is not None}")
+                    
+                    try:
+                        logger.info(f"🔄 Updating coalgebra training data...")
+                        self.categorical_ops.update_coalgebra_training_data(
+                            self.components.get('generative_coalgebra'),
+                            coalgebra_input,
+                            coalgebra_target,
+                            self.components.get('backprop_functor_class'),
+                            self.components.get('state_coalgebra')
+                        )
+                        logger.info(f"✅ Coalgebra training data updated successfully")
+                        
+                        evolution_start = time.time()
+                        coalgebra_trajectory = self.categorical_ops.evolve_generative_coalgebra(
+                            coalgebra_input,  # Use consistent input shape
+                            self.components.get('generative_coalgebra'),
+                            self.components.get('coalgebra_optimizer'),
+                            self.components.get('coalgebra_loss_fn'),
+                            getattr(self.categorical_ops, '_backprop_functor', None),
+                            steps=getattr(self.config, 'coalgebra_evolution_steps', 3)
+                        )
+                        # Reshape evolved coalgebra state to match expected dimensions
+                        evolved_params = coalgebra_trajectory[-1]  # Shape: [3855000]
+                        batch_size, seq_len, hidden_dim = fuzzy_input.shape
+                        
+                        
+                        # Project evolved parameters to hidden dimension space
+                        if evolved_params.numel() >= batch_size * hidden_dim:
+                            # Truncate and reshape if evolved params are larger
+                            evolved_reshaped = evolved_params[:batch_size * hidden_dim].view(batch_size, hidden_dim)
+                            evolved_state = evolved_reshaped.unsqueeze(1).expand(-1, seq_len, -1)
+                        else:
+                            # Use mean pooling if evolved params are smaller
+                            param_per_batch = evolved_params.numel() // batch_size
+                            if param_per_batch > 0:
+                                evolved_reshaped = evolved_params[:batch_size * param_per_batch].view(batch_size, param_per_batch)
+                                # Pad or truncate to hidden_dim
+                                if param_per_batch < hidden_dim:
+                                    padding = torch.zeros(batch_size, hidden_dim - param_per_batch, device=evolved_params.device, dtype=evolved_params.dtype)
+                                    evolved_reshaped = torch.cat([evolved_reshaped, padding], dim=1)
+                                else:
+                                    evolved_reshaped = evolved_reshaped[:, :hidden_dim]
+                                evolved_state = evolved_reshaped.unsqueeze(1).expand(-1, seq_len, -1)
+                                logger.debug(f"🔍 COALGEBRA RESHAPE: Padded/truncated to {evolved_reshaped.shape}, expanded to {evolved_state.shape}")
+                            else:
+                                # Fallback: use original fuzzy input
+                                evolved_state = fuzzy_input
+                        
+                    except Exception as coalgebra_error:
+                        evolved_state = torch.tanh(fuzzy_input) + getattr(self.config, 'coalgebra_fallback_noise', 0.01) * torch.randn_like(fuzzy_input)
                 else:
                     # Use simplified evolution for other forward passes
                     # Using simplified coalgebra evolution
                     fallback_start = time.time()
                     evolved_state = torch.tanh(fuzzy_input) + getattr(self.config, 'coalgebra_fallback_noise', 0.01) * torch.randn_like(fuzzy_input)
-                    logger.debug(f"🔍 SIMPLIFIED EVOLUTION: {time.time() - fallback_start:.4f}s")
             except Exception as e:
-                logger.debug(f"🔍 COALGEBRA EVOLUTION FAILED: {e} - Using fallback")
                 evolved_state = torch.tanh(fuzzy_input) + getattr(self.config, 'coalgebra_fallback_noise', 0.01) * torch.randn_like(fuzzy_input)
         
-        logger.debug(f"🔍 COALGEBRA SECTION TOTAL: {time.time() - coalgebra_start:.4f}s")
         
         # YONEDA EMBEDDINGS
         yoneda_start = time.time()
-        logger.debug(f"🔍 STARTING YONEDA EMBEDDINGS...")
         yoneda_embedded = evolved_state
         
         if self.config.enable_yoneda_embeddings and 'yoneda_proxy' in self.components:
@@ -877,9 +1085,7 @@ class GAIALanguageModel(BaseGAIAModel):
                             yoneda_slice = yoneda_slice[:, :hidden_dim]
                     yoneda_embedded[:, i, :] = yoneda_slice
                 
-                logger.debug(f"🔍 YONEDA EMBEDDINGS SUCCESS: {time.time() - yoneda_start:.4f}s")
             except Exception as e:
-                logger.debug(f"🔍 YONEDA EMBEDDINGS FAILED: {e} - Using fallback")
                 yoneda_embedded = evolved_state
         
         # KAN EXTENSIONS
@@ -919,14 +1125,11 @@ class GAIALanguageModel(BaseGAIAModel):
                             kan_slice = kan_slice[:, :hidden_dim]
                     compositional_repr[:, i, :] = kan_slice
                 
-                logger.debug(f"🔍 KAN EXTENSIONS SUCCESS: {time.time() - kan_start:.4f}s")
             except Exception as e:
-                logger.debug(f"🔍 KAN EXTENSIONS FAILED: {e} - Using fallback")
                 compositional_repr = yoneda_embedded
         
         # ENDS/COENDS COMPUTATION
         ends_start = time.time()
-        logger.debug(f"🔍 STARTING ENDS/COENDS COMPUTATION...")
         final_repr = compositional_repr
         
         if (self.config.enable_ends_coends and 
@@ -964,21 +1167,13 @@ class GAIALanguageModel(BaseGAIAModel):
                     weights = getattr(self.config, 'component_mixing_weights', [0.4, 0.3, 0.3])
                     final_repr[:, i, :] = (weights[0] * seq_slice + weights[1] * end_result + weights[2] * coend_result)
                 
-                logger.debug(f"🔍 ENDS/COENDS SUCCESS: {time.time() - ends_start:.4f}s")
             except Exception as e:
-                logger.debug(f"🔍 ENDS/COENDS FAILED: {e} - Using fallback")
                 final_repr = compositional_repr
         
         # Final projection to vocabulary
         lm_head_start = time.time()
-        logger.debug(f"🔍 STARTING LANGUAGE MODELING HEAD...")
         logits = self.gaia_transformer.output_projection(final_repr)
-        logger.debug(f"🔍 LANGUAGE MODELING HEAD: {time.time() - lm_head_start:.4f}s")
-        
-        # Forward pass summary
-        total_time = time.time() - start_time
-        logger.debug(f"🔍 FORWARD PASS COMPLETE - Total time: {total_time:.4f}s, Output shape: {logits.shape}")
-        
+
         return {
             'logits': logits,
             'hidden_states': hidden_states,

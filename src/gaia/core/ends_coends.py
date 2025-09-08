@@ -33,6 +33,30 @@ F = TypeVar('F')  # Functor
 C = TypeVar('C')  # Category
 D = TypeVar('D')  # Category
 
+def _extract_objects_from_category(category, limit: int = 10) -> List[str]:
+    """
+    Helper function to extract objects from both old and new category types
+    
+    Supports both:
+    - Old categories with .objects attribute
+    - New FuzzySimplicialCategory with .graded_objects
+    """
+    objects = []
+    
+    if hasattr(category, 'objects'):
+        objects = list(category.objects)[:limit]
+    elif hasattr(category, 'graded_objects'):
+        for dim in range(getattr(category, 'max_dimension', 3) + 1):
+            dim_objects = category.get_objects_at_dimension(dim)
+            objects.extend(list(dim_objects.keys()))
+            if len(objects) >= limit:
+                break
+        objects = objects[:limit]
+    else:
+        logger.warning(f"Category {category} has no recognizable object structure")
+    
+    return objects
+
 class CategoricalIntegral(ABC):
     """
     Abstract base for categorical integrals (ends and coends)
@@ -87,7 +111,7 @@ class End(CategoricalIntegral):
             diagonal_components = {}
             
             if hasattr(functor, 'source_category'):
-                objects = list(functor.source_category.objects)[:10]  # Limit for computation
+                objects = _extract_objects_from_category(functor.source_category, limit=10)
                 
                 for obj in objects:
                     try:
@@ -108,11 +132,9 @@ class End(CategoricalIntegral):
             for obj in diagonal_components:
                 self.wedge_components[obj] = lambda x, o=obj: f"wedge_{o}({x})"
             
-            logger.info(f"Computed end with {len(diagonal_components)} components")
             return self.end_object
             
         except Exception as e:
-            logger.warning(f"Could not compute end: {e}")
             return None
     
     def verify_universal_property(self) -> bool:
@@ -129,7 +151,6 @@ class End(CategoricalIntegral):
                 return True
             return False
         except Exception as e:
-            logger.warning(f"Could not verify end universal property: {e}")
             return False
 
 class Coend(CategoricalIntegral):
@@ -162,7 +183,7 @@ class Coend(CategoricalIntegral):
             diagonal_components = {}
             
             if hasattr(functor, 'source_category'):
-                objects = list(functor.source_category.objects)[:10]  # Limit for computation
+                objects = _extract_objects_from_category(functor.source_category, limit=10)
                 
                 for obj in objects:
                     try:
@@ -203,7 +224,7 @@ class Coend(CategoricalIntegral):
                 return True
             return False
         except Exception as e:
-            logger.warning(f"Could not verify coend universal property: {e}")
+            logger.error(f"Could not verify coend universal property: {e}")
             return False
 
 class Sheaf:
@@ -364,7 +385,6 @@ class TopologicalEmbedding:
             # Create embedding map
             self.embedding_map = lambda simplex: f"geometric_realization({simplex})"
             
-            logger.info(f"Computed geometric realization with {len(vertices)} vertices, {len(edges)} edges, {len(faces)} faces")
             return self.topological_space
             
         except Exception as e:

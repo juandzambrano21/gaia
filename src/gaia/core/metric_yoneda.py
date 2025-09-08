@@ -168,7 +168,6 @@ class YonedaEmbedding(Generic[X]):
         
         contravariant functor computation
         """
-        logger.info(f"Computing Yoneda embeddings for {len(self.metric_space.objects)} objects...")
         
         for i, x in enumerate(self.metric_space.objects):
             # Create contravariant presheaf X(-,x): X^op → [0,∞]

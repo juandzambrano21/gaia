@@ -492,7 +492,8 @@ class GAIAPositionalEncoding(GAIAModule):
             if 'create_parameter_coalgebra' in self.advanced_comps:
                 create_parameter_coalgebra = self.advanced_comps['create_parameter_coalgebra']
                 
-                initial_pos_state = torch.randn(d_model)
+                # Create initial state on the same device as pe buffer
+                initial_pos_state = torch.randn(d_model, device=pe.device)
                 self.position_coalgebra = create_parameter_coalgebra(
                     initial_pos_state,
                     name=f"position_coalgebra_{uuid.uuid4().hex[:8]}"
@@ -511,8 +512,8 @@ class GAIAPositionalEncoding(GAIAModule):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         seq_len = x.size(1)
         
-        # Standard positional encoding
-        pos_encoding = self.pe[:seq_len, :].transpose(0, 1)
+        # Standard positional encoding - ensure it's on the same device as input
+        pos_encoding = self.pe[:seq_len, :].transpose(0, 1).to(x.device)
         
         # Apply F-coalgebra evolution if available
         if self.position_coalgebra is not None:
@@ -523,8 +524,9 @@ class GAIAPositionalEncoding(GAIAModule):
             else:
                 evolved_pos = evolved_result
             
-            # Apply positional enhancement
+            # Apply positional enhancement - ensure evolved_pos is on correct device
             if evolved_pos.numel() > 0 and evolved_pos.shape[-1] == pos_encoding.shape[-1]:
+                evolved_pos = evolved_pos.to(x.device)
                 pos_encoding = pos_encoding + 0.1 * evolved_pos.unsqueeze(0)
         
         return x + pos_encoding
@@ -888,6 +890,7 @@ class GAIATransformer(GAIAModule):
     def _automatic_horn_solving(self):
         """AUTOMATIC: Horn detection and solving during forward pass"""
         if not hasattr(self, 'functor') or self.functor is None:
+            logger.debug(f"🔍 HORN-FILLING: No functor available for horn solving")
             return
             
         # Initialize horn solving tracking if not exists
@@ -896,34 +899,46 @@ class GAIATransformer(GAIAModule):
             self._horn_solving_step = 0
             
         self._horn_solving_step += 1
+        logger.debug(f"🔍 HORN-FILLING: Step {self._horn_solving_step} - Starting horn detection")
 
             
         try:
             # Find horns automatically at multiple levels
             all_horns = []
+            logger.debug(f"🔍 HORN-FILLING: Checking functor registry with {len(self.functor.registry)} simplices")
+            
             for level in range(1, 4):  # Check levels 1, 2, 3
                 level_horns = self.functor.find_horns(level=level, horn_type="both")
+                logger.debug(f"🔍 HORN-FILLING: Level {level} found {len(level_horns)} horns")
                 all_horns.extend(level_horns)
+            
+            logger.debug(f"🔍 HORN-FILLING: Total horns detected: {len(all_horns)}")
             horns = all_horns
             
             # Process all detected horns to ensure proper horn filling
             # The theoretical framework requires continuous horn filling for structural integrity
             new_horns = []
+            logger.debug(f"🔍 HORN-FILLING: Previously processed horns: {len(self._processed_horns)}")
+            
             for horn in horns:
                 horn_id = f"{horn[0]}_{horn[1]}"  # Create unique ID from simplex_id and face_index
                 # Process horns if never processed OR every 3 steps for continuous filling
                 if horn_id not in self._processed_horns or self._horn_solving_step % 3 == 0:
                     new_horns.append(horn)
-                    # Only mark as processed after successful solving, not before
-                    # self._processed_horns.add(horn_id)  # Moved to after successful solving
+                    logger.debug(f"🔍 HORN-FILLING: Added horn {horn_id} to processing queue")
+                else:
+                    logger.debug(f"🔍 HORN-FILLING: Skipping already processed horn {horn_id}")
             
             horns = new_horns
+            logger.debug(f"🔍 HORN-FILLING: Final processing queue: {len(horns)} horns")
             
             # If no horns to process but we have detected horns, force process some
             if len(horns) == 0 and len(all_horns) > 0:
                 horns = all_horns[:min(3, len(all_horns))]
+                logger.debug(f"🔍 HORN-FILLING: Force processing {len(horns)} horns")
             
             if horns:
+                logger.debug(f"🔍 HORN-FILLING: Starting to solve {len(horns)} horns")
                 # Solve horns automatically using built-in solvers
                 from ..training.solvers.inner_solver import EndofunctorialSolver
                 from ..training.solvers.outer_solver import UniversalLiftingSolver
@@ -1003,7 +1018,10 @@ class GAIATransformer(GAIAModule):
                                     logger.debug(f"🔍 HORN-FILLING: Failed to solve outer horn {simplex_id}_{face_index}")
                         
             else:
-                logger.debug("🔍 HORN-FILLING: No new horns to process")
+                logger.debug(f"🔍 HORN-FILLING: No horns to process - all_horns: {len(all_horns)}, processed: {len(self._processed_horns)}, step: {self._horn_solving_step}")
+                if len(all_horns) > 0:
+                    logger.debug(f"🔍 HORN-FILLING: Available horns: {[(h[0], h[1]) for h in all_horns[:5]]}")
+                    logger.debug(f"🔍 HORN-FILLING: Processed horns: {list(self._processed_horns)[:5]}")
                         
         except Exception as e:
             # Horn solving is optional - don't break forward pass
@@ -1020,83 +1038,229 @@ class GAIATransformer(GAIAModule):
                 attention_mask: Optional[torch.Tensor] = None,
                 return_attention_weights: bool = False) -> Dict[str, torch.Tensor]:
         
+        # ULTRA DETAILED LOGGING - GAIA TRANSFORMER
+        logger.info(f"🤖 ===== GAIA TRANSFORMER FORWARD START =====")
+        logger.info(f"📊 GAIA Transformer Input Analysis:")
+        logger.info(f"   • Input IDs shape: {input_ids.shape}")
+        logger.info(f"   • Input IDs device: {input_ids.device}")
+        logger.info(f"   • Input IDs dtype: {input_ids.dtype}")
+        logger.info(f"   • Input IDs min/max: {input_ids.min().item()}/{input_ids.max().item()}")
+        
+        if attention_mask is not None:
+            logger.info(f"   • Attention mask shape: {attention_mask.shape}")
+            logger.info(f"   • Attention mask sum: {attention_mask.sum().item()}")
+        else:
+            logger.info(f"   • No attention mask provided")
+            
+        logger.info(f"   • Return attention weights: {return_attention_weights}")
+        
         batch_size, seq_len = input_ids.shape
+        logger.info(f"📏 Transformer dimensions: batch_size={batch_size}, seq_len={seq_len}")
         
         # Token embedding
+        logger.info(f"🔤 TOKEN EMBEDDING:")
+        logger.info(f"   • Vocab size: {self.vocab_size}")
+        logger.info(f"   • Model dimension: {self.d_model}")
+        
         x = self.token_embedding(input_ids)  # (batch_size, seq_len, d_model)
+        logger.info(f"   • Token embeddings shape: {x.shape}")
+        logger.info(f"   • Token embeddings stats: mean={x.mean().item():.4f}, std={x.std().item():.4f}")
+        logger.info(f"   • Token embeddings min/max: {x.min().item():.4f}/{x.max().item():.4f}")
         
         # Positional encoding with GAIA enhancements
+        logger.info(f"📍 POSITIONAL ENCODING:")
+        x_before_pos = x.clone()
         x = self.positional_encoding(x)
+        logger.info(f"   • After positional encoding shape: {x.shape}")
+        logger.info(f"   • After positional encoding stats: mean={x.mean().item():.4f}, std={x.std().item():.4f}")
+        logger.info(f"   • Positional contribution: {(x - x_before_pos).abs().mean().item():.4f}")
+        
+        logger.info(f"🎲 DROPOUT:")
+        x_before_dropout = x.clone()
         x = self.dropout(x)
+        logger.info(f"   • Dropout rate: {self.dropout.p}")
+        logger.info(f"   • After dropout stats: mean={x.mean().item():.4f}, std={x.std().item():.4f}")
+        logger.info(f"   • Dropout effect: {(x - x_before_dropout).abs().mean().item():.4f}")
         
         # AUTOMATIC: Global hierarchical message passing
+        logger.info(f"🌐 GLOBAL HIERARCHICAL MESSAGE PASSING:")
+        logger.info(f"   • Global message passer exists: {self.global_message_passer is not None}")
+        
         if self.global_message_passer is not None:
+            logger.info(f"🚀 Executing global hierarchical update...")
             # Perform global hierarchical update
             global_stats = self.global_message_passer.hierarchical_update_step()
+            logger.info(f"   • Global stats type: {type(global_stats)}")
+            logger.info(f"   • Global stats keys: {list(global_stats.keys()) if hasattr(global_stats, 'keys') else 'N/A'}")
+            
             # Apply global coherence enhancement
             if 'coherence_loss' in global_stats:
-                global_coherence = 1.0 - 0.005 * global_stats['coherence_loss']
+                coherence_loss = global_stats['coherence_loss']
+                global_coherence = 1.0 - 0.005 * coherence_loss
+                logger.info(f"   • Coherence loss: {coherence_loss:.4f}")
+                logger.info(f"   • Global coherence factor: {global_coherence:.4f}")
+                
+                x_before_coherence = x.clone()
                 x = x * global_coherence
+                logger.info(f"   • Coherence effect: {(x - x_before_coherence).abs().mean().item():.4f}")
+            else:
+                logger.info(f"   • No coherence loss found in global stats")
+        else:
+            logger.info(f"   • Global message passing skipped (not initialized)")
         
         # AUTOMATIC: Horn detection and solving 
+        logger.info(f"🎯 HORN DETECTION AND SOLVING:")
+        logger.info(f"   • Functor exists: {hasattr(self, 'functor') and self.functor is not None}")
+        
         if hasattr(self, 'functor') and self.functor is not None:
+            logger.info(f"🔄 Executing automatic horn solving...")
             self._automatic_horn_solving()
+            logger.info(f"   • Horn solving completed")
+        else:
+            logger.info(f"   • Horn solving skipped (no functor)")
         
         # Apply transformer blocks
+        logger.info(f"🏗️  TRANSFORMER BLOCKS PROCESSING:")
+        logger.info(f"   • Number of transformer blocks: {len(self.transformer_blocks)}")
+        logger.info(f"   • Input to blocks shape: {x.shape}")
+        logger.info(f"   • Input to blocks stats: mean={x.mean().item():.4f}, std={x.std().item():.4f}")
+        
         attention_weights_list = []
         for i, block in enumerate(self.transformer_blocks):
+            logger.info(f"🔧 Processing transformer block {i+1}/{len(self.transformer_blocks)}:")
+            x_before_block = x.clone()
+            
             x = block(x, attention_mask)
+            
+            logger.info(f"   • Block {i+1} output shape: {x.shape}")
+            logger.info(f"   • Block {i+1} output stats: mean={x.mean().item():.4f}, std={x.std().item():.4f}")
+            logger.info(f"   • Block {i+1} transformation effect: {(x - x_before_block).abs().mean().item():.4f}")
             
             # Collect attention weights if requested
             if return_attention_weights:
+                logger.info(f"   • Collecting attention weights for block {i+1}")
                 # Get attention weights from the block (simplified)
                 with torch.no_grad():
                     _, attn_weights = block.attention(x, x, x, attention_mask)
                     attention_weights_list.append(attn_weights)
+                    logger.info(f"   • Attention weights shape: {attn_weights.shape}")
+                    logger.info(f"   • Attention weights stats: mean={attn_weights.mean().item():.4f}, std={attn_weights.std().item():.4f}")
         
         # Final layer normalization
+        logger.info(f"🔧 FINAL LAYER NORMALIZATION:")
+        x_before_norm = x.clone()
         x = self.final_norm(x)
+        logger.info(f"   • After final norm shape: {x.shape}")
+        logger.info(f"   • After final norm stats: mean={x.mean().item():.4f}, std={x.std().item():.4f}")
+        logger.info(f"   • Normalization effect: {(x - x_before_norm).abs().mean().item():.4f}")
         
         # Apply generative coalgebra if available
+        logger.info(f"🧬 GENERATIVE COALGEBRA APPLICATION:")
+        logger.info(f"   • Generative coalgebra exists: {self.generative_coalgebra is not None}")
+        
         if self.generative_coalgebra is not None:
+            logger.info(f"🚀 Applying generative coalgebra evolution...")
+            logger.info(f"   • State space shape: {getattr(self.generative_coalgebra.state_space, 'shape', 'unknown')}")
+            
             evolved_result = self.generative_coalgebra.evolve(self.generative_coalgebra.state_space)
+            logger.info(f"   • Evolution result type: {type(evolved_result)}")
+            
             # Extract parameters from coalgebra result
             if isinstance(evolved_result, tuple) and len(evolved_result) >= 3:
                 evolved_state = evolved_result[2]  # Parameters
+                logger.info(f"   • Extracted evolved state from tuple (index 2)")
             else:
                 evolved_state = evolved_result
+                logger.info(f"   • Using evolved result directly")
+            
+            logger.info(f"   • Evolved state type: {type(evolved_state)}")
+            logger.info(f"   • Evolved state numel: {evolved_state.numel() if hasattr(evolved_state, 'numel') else 'N/A'}")
             
             # Apply as multiplicative enhancement
             if evolved_state.numel() > 0:
                 enhancement_factor = 1 + 0.05 * evolved_state.mean()
+                logger.info(f"   • Enhancement factor: {enhancement_factor:.4f}")
+                
+                x_before_enhancement = x.clone()
                 x = x * enhancement_factor
+                logger.info(f"   • Coalgebra enhancement effect: {(x - x_before_enhancement).abs().mean().item():.4f}")
+            else:
+                logger.info(f"   • Evolved state is empty, skipping enhancement")
+        else:
+            logger.info(f"   • Generative coalgebra not available, skipping")
         
         # Output projection
+        logger.info(f"📤 OUTPUT PROJECTION:")
+        logger.info(f"   • Input to projection shape: {x.shape}")
+        logger.info(f"   • Target vocab size: {self.vocab_size}")
+        
         logits = self.output_projection(x)  # (batch_size, seq_len, vocab_size)
+        logger.info(f"   • Output logits shape: {logits.shape}")
+        logger.info(f"   • Output logits stats: mean={logits.mean().item():.4f}, std={logits.std().item():.4f}")
+        logger.info(f"   • Output logits min/max: {logits.min().item():.4f}/{logits.max().item():.4f}")
         
         # Verify Kan complex conditions if available
+        logger.info(f"🎯 KAN COMPLEX VERIFICATION:")
+        logger.info(f"   • Kan verifier exists: {self.kan_verifier is not None}")
+        logger.info(f"   • Functor exists: {self.functor is not None}")
+        
         kan_verification = None
         if self.kan_verifier is not None and self.functor is not None:
+            logger.info(f"🚀 Executing Kan complex verification...")
             try:
-                kan_verification = self.kan_verifier.verify_kan_conditions(self.functor)
+                kan_verification = self.kan_verifier.verify_all_conditions(tolerance=1e-3)
+                logger.info(f"   • Kan verification type: {type(kan_verification)}")
+                logger.info(f"   • Kan verification keys: {list(kan_verification.keys()) if hasattr(kan_verification, 'keys') else 'N/A'}")
+                
+                # Add Kan complex status
+                kan_status = self.kan_verifier.get_kan_complex_status()
+                kan_verification['kan_complex_status'] = kan_status
+                logger.info(f"   • Kan complex status: {kan_status}")
+                
+                # Add improvement suggestions
+                suggestions = self.kan_verifier.suggest_improvements()
+                kan_verification['improvement_suggestions'] = suggestions
+                logger.info(f"   • Improvement suggestions: {len(suggestions)} items")
+                
+                logger.info(f"✅ Kan complex verification completed successfully")
             except Exception as e:
                 kan_verification = {'error': str(e)}
+                logger.error(f"❌ Kan complex verification failed:")
+                logger.error(f"   • Error type: {type(e).__name__}")
+                logger.error(f"   • Error message: {str(e)}")
+        else:
+            logger.info(f"   • Kan complex verification skipped (components not available)")
         
         # Prepare output dictionary
+        logger.info(f"📦 PREPARING OUTPUT DICTIONARY:")
+        
         output = {
             'logits': logits,
             'last_hidden_state': x,
             'gaia_metadata': self.get_gaia_metadata()
         }
+        logger.info(f"   • Base output keys: {list(output.keys())}")
         
         if return_attention_weights:
             output['attention_weights'] = attention_weights_list
+            logger.info(f"   • Added attention weights: {len(attention_weights_list)} layers")
         
         if kan_verification is not None:
             output['kan_verification'] = kan_verification
+            logger.info(f"   • Added Kan verification results")
         
         if self.global_message_passer is not None:
-            output['hierarchical_state'] = self.global_message_passer.get_system_state()
+            hierarchical_state = self.global_message_passer.get_system_state()
+            output['hierarchical_state'] = hierarchical_state
+            logger.info(f"   • Added hierarchical state: {type(hierarchical_state)}")
+        
+        logger.info(f"📋 FINAL OUTPUT SUMMARY:")
+        logger.info(f"   • Total output keys: {list(output.keys())}")
+        logger.info(f"   • Logits shape: {output['logits'].shape}")
+        logger.info(f"   • Hidden state shape: {output['last_hidden_state'].shape}")
+        logger.info(f"   • GAIA metadata keys: {list(output['gaia_metadata'].keys()) if isinstance(output['gaia_metadata'], dict) else 'N/A'}")
+        
+        logger.info(f"🏁 ===== GAIA TRANSFORMER FORWARD COMPLETE =====")
         
         return output
     
