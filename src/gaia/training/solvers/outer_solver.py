@@ -285,38 +285,62 @@ class UniversalLiftingSolver:
          }
     
     def _apply_universal_lifting(self, simplex, horn_index):
-        """Apply universal lifting to solve the outer horn."""
+        """Apply universal lifting to solve the outer horn following Definition 24.
+        
+        According to the paper's Definition 24, a Kan fibration requires solving
+        lifting problems where σ₀: Λᵢⁿ → X and σ: Δⁿ → X satisfy f ∘ σ = σ̄.
+        This implements the proper lifting diagram construction.
+        """
         try:
-            # CRITICAL FIX: Actually modify the functorial structure
-            # For outer horns, we need to create the missing outer face using universal lifting
+            # Construct proper lifting diagram as per Definition 24
+            # σ₀: Λᵢⁿ → X (horn map)
+            # σ̄: Δⁿ → S (extending f ∘ σ₀)
+            # Need to find σ: Δⁿ → X such that f ∘ σ = σ̄
             
-            # Create synthetic data for the lifting problem
             from gaia.training.config import TrainingConfig
             training_config = TrainingConfig()
             batch_size = training_config.data.batch_size or 32  
             domain_dim = self.f.domain.dim
-            X_A = torch.randn(batch_size, domain_dim).to(DEVICE)
             
-            # Create dataset and solve to get optimal filler morphism
-            dataset = torch.utils.data.TensorDataset(X_A)
+            # Create horn map σ₀: Λᵢⁿ → X
+            horn_data = torch.randn(batch_size, domain_dim).to(DEVICE)
+            
+            # Apply existing faces of the horn (all faces except the i-th)
+            horn_faces = []
+            for face_idx in range(simplex.level + 1):
+                if face_idx != horn_index:  # Skip the missing face
+                    if hasattr(simplex, 'faces') and face_idx < len(simplex.faces):
+                        face_result = simplex.faces[face_idx](horn_data)
+                        horn_faces.append(face_result)
+            
+            # Construct σ̄: Δⁿ → S extending f ∘ σ₀
+            if horn_faces:
+                sigma_bar = torch.stack(horn_faces, dim=1).mean(dim=1)  # Average existing faces
+            else:
+                sigma_bar = self.f.morphism(horn_data)  # Fallback to f applied to horn data
+            
+            # Solve for σ: Δⁿ → X such that f ∘ σ = σ̄
+            dataset = torch.utils.data.TensorDataset(horn_data, sigma_bar)
             result = self.solve(dataset, max_steps=500, batch_size=batch_size)
             
-            # Verify universality with the same batch size
-            verification = self.verify_universality(X_A)
+            # Verify the lifting property: f ∘ σ = σ̄
+            with torch.no_grad():
+                sigma = self.m_filler.morphism(horn_data)
+                f_sigma = self.f.morphism(sigma)
+                lifting_error = torch.norm(f_sigma - sigma_bar).item()
             
-            # Create and add the filled morphism to functor registry
-            if verification['is_universal'] and result['loss'] < 0.1:  # Only if lifting is successful
-                # Create new 1-simplex from the optimized filler morphism
+            # Create filled morphism only if lifting property is satisfied
+            if result['loss'] < 0.1 and lifting_error < 0.1:
                 from gaia.core.simplices import Simplex1
                 import uuid
-                
-                # Clone the optimized morphism
                 import torch.nn as nn
+                
+                # Clone the optimized lifting morphism
                 filled_morphism_nn = nn.Linear(self.m_filler.morphism.in_features, self.m_filler.morphism.out_features)
                 filled_morphism_nn.load_state_dict(self.m_filler.morphism.state_dict())
                 
                 # Create 1-simplex with proper domain/codomain based on horn position
-                if horn_index == 0:  # Missing first face
+                if horn_index == 0:  # Missing first face (outer horn Λ₀ⁿ)
                     domain = self.k.domain if hasattr(self.k, 'domain') else self.f.domain
                     codomain = self.f.codomain if hasattr(self.f, 'codomain') else self.k.codomain
                 else:  # Missing last face (horn_index == simplex.level)

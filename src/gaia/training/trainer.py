@@ -69,7 +69,7 @@ class GAIATrainingConfig:
     verify_coalgebra_dynamics: bool = field(default_factory=lambda: getattr(_get_global_config().optimization, 'verify_coalgebra_dynamics', True))
     
     # Logging
-    log_level: str = field(default_factory=lambda: getattr(_get_global_config().logging, 'level', "INFO"))
+    log_level: str = field(default_factory=lambda: getattr(getattr(_get_global_config(), 'logging', None), 'level', "INFO") if hasattr(_get_global_config(), 'logging') else "INFO")
     checkpoint_dir: str = field(default_factory=lambda: getattr(_get_global_config().logging, 'checkpoint_dir', "checkpoints"))
     log_interval: int = field(default_factory=lambda: getattr(_get_global_config().logging, 'log_interval', 10))
 
@@ -121,11 +121,13 @@ def _get_global_config():
                 level = "INFO"
                 checkpoint_dir = "checkpoints"
                 log_interval = 10
+            
             model = ModelConfig()
             optimization = OptimizationConfig()
             data = DataConfig()
             logging = LoggingConfig()
             epochs = 100
+        
         return FallbackConfig()
 
 
@@ -190,9 +192,21 @@ class CoalgebraEvolution(GAIAComponent):
                         self.step_size = step_size
                     
                     def apply_to_object(self, state):
+                        # Return 3 values to match coalgebra expectations: (activations, gradients, params)
+                        batch_size = state.shape[0] if state.dim() > 1 else 1
+                        state_dim = state.shape[-1] if state.dim() > 0 else 1
+                        
+                        # Create dummy activations and gradients
+                        activations = torch.zeros(batch_size, state_dim, device=state.device)
+                        gradients = torch.zeros(batch_size, state_dim, device=state.device)
+                        
+                        # Update parameters using gradient
                         if hasattr(self.param, 'grad') and self.param.grad is not None:
-                            return state - self.step_size * self.param.grad
-                        return state
+                            updated_state = state - self.step_size * self.param.grad
+                        else:
+                            updated_state = state
+                            
+                        return activations, gradients, updated_state
                 
                 endofunctor = SimpleEndofunctor(param, gradient_step_size)
                 coalgebra = IntegratedCoalgebra(
@@ -434,7 +448,7 @@ class GAIATrainer(IntegratedTrainer):
             epoch_metrics['loss'].append(self.state.loss)
             
             # Validation step periodically
-            if batch_idx % (len(dataloader) // 4) == 0:
+            if len(dataloader) > 0 and batch_idx % max(1, len(dataloader) // 4) == 0:
                 val_metrics = self.validate_step()
                 for key, value in val_metrics.items():
                     epoch_metrics[key].append(value)

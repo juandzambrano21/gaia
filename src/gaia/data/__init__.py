@@ -13,6 +13,10 @@ from .loaders import (
     DataLoaders, create_standard_language_loaders
 )
 from .dataset import Dataset
+from .abstract_dataset import (
+    GAIADatasetInterface, TextListDataset, FileDataset, 
+    DatasetFactory, create_gaia_dataset
+)
 
 __all__ = [
     # Synthetic data generation
@@ -48,6 +52,13 @@ __all__ = [
     'DataLoaderConfig',
     'DataLoaders',
     'create_standard_language_loaders',
+    
+    # Abstract dataset interface
+    'GAIADatasetInterface',
+    'TextListDataset',
+    'FileDataset',
+    'DatasetFactory',
+    'create_gaia_dataset',
     'Dataset'
 ]
 

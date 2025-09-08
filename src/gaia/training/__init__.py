@@ -35,11 +35,6 @@ from .engine import TrainingLoop, ValidationLoop, TrainingState, CheckpointManag
 # Training utilities
 from .utils import StructureHelpers, ValidationUtils
 
-# Hierarchical message passing
-from .hierarchical_message_passing import (
-    HierarchicalMessagePassingSystem, SimplexParameters, LocalObjectiveFunction,
-    DegeneracyInstruction, create_hierarchical_system_from_model, integrate_with_training_loop
-)
 
 __all__ = [
     # New unified system
