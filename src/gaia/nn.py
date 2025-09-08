@@ -377,20 +377,24 @@ class CategoricalLoss(GAIAModule):
     def __init__(self, 
                  base_loss: str = 'cross_entropy',
                  yoneda_weight: float = 0.1,
-                 simplicial_weight: float = 0.05):
+                 simplicial_weight: float = 0.05,
+                 ignore_index: int = -100,
+                 reduction: str = 'mean'):
         super().__init__()
         
         self.base_loss = base_loss
         self.yoneda_weight = yoneda_weight
         self.simplicial_weight = simplicial_weight
+        self.ignore_index = ignore_index
+        self.reduction = reduction
         
         # Base loss function
         if base_loss == 'cross_entropy':
-            self.criterion = nn.CrossEntropyLoss()
+            self.criterion = nn.CrossEntropyLoss(ignore_index=ignore_index, reduction=reduction)
         elif base_loss == 'mse':
-            self.criterion = nn.MSELoss()
+            self.criterion = nn.MSELoss(reduction=reduction)
         else:
-            self.criterion = nn.CrossEntropyLoss()
+            self.criterion = nn.CrossEntropyLoss(ignore_index=ignore_index, reduction=reduction)
         
         # Yoneda metric for regularization
         training_comps = get_training_components()

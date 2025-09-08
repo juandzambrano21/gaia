@@ -183,7 +183,6 @@ class Coend(CategoricalIntegral):
             for obj in diagonal_components:
                 self.cowedge_components[obj] = lambda x, o=obj: f"cowedge_{o}({x})"
             
-            logger.info(f"Computed coend with {len(diagonal_components)} components")
             return self.coend_object
             
         except Exception as e:

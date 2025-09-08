@@ -373,7 +373,9 @@ class MetricYonedaProxy:
         )
         
         # Pre-compute probe norms for efficient profile computation
-        self._probes_norm_sq = torch.sum(self.probes**2, dim=1, keepdim=True).t().t()
+        # Use proper tensor operations for MPS compatibility
+        with torch.no_grad():
+            self._probes_norm_sq = torch.sum(self.probes**2, dim=1, keepdim=True).to(self.device)
 
         # Create metric network (representable functor approximation)
         # Must be 1-Lipschitz to satisfy the metric Yoneda lemma requirements
@@ -570,8 +572,10 @@ class MetricYonedaProxy:
             # This avoids explicit tiling of tensors
             
             # Use pre-computed probe norms if available, otherwise compute them
+            # Ensure MPS compatibility by avoiding problematic tensor operations
             if not hasattr(self, '_probes_norm_sq') or self._probes_norm_sq.device != device:
-                self._probes_norm_sq = torch.sum(self.probes**2, dim=1, keepdim=True).t().to(device)
+                with torch.no_grad():
+                    self._probes_norm_sq = torch.sum(self.probes**2, dim=1, keepdim=True).transpose(0, 1).to(device)
             
             z_norm_sq = torch.sum(z**2, dim=1, keepdim=True)  # [B, 1]
             

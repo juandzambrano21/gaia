@@ -161,7 +161,7 @@ class GAIAModelInitializer:
             'state_coalgebra': state_coalgebra,
             'coalgebra_category': coalgebra_category,
             'bisimulation': bisimulation,
-            'backprop_functor': None  # Will be initialized when training data is provided
+            'backprop_functor_class': BackpropagationFunctor  # Provide the class for lazy initialization
         }
     
     def initialize_business_units(self, gaia_transformer) -> BusinessUnitHierarchy:

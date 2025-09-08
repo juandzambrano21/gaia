@@ -47,6 +47,14 @@ class SimpleTokenizer:
             tokens.append(token_id)
         
         tokens.append(self.word_to_id.get('<eos>', 3))  # End with EOS token
+        
+        # Ensure exact length by padding or truncating
+        if len(tokens) > max_length:
+            tokens = tokens[:max_length]
+        elif len(tokens) < max_length:
+            pad_token = self.word_to_id.get('<pad>', 0)
+            tokens.extend([pad_token] * (max_length - len(tokens)))
+        
         return tokens
     
     def decode(self, token_ids: List[int]) -> str:

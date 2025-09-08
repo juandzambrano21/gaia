@@ -401,7 +401,15 @@ class LeftKanExtension:
         logger.info(f"   Functor F: {self.F}")
         logger.info(f"   Extension functor K: {self.K}")
         device = representations.device
-        batch_size, seq_len, d_model = representations.shape
+        # Handle both 2D and 3D input tensors
+        if len(representations.shape) == 2:
+            batch_size, d_model = representations.shape
+            seq_len = 1  # Treat as single sequence element
+            representations = representations.unsqueeze(1)  # Add sequence dimension
+        elif len(representations.shape) == 3:
+            batch_size, seq_len, d_model = representations.shape
+        else:
+            raise ValueError(f"Expected 2D or 3D tensor, got {len(representations.shape)}D tensor with shape {representations.shape}")
         
         # 1. Commutativity loss: measure if γ = α ∘ η
         # The unit η: F → Lan_K F ∘ K should compose properly with α
@@ -483,7 +491,15 @@ class LeftKanExtension:
         """
         # The mediating morphism should map unit output to target
         # Use least squares solution as approximation to categorical mediating morphism
-        batch_size, seq_len, d_model = unit_output.shape
+        # Handle both 2D and 3D input tensors
+        if len(unit_output.shape) == 2:
+            batch_size, d_model = unit_output.shape
+            seq_len = 1  # Treat as single sequence element
+            unit_output = unit_output.unsqueeze(1)  # Add sequence dimension
+        elif len(unit_output.shape) == 3:
+            batch_size, seq_len, d_model = unit_output.shape
+        else:
+            raise ValueError(f"Expected 2D or 3D tensor, got {len(unit_output.shape)}D tensor with shape {unit_output.shape}")
         
         # Reshape for batch matrix operations
         unit_flat = unit_output.view(-1, d_model)  # (batch*seq, d_model)
@@ -547,7 +563,15 @@ class LeftKanExtension:
         Implements colimit-based migration: Σ_F (left adjoint to pullback)
         Captures how local syntactic changes propagate to global semantic structure
         """
-        batch_size, seq_len, d_model = representations.shape
+        # Handle both 2D and 3D tensors
+        if len(representations.shape) == 2:
+            batch_size, d_model = representations.shape
+            seq_len = 1  # Treat as single sequence element
+            representations = representations.unsqueeze(1)  # Add sequence dimension
+        elif len(representations.shape) == 3:
+            batch_size, seq_len, d_model = representations.shape
+        else:
+            raise ValueError(f"Expected 2D or 3D tensor, got {len(representations.shape)}D tensor with shape {representations.shape}")
         
         # Colimit construction: local-to-global propagation
         # Each token influences its compositional context through weighted aggregation
@@ -786,7 +810,15 @@ class RightKanExtension:
         Implements limit-based migration: Π_F (right adjoint to pullback)
         Captures how global semantic structure constrains local syntactic choices
         """
-        batch_size, seq_len, d_model = representations.shape
+        # Handle both 2D and 3D tensors
+        if len(representations.shape) == 2:
+            batch_size, d_model = representations.shape
+            seq_len = 1  # Treat as single sequence element
+            representations = representations.unsqueeze(1)  # Add sequence dimension
+        elif len(representations.shape) == 3:
+            batch_size, seq_len, d_model = representations.shape
+        else:
+            raise ValueError(f"Expected 2D or 3D tensor, got {len(representations.shape)}D tensor with shape {representations.shape}")
         
         # Limit construction: global-to-local constraint
         # Global context constrains local token representations

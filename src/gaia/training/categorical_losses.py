@@ -407,19 +407,55 @@ class CategoricalLossComputer:
             logger.debug(f"Universal property computation failed: {e}")
         
         return torch.tensor(0.0, device=self.device)
+    
+    def __call__(self, logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+        """Make CategoricalLossComputer callable like a standard loss function.
+        
+        Args:
+            logits: Model predictions [batch_size, seq_len, vocab_size] or [batch_size, vocab_size]
+            labels: Ground truth labels [batch_size, seq_len] or [batch_size]
+            
+        Returns:
+            Loss tensor
+        """
+        # Use standard cross-entropy loss for compatibility
+        import torch.nn.functional as F
+        
+        # Apply ignore_index and reduction if they were set
+        ignore_index = getattr(self, 'ignore_index', -100)
+        reduction = getattr(self, 'reduction', 'mean')
+        
+        # Handle sequence-level predictions (language modeling)
+        if logits.dim() == 3 and labels.dim() == 2:
+            # Reshape for language modeling: [batch_size, seq_len, vocab_size] -> [batch_size * seq_len, vocab_size]
+            logits = logits.view(-1, logits.size(-1))
+            labels = labels.view(-1)
+        
+        return F.cross_entropy(logits, labels, ignore_index=ignore_index, reduction=reduction)
 
 
 def CategoricalLoss(
-    device: torch.device, 
-    bisimulation_tolerance: float = 1e-3
+    device: torch.device = None, 
+    bisimulation_tolerance: float = 1e-3,
+    ignore_index: int = -100,
+    reduction: str = 'mean'
 ) -> CategoricalLossComputer:
     """Create a categorical loss computer with clean naming.
     
     Args:
         device: PyTorch device for computations
         bisimulation_tolerance: Tolerance for bisimulation comparisons
+        ignore_index: Index to ignore in loss computation (for compatibility)
+        reduction: Reduction method for loss (for compatibility)
         
     Returns:
         Configured CategoricalLossComputer instance
     """
-    return CategoricalLossComputer(device, bisimulation_tolerance)
+    if device is None:
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    
+    computer = CategoricalLossComputer(device, bisimulation_tolerance)
+    # Store ignore_index and reduction for compatibility
+    computer.ignore_index = ignore_index
+    computer.reduction = reduction
+    return computer

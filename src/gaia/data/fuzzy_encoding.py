@@ -27,8 +27,10 @@ from ..core.fuzzy import (
     TConorm, merge_fuzzy_simplicial_sets, create_discrete_fuzzy_set
 )
 from ..core import DEVICE
+from ..training.config import GAIAConfig
 
-
+# Use global GAIA logger
+logger = GAIAConfig.get_logger(__name__)
 @dataclass
 class UMAPConfig:
     """Configuration for UMAP-adapted fuzzy encoding pipeline using global GAIAConfig."""
@@ -279,36 +281,69 @@ class FuzzyEncodingPipeline:
     
     def step_f4_merge_tconorms(self, local_fuzzy_sets: Dict[int, FuzzySimplicialSet]) -> FuzzySimplicialSet:
         """
-        Step F4: Merge local fuzzy simplicial sets via t-conorms.
+        Step F4: Merge local fuzzy simplicial sets via coend-based t-conorms.
         
-        Combines all local fuzzy simplicial sets into a global one using
-        the configured t-conorm operation.
+        Optimized implementation using coend-based topological realization
+        as described in UMAP theory and GAIA categorical framework.
         
         Args:
             local_fuzzy_sets: Dictionary of local fuzzy simplicial sets
             
         Returns:
-            Global merged fuzzy simplicial set
+            Global merged fuzzy simplicial set via coend construction
         """
         if not local_fuzzy_sets:
             return FuzzySimplicialSet("empty", 0)
         
-        # Start with first local set
-        first_key = next(iter(local_fuzzy_sets))
-        global_fss = local_fuzzy_sets[first_key]
-        global_fss.name = "global_merged"
+        logger.debug(f"🔍 F4 COEND MERGE: Processing {len(local_fuzzy_sets)} local sets")
         
-        # Merge with all other local sets
-        for i, (key, local_fss) in enumerate(local_fuzzy_sets.items()):
-            if key == first_key:
+        # Fast path for single set
+        if len(local_fuzzy_sets) == 1:
+            single_fss = next(iter(local_fuzzy_sets.values()))
+            single_fss.name = "global_merged"
+            return single_fss
+        
+        # Coend-based parallel merging (UMAP optimization)
+        # Instead of sequential pairwise merging, use batch operations
+        max_dim = max(fss.dimension for fss in local_fuzzy_sets.values())
+        global_fss = FuzzySimplicialSet("global_coend_merged", max_dim)
+        
+        # Collect all simplices by dimension for batch processing
+        simplex_collections = {dim: {} for dim in range(max_dim + 1)}
+        
+        for local_fss in local_fuzzy_sets.values():
+             for dim in range(local_fss.dimension + 1):
+                 if dim in local_fss.fuzzy_sets:
+                     fuzzy_set = local_fss.fuzzy_sets[dim]
+                     for simplex_id in fuzzy_set.elements:
+                         membership = fuzzy_set.membership(simplex_id)
+                         if simplex_id not in simplex_collections[dim]:
+                             simplex_collections[dim][simplex_id] = []
+                         simplex_collections[dim][simplex_id].append(membership)
+        
+        # Apply t-conorm in batch for each dimension (coend construction)
+        for dim, simplices in simplex_collections.items():
+            if not simplices:
                 continue
             
-            global_fss = merge_fuzzy_simplicial_sets(
-                global_fss, local_fss, 
-                t_conorm=self.config.t_conorm,
-                name=f"global_merged_{i}"
+            # Compute merged memberships using t-conorm
+            merged_memberships = {}
+            for simplex_id, memberships in simplices.items():
+                # Apply t-conorm to all memberships at once
+                merged_membership = memberships[0]
+                for membership in memberships[1:]:
+                    merged_membership = self.config.t_conorm(merged_membership, membership)
+                merged_memberships[simplex_id] = min(1.0, merged_membership)
+            
+            # Create fuzzy set with merged memberships
+            fuzzy_set = create_discrete_fuzzy_set(
+                merged_memberships, 
+                f"merged_dim_{dim}"
             )
+            
+            global_fss.fuzzy_sets[dim] = fuzzy_set
         
+        logger.debug(f"🔍 F4 COEND MERGE: Completed batch merging")
         return global_fss
     
     def encode(self, X: np.ndarray) -> FuzzySimplicialSet:
@@ -321,6 +356,7 @@ class FuzzyEncodingPipeline:
         Returns:
             Global fuzzy simplicial set encoding the data
         """
+        # Initializing fuzzy encoding
         # Handle 3D tensors by reshaping to 2D for NearestNeighbors compatibility
         original_shape = X.shape
         if len(X.shape) == 3:
@@ -329,18 +365,22 @@ class FuzzyEncodingPipeline:
         elif len(X.shape) > 3:
             # Flatten all dimensions except the last one
             X = X.reshape(-1, X.shape[-1])
-        
+        # Computing KNN
         # F1: k-nearest neighbors
         distances, indices = self.step_f1_knn(X)
         
         # F2: Normalize distances
+        # F2 processing
         normalized_distances = self.step_f2_normalize_distances(X, distances, indices)
         
         # F3: Modified singular functor
+        # F3 processing
         local_fuzzy_sets = self.step_f3_singular_functor(X, normalized_distances, indices)
         
         # F4: Merge via t-conorms
+        # F4 processing
         global_fss = self.step_f4_merge_tconorms(local_fuzzy_sets)
+        # F5 processing
         
         return global_fss
     

@@ -5,29 +5,60 @@ import numpy as np
 from typing import Tuple, Optional
 from sklearn.datasets import make_classification, make_regression
 
+def _get_data_config():
+    """Helper function to get data configuration with fallback defaults."""
+    try:
+        from ..training.config import DataConfig
+        return DataConfig()
+    except ImportError:
+        # Fallback to hardcoded defaults if config system not available
+        class FallbackDataConfig:
+            n_samples = 1000
+            n_features = 20
+            n_classes = 5
+            n_redundant = 2
+            random_seed = 42
+            noise_level = 0.1
+            n_informative = 10
+        return FallbackDataConfig()
+
 def create_synthetic_dataset(
-    n_samples: int = 1000,
-    n_features: int = 20,
-    n_classes: int = 5,
+    n_samples: Optional[int] = None,
+    n_features: Optional[int] = None,
+    n_classes: Optional[int] = None,
     n_informative: Optional[int] = None,
-    n_redundant: int = 2,
-    random_state: int = 42,
+    n_redundant: Optional[int] = None,
+    random_state: Optional[int] = None,
     device: str = "cpu"
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Create synthetic classification dataset
     
     Args:
-        n_samples: Number of samples
-        n_features: Number of features
-        n_classes: Number of classes
-        n_informative: Number of informative features
-        n_redundant: Number of redundant features
-        random_state: Random seed
+        n_samples: Number of samples (uses config default if None)
+        n_features: Number of features (uses config default if None)
+        n_classes: Number of classes (uses config default if None)
+        n_informative: Number of informative features (uses config default if None)
+        n_redundant: Number of redundant features (uses config default if None)
+        random_state: Random seed (uses config default if None)
         device: Device for tensors
         
     Returns:
         Tuple of (features, labels)
     """
+    # Get config defaults
+    config = _get_data_config()
+    
+    # Use config values if parameters not provided
+    if n_samples is None:
+        n_samples = getattr(config, 'n_samples', 1000)
+    if n_features is None:
+        n_features = getattr(config, 'n_features', 20)
+    if n_classes is None:
+        n_classes = getattr(config, 'n_classes', 5)
+    if n_redundant is None:
+        n_redundant = getattr(config, 'n_redundant', 2)
+    if random_state is None:
+        random_state = getattr(config, 'random_seed', 42)
     if n_informative is None:
         n_informative = max(2, n_features // 2)
     
@@ -48,22 +79,33 @@ def create_synthetic_dataset(
     return X_tensor, y_tensor
 
 def create_xor_dataset(
-    n_samples: int = 1000,
-    noise: float = 0.1,
-    random_state: int = 42,
+    n_samples: Optional[int] = None,
+    noise: Optional[float] = None,
+    random_state: Optional[int] = None,
     device: str = "cpu"
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Create XOR dataset for testing categorical learning
     
     Args:
-        n_samples: Number of samples
-        noise: Noise level
-        random_state: Random seed
+        n_samples: Number of samples (uses config default if None)
+        noise: Noise level (uses config default if None)
+        random_state: Random seed (uses config default if None)
         device: Device for tensors
         
     Returns:
         Tuple of (features, labels)
     """
+    # Get config defaults
+    config = _get_data_config()
+    
+    # Use config values if parameters not provided
+    if n_samples is None:
+        n_samples = getattr(config, 'n_samples', 1000)
+    if noise is None:
+        noise = getattr(config, 'noise_level', 0.1)
+    if random_state is None:
+        random_state = getattr(config, 'random_seed', 42)
+    
     np.random.seed(random_state)
     
     # Generate random points in [0,1]^2
@@ -83,26 +125,40 @@ def create_xor_dataset(
     return X_tensor, y_tensor
 
 def create_regression_dataset(
-    n_samples: int = 1000,
-    n_features: int = 20,
-    n_informative: int = 10,
-    noise: float = 0.1,
-    random_state: int = 42,
+    n_samples: Optional[int] = None,
+    n_features: Optional[int] = None,
+    n_informative: Optional[int] = None,
+    noise: Optional[float] = None,
+    random_state: Optional[int] = None,
     device: str = "cpu"
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Create synthetic regression dataset
     
     Args:
-        n_samples: Number of samples
-        n_features: Number of features
-        n_informative: Number of informative features
-        noise: Noise level
-        random_state: Random seed
+        n_samples: Number of samples (uses config default if None)
+        n_features: Number of features (uses config default if None)
+        n_informative: Number of informative features (uses config default if None)
+        noise: Noise level (uses config default if None)
+        random_state: Random seed (uses config default if None)
         device: Device for tensors
         
     Returns:
         Tuple of (features, targets)
     """
+    # Get config defaults
+    config = _get_data_config()
+    
+    # Use config values if parameters not provided
+    if n_samples is None:
+        n_samples = getattr(config, 'n_samples', 1000)
+    if n_features is None:
+        n_features = getattr(config, 'n_features', 20)
+    if n_informative is None:
+        n_informative = getattr(config, 'n_informative', 10)
+    if noise is None:
+        noise = getattr(config, 'noise_level', 0.1)
+    if random_state is None:
+        random_state = getattr(config, 'random_seed', 42)
     X, y = make_regression(
         n_samples=n_samples,
         n_features=n_features,

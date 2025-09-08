@@ -79,13 +79,79 @@ class ModelConfig:
     # Model initialization
     init_method: str = "xavier_uniform"
     init_gain: float = 1.0
+
+@dataclass
+class GAIALanguageModelConfig(ModelConfig):
+    """Configuration for GAIA Language Model - removes hardcoded parameters"""
     
+    # Model dimensions (ensure compatibility)
+    hidden_dim: int = 512  # Main hidden dimension for the model
+    
+    # Categorical operations configuration
+    bisimulation_tolerance: float = 1e-3  # Tolerance for categorical bisimulation comparisons
+    
+    # Hierarchical Message Passing Configuration
+    hierarchical_steps: int = 6
+    convergence_threshold: float = 1e-4
+    max_hierarchical_steps: int = 12
+    
+    # Coalgebra Evolution Configuration
+    coalgebra_evolution_frequency: int = 1  # Run full coalgebra evolution every forward pass
+    coalgebra_evolution_steps: int = 3  # Increased steps for better evolution
+    
+    # Stability Loss Configuration
+    stability_loss_epochs: int = 3
+    stability_loss_weight: float = 0.1
+    
+    # Component Mixing Configuration
+    component_mixing_weights: List[float] = field(default_factory=lambda: [1/3, 1/3, 1/3])
+    
+    # Fallback Configuration
+    coalgebra_fallback_noise: float = 0.05
+    
+    # Training Configuration (moved from hardcoded values)
+    default_epochs: int = 10
+    default_batch_size: int = 8
+    default_learning_rate: float = 1e-4
+    default_validation_split: float = 0.2
+    
+    # Gradient Configuration
+    gradient_clip_norm: float = 1.0
+    
+    # Component Initialization Configuration
+    enable_fuzzy_components: bool = True
+    enable_simplicial_structure: bool = True
+    enable_coalgebras: bool = True
+    enable_business_hierarchy: bool = True
+    enable_message_passing: bool = True
+    enable_yoneda_embeddings: bool = True
+    enable_kan_extensions: bool = True
+    enable_ends_coends: bool = True
+    
+    # Component Factory Configuration
+    component_factory_class: str = "ModelInit"  # Can be overridden for custom factories
+    
+    # Model type identifier
+    model_type: str = "gaia_language_model"
+    version: str = "1.0.0"
+    
+@dataclass
+class LoggingConfig:
+    """Logging configuration"""
+    level: str = "INFO"
+    checkpoint_dir: str = "checkpoints"
+    log_interval: int = 10
+    use_tensorboard: bool = True
+    use_wandb: bool = False
+    wandb_project: str = "gaia-training"
+    log_frequency: int = 100
+
 @dataclass
 class DataConfig:
     """Data loading and processing configuration"""
     dataset_path: Union[str, Path] = ""
     batch_size: int = 4
-    num_workers: int = 0  # Change from 4 to 0 for macOS compatibility
+    num_workers: int = 0  
     pin_memory: bool = False  # Change from True to False for MPS
     persistent_workers: bool = False  # Change from True to False
     
@@ -113,8 +179,16 @@ class DataConfig:
     simplicial_structure: Optional[Dict[str, Any]] = None
     
     # Dataset configuration
-    use_sample_dataset: bool = True  # Use simple sample dataset to avoid memory issues
+    use_sample_dataset: bool = False  # Disabled - using TinyStories dataset instead
     sample_dataset_size: int = 20
+    
+    # Synthetic data generation parameters
+    n_samples: int = 1000
+    n_features: int = 20
+    n_classes: int = 5
+    n_redundant: int = 2
+    n_informative: int = 10
+    noise_level: float = 0.1
     
     # Performance configuration
     enable_hierarchical_messaging: bool = False  # Disable for faster training
@@ -168,6 +242,7 @@ class TrainingConfig:
     model: ModelConfig = field(default_factory=ModelConfig)
     data: DataConfig = field(default_factory=DataConfig)
     optimization: OptimizationConfig = field(default_factory=OptimizationConfig)
+    logging: LoggingConfig = field(default_factory=LoggingConfig)
     
     @classmethod
     def from_file(cls, config_path: Union[str, Path]) -> 'TrainingConfig':
@@ -208,7 +283,7 @@ class GAIAConfig:
     """Global configuration class for GAIA framework."""
     
     # Global debug flag
-    ULTRA_VERBOSE_DEBUG = True
+    ULTRA_VERBOSE_DEBUG = False
     
     # Default logging configuration
     DEFAULT_LOG_LEVEL = logging.DEBUG
@@ -221,6 +296,8 @@ class GAIAConfig:
                      enable_ultra_verbose: bool = True) -> None:
         """Setup global logging configuration for GAIA framework.
         
+        PRODUCTION-READY VERSION: Preserves existing handlers instead of overriding them.
+        
         Args:
             level: Logging level (default: DEBUG)
             format_str: Log format string
@@ -231,17 +308,26 @@ class GAIAConfig:
         if format_str is None:
             format_str = cls.DEFAULT_LOG_FORMAT
             
-        # Configure root logging
-        logging.basicConfig(
-            level=level,
-            format=format_str,
-            handlers=[
-                logging.StreamHandler(),  # Console output
-            ],
-            force=True  # Override any existing configuration
-        )
+        # Get root logger
+        root_logger = logging.getLogger()
         
-        # Set ALL GAIA modules to DEBUG level
+        # Only configure if no handlers exist (preserve existing configuration)
+        if not root_logger.handlers:
+            # Configure root logging only if no handlers exist
+            logging.basicConfig(
+                level=level,
+                format=format_str,
+                handlers=[
+                    logging.StreamHandler(),  # Console output
+                ],
+                force=False  # DO NOT override existing configuration
+            )
+        else:
+            # Preserve existing handlers, just update level if needed
+            if root_logger.level > level:
+                root_logger.setLevel(level)
+        
+        # Set ALL GAIA modules to the specified level
         gaia_loggers = [
             'gaia',
             'gaia.core',
@@ -257,17 +343,25 @@ class GAIAConfig:
             'gaia.utils'
         ]
         
+        # Use INFO level if ultra verbose is disabled
+        gaia_level = level if enable_ultra_verbose else logging.INFO
+        
         for logger_name in gaia_loggers:
-            logging.getLogger(logger_name).setLevel(level)
+            gaia_logger = logging.getLogger(logger_name)
+            gaia_logger.setLevel(gaia_level)
+            # Ensure GAIA loggers don't add duplicate handlers
+            gaia_logger.propagate = True
         
         # Update global debug flag
         cls.ULTRA_VERBOSE_DEBUG = enable_ultra_verbose
         
-        # Log configuration status
-        logger = logging.getLogger('gaia.config')
-        logger.info(f"🔧 GAIA CONFIG: ULTRA-VERBOSE DEBUG MODE = {cls.ULTRA_VERBOSE_DEBUG}")
-        logger.info(f"🔧 GAIA CONFIG: Root logging level = {logging.getLogger().level}")
-        logger.info(f"🔧 GAIA CONFIG: GAIA logging level = {logging.getLogger('gaia').level}")
+        # Log configuration status (only if we have handlers)
+        if root_logger.handlers:
+            logger = logging.getLogger('gaia.config')
+            logger.info(f"🔧 GAIA CONFIG: ULTRA-VERBOSE DEBUG MODE = {cls.ULTRA_VERBOSE_DEBUG}")
+            logger.info(f"🔧 GAIA CONFIG: Root logging level = {root_logger.level}")
+            logger.info(f"🔧 GAIA CONFIG: GAIA logging level = {logging.getLogger('gaia').level}")
+            logger.info(f"🔧 GAIA CONFIG: Active handlers = {len(root_logger.handlers)}")
         
     @classmethod
     def is_debug_enabled(cls) -> bool:
@@ -291,4 +385,4 @@ class GAIAConfig:
 
 
 # Initialize default configuration
-GAIAConfig.setup_logging()
+GAIAConfig.setup_logging(enable_ultra_verbose=False)

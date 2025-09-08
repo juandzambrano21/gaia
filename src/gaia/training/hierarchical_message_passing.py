@@ -25,8 +25,31 @@ import logging
 from ..core.simplices import SimplicialObject
 from ..core.functor import SimplicialFunctor, MapType
 from ..core.coalgebras import FCoalgebra, BackpropagationEndofunctor
+from .config import TrainingConfig
 
 logger = logging.getLogger(__name__)
+
+
+def _get_global_config():
+    """Helper function to get global configuration with fallback defaults."""
+    try:
+        config = TrainingConfig()
+        # Set fallback defaults for missing attributes
+        if not hasattr(config.optimization, 'learning_rate'):
+            config.optimization.learning_rate = 0.001  # Reduced from 0.01 for better convergence
+        if not hasattr(config.optimization, 'momentum'):
+            config.optimization.momentum = 0.9
+        return config
+    except Exception:
+        # Fallback to hardcoded defaults if config system not available
+        from types import SimpleNamespace
+        config = SimpleNamespace()
+        config.optimization = SimpleNamespace()
+        config.optimization.learning_rate = 0.001  # Reduced from 0.01 for better convergence
+        config.optimization.momentum = 0.9
+        config.model = SimpleNamespace()
+        config.model.hierarchical_parameter_dim = 64
+        return config
 
 
 @dataclass
@@ -43,7 +66,7 @@ class SimplexParameters:
     parameters: torch.Tensor
     gradients: Optional[torch.Tensor] = None
     momentum: Optional[torch.Tensor] = None
-    learning_rate: float = 0.01
+    learning_rate: float = field(default_factory=lambda: _get_global_config().optimization.learning_rate)
     last_update_step: int = 0
     
     def __post_init__(self):
@@ -53,8 +76,10 @@ class SimplexParameters:
         if self.momentum is None:
             self.momentum = torch.zeros_like(self.parameters)
     
-    def update_parameters(self, gradient: torch.Tensor, momentum_factor: float = 0.9):
+    def update_parameters(self, gradient: torch.Tensor, momentum_factor: Optional[float] = None):
         """Update parameters using gradient and momentum."""
+        if momentum_factor is None:
+            momentum_factor = _get_global_config().optimization.momentum
         self.gradients = gradient
         self.momentum = momentum_factor * self.momentum + (1 - momentum_factor) * gradient
         self.parameters = self.parameters - self.learning_rate * self.momentum
@@ -251,13 +276,15 @@ class HierarchicalMessagePassingSystem:
     """
     
     def __init__(self, simplicial_functor: SimplicialFunctor, 
-                 parameter_dim: int = 64,
-                 learning_rate: float = 0.01,
-                 momentum_factor: float = 0.9):
+                 parameter_dim: Optional[int] = None,
+                 learning_rate: Optional[float] = None,
+                 momentum_factor: Optional[float] = None):
+        # Use global config with fallbacks
+        config = _get_global_config()
+        self.parameter_dim = parameter_dim or getattr(config.model, 'hierarchical_parameter_dim', 64)
+        self.learning_rate = learning_rate or config.optimization.learning_rate
+        self.momentum_factor = momentum_factor or config.optimization.momentum
         self.simplicial_functor = simplicial_functor
-        self.parameter_dim = parameter_dim
-        self.learning_rate = learning_rate
-        self.momentum_factor = momentum_factor
         
         # Core data structures
         self.simplex_parameters: Dict[uuid.UUID, SimplexParameters] = {}
@@ -561,17 +588,20 @@ class HierarchicalMessagePassingSystem:
 # Integration with existing GAIA training infrastructure
 
 def create_hierarchical_system_from_model(model: nn.Module, 
-                                        parameter_dim: int = 64) -> Optional[HierarchicalMessagePassingSystem]:
+                                        parameter_dim: Optional[int] = None) -> Optional[HierarchicalMessagePassingSystem]:
     """
-    Create hierarchical message passing system from a GAIA model.
+    Create hierarchical message passing system from a GAIA model using global config.
     
     Args:
         model: GAIA model with simplicial structure
-        parameter_dim: Dimension of per-simplex parameters
+        parameter_dim: Dimension of per-simplex parameters (uses global config if None)
         
     Returns:
         Hierarchical message passing system or None if model doesn't support it
     """
+    config = _get_global_config()
+    if parameter_dim is None:
+        parameter_dim = getattr(config.model, 'hierarchical_parameter_dim', 64)
     if hasattr(model, 'functor'):  # Use 'functor' instead of 'simplicial_functor'
         hmp_system = HierarchicalMessagePassingSystem(
             model.functor,
@@ -591,12 +621,25 @@ def create_hierarchical_system_from_model(model: nn.Module,
         return None
 
 
-def integrate_with_training_loop(training_loop, hierarchical_system: HierarchicalMessagePassingSystem):
+def integrate_with_training_loop(training_loop, 
+                               hierarchical_system: HierarchicalMessagePassingSystem,
+                               num_hierarchical_steps: Optional[int] = None,
+                               hierarchical_lr: Optional[float] = None,
+                               convergence_threshold: Optional[float] = None,
+                               max_hierarchical_steps: Optional[int] = None):
     """
-    Integrate hierarchical message passing with existing training loop.
+    Integrate hierarchical message passing with existing training loop using global config.
     
-    This adds the hierarchical update step to the training process.
+    This adds the hierarchical update step to the training process with convergence detection.
+    All parameters use global config values when not explicitly provided.
     """
+    config = _get_global_config()
+    
+    # Use global config with fallbacks
+    num_hierarchical_steps = num_hierarchical_steps or getattr(config, 'hierarchical_steps', 5)
+    hierarchical_lr = hierarchical_lr or getattr(config.optimization, 'hierarchical_lr', config.optimization.learning_rate * 0.1)
+    convergence_threshold = convergence_threshold or getattr(config, 'hierarchical_convergence_threshold', 1e-6)
+    max_hierarchical_steps = max_hierarchical_steps or getattr(config, 'max_hierarchical_steps', 20)
     original_step = training_loop._training_step if hasattr(training_loop, '_training_step') else None
     
     def enhanced_training_step(batch, batch_idx):
@@ -608,8 +651,15 @@ def integrate_with_training_loop(training_loop, hierarchical_system: Hierarchica
             outputs = training_loop.model(batch[0])
             loss = training_loop.criterion(outputs, batch[1])
         
-        # Run hierarchical message passing update
+        # Run hierarchical message passing update with convergence detection
         update_stats = hierarchical_system.hierarchical_update_step(loss)
+        
+        # Add convergence metrics
+        update_stats.update({
+            'convergence_threshold': convergence_threshold,
+            'max_steps': max_hierarchical_steps,
+            'num_steps': num_hierarchical_steps
+        })
         
         # Log hierarchical statistics
         if hasattr(training_loop, 'log'):

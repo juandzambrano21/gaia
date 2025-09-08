@@ -112,7 +112,18 @@ def create_legacy_coalgebra(initial_state: torch.Tensor, structure_map: Callable
     """Create a legacy-compatible coalgebra."""
     class SimpleEndofunctor:
         def apply_to_object(self, state):
-            return structure_map(state)
+            # Return 3 values to match coalgebra expectations: (activations, gradients, params)
+            batch_size = state.shape[0] if state.dim() > 1 else 1
+            state_dim = state.shape[-1] if state.dim() > 0 else 1
+            
+            # Create dummy activations and gradients
+            activations = torch.zeros(batch_size, state_dim, device=state.device)
+            gradients = torch.zeros(batch_size, state_dim, device=state.device)
+            
+            # Apply structure map to get updated state
+            updated_state = structure_map(state)
+            
+            return activations, gradients, updated_state
     
     endofunctor = SimpleEndofunctor()
     integrated = IntegratedCoalgebra(initial_state, endofunctor, name)
@@ -155,7 +166,18 @@ class FCoalgebra(CoalgebraAdapter):
     def __init__(self, initial_state: torch.Tensor, structure_map: Callable, name: str = "legacy_coalgebra"):
         class SimpleEndofunctor:
             def apply_to_object(self, state):
-                return structure_map(state)
+                # Return 3 values to match coalgebra expectations: (activations, gradients, params)
+                batch_size = state.shape[0] if state.dim() > 1 else 1
+                state_dim = state.shape[-1] if state.dim() > 0 else 1
+                
+                # Create dummy activations and gradients
+                activations = torch.zeros(batch_size, state_dim, device=state.device)
+                gradients = torch.zeros(batch_size, state_dim, device=state.device)
+                
+                # Apply structure map to get updated state
+                updated_state = structure_map(state)
+                
+                return activations, gradients, updated_state
         
         endofunctor = SimpleEndofunctor()
         integrated = IntegratedCoalgebra(initial_state, endofunctor, name)

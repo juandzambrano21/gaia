@@ -637,6 +637,9 @@ class GAIATransformer(GAIAModule):
             use_coalgebra_evolution=use_all_gaia_features
         )
         
+        # Dropout layer
+        self.dropout = nn.Dropout(dropout)
+        
         # Transformer blocks with GAIA enhancements
         self.transformer_blocks = nn.ModuleList([
             GAIATransformerBlock(

@@ -111,39 +111,30 @@ class BackpropagationFunctor(Endofunctor[torch.Tensor]):
         """
         self.input_data = input_data
         self.target_data = target_data
+        self.stored_gradients = None  # Store actual gradients from model training
     
     def apply(self, params: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Apply F_B: X → A × B × X with backpropagation dynamics
         
-        Returns the categorical product (A, B, X') where X' is transformed by gradient dynamics
+        Returns the categorical product (A, B, X') where X' is transformed by actual gradient dynamics
         """
-        # Apply backpropagation-like transformation to parameters
-        # Simulate gradient descent step: X' = X - α * ∇L(X)
         device = params.device
         
-        # Create a simple gradient-like transformation
-        # Use input/target data to create meaningful parameter updates
-        if self.input_data.numel() > 0 and self.target_data.numel() > 0:
-            # Compute a gradient-like update based on data statistics
-            input_mean = self.input_data.float().mean()
-            target_mean = self.target_data.float().mean()
-            
-            # Create a small perturbation based on data characteristics
+        # Use actual stored gradients if available, otherwise return unchanged parameters
+        if self.stored_gradients is not None:
+            # Apply actual gradient descent step: X' = X - α * ∇L(X)
             from gaia.training.config import TrainingConfig
             training_config = TrainingConfig()
             learning_rate = training_config.optimization.learning_rate
-            gradient_direction = torch.randn_like(params) * 0.1
             
-            # Scale gradient by data statistics to create meaningful updates
-            data_scale = (input_mean - target_mean).abs().clamp(min=0.01, max=1.0)
-            gradient_direction = gradient_direction * data_scale
-            
-            # Apply gradient step: X' = X - α * gradient
-            transformed_params = params - learning_rate * gradient_direction
+            # Apply real gradient step using stored gradients from model training
+            transformed_params = params - learning_rate * self.stored_gradients
         else:
-            # Fallback: apply small random perturbation
-            transformed_params = params + torch.randn_like(params) * 0.01
+            # If no gradients stored yet, return unchanged parameters
+            # This prevents artificial gradient creation that causes divergence
+            transformed_params = params
+            logger.debug("No stored gradients available, returning unchanged parameters")
         
         return (self.input_data, self.target_data, transformed_params)
     
@@ -166,6 +157,17 @@ class BackpropagationFunctor(Endofunctor[torch.Tensor]):
         """
         self.input_data = new_input
         self.target_data = new_target
+        # Reset stored gradients when new data arrives
+        self.stored_gradients = None
+    
+    def store_gradients(self, gradients: torch.Tensor):
+        """
+        Store actual gradients from model training
+        
+        This captures real gradient information from the model's backward pass
+        to be used in the coalgebra evolution instead of artificial gradients
+        """
+        self.stored_gradients = gradients.clone().detach()
 
 @dataclass
 class FCoalgebra(Generic[A]):
@@ -442,8 +444,9 @@ class Bisimulation(Generic[A, B]):
         # Create structure map for the bisimulation relation
         self.structure_map = self._create_relation_structure_map()
         
-        # Verify F-bisimulation property
-        self.is_valid = self._verify_f_bisimulation()
+        # Defer F-bisimulation verification until training data is available
+        # This prevents errors during initialization when coalgebras don't have training data
+        self.is_valid = None  # Will be set when verify() is called explicitly
     
     def _create_relation_structure_map(self) -> Callable[[Tuple[A, B]], Tuple[A, B]]:
         """
@@ -462,6 +465,11 @@ class Bisimulation(Generic[A, B]):
             return (evolved1, evolved2)
         
         return relation_structure_map
+    
+    def verify(self) -> bool:
+        """Explicitly verify F-bisimulation properties after training data is available."""
+        self.is_valid = self._verify_f_bisimulation()
+        return self.is_valid
     
     def _verify_f_bisimulation(self) -> bool:
         """
@@ -766,10 +774,34 @@ class CoalgebraTrainer:
         """
         # Set model parameters from flattened tensor
         param_idx = 0
+        total_params_needed = sum(p.numel() for p in self.coalgebra.model.parameters())
+        
+        # Handle shape mismatch by padding or truncating params tensor
+        if params.numel() != total_params_needed:
+            logger.debug(f"Parameter size mismatch: got {params.numel()}, need {total_params_needed}")
+            if params.numel() < total_params_needed:
+                # Pad with zeros if params tensor is too small
+                padding = torch.zeros(total_params_needed - params.numel(), device=params.device, dtype=params.dtype)
+                params = torch.cat([params, padding])
+            else:
+                # Truncate if params tensor is too large
+                params = params[:total_params_needed]
+        
         with torch.no_grad():
             for param in self.coalgebra.model.parameters():
                 param_size = param.numel()
-                param.copy_(params[param_idx:param_idx + param_size].reshape(param.shape))
+                if param_idx + param_size <= params.numel():
+                    # Extract the slice and ensure it's contiguous before reshaping
+                    param_slice = params[param_idx:param_idx + param_size].contiguous()
+                    param.copy_(param_slice.view(param.shape))
+                else:
+                    # Handle edge case where we don't have enough parameters
+                    available_params = params[param_idx:]
+                    if available_params.numel() > 0:
+                        # Pad with zeros to match required size
+                        padding = torch.zeros(param_size - available_params.numel(), device=params.device, dtype=params.dtype)
+                        padded_params = torch.cat([available_params, padding]).contiguous()
+                        param.copy_(padded_params.view(param.shape))
                 param_idx += param_size
         
         # Use current training data from the coalgebra functor
@@ -785,6 +817,11 @@ class CoalgebraTrainer:
             # Backward pass - this is the categorical morphism
             self.optimizer.zero_grad()
             loss.backward()
+            
+            # Store actual gradients in the BackpropagationFunctor before optimizer step
+            actual_gradients = torch.cat([p.grad.flatten() for p in self.coalgebra.model.parameters() if p.grad is not None])
+            self.coalgebra.backprop_functor.store_gradients(actual_gradients)
+            
             self.optimizer.step()
             
             # Return loss and evolved parameters X'

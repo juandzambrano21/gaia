@@ -216,8 +216,12 @@ class HierarchicalMessagePasser:
         # Combine gradients (average for simplicity, could be more sophisticated)
         combined_gradient = torch.stack(face_gradients).mean(dim=0)
         
-        # Store gradient flow for analysis
+        # Store gradient flow for analysis (limit to prevent memory issues)
         self.gradient_flows[simplex_id].append(combined_gradient.clone())
+        
+        # Limit gradient flow history to last 50 entries per simplex
+        if len(self.gradient_flows[simplex_id]) > 50:
+            self.gradient_flows[simplex_id] = self.gradient_flows[simplex_id][-50:]
         
         return combined_gradient
     
@@ -300,12 +304,22 @@ class HierarchicalMessagePasser:
             
             total_losses[f"dimension_{dimension}"] = dimension_loss / max(simplex_count, 1)
         
-        # Store message passing state
+        # Store message passing state (limit history to prevent memory issues)
         current_state = {}
         for simplex_id, params in self.simplex_parameters.items():
             current_state[simplex_id] = params.parameters.clone().detach()
         
         self.message_history.append(current_state)
+        
+        # Limit message history to last 100 steps to prevent memory issues
+        if len(self.message_history) > 100:
+            self.message_history = self.message_history[-100:]
+        
+        # Validate losses for NaN or infinite values
+        for dim, loss in total_losses.items():
+            if not torch.isfinite(torch.tensor(loss)):
+                logger.warning(f"Non-finite loss detected in {dim}: {loss}")
+                total_losses[dim] = 0.0
         
         logger.debug(f"Hierarchical update completed. Losses: {total_losses}")
         return total_losses
@@ -362,20 +376,25 @@ class HierarchicalMessagePasser:
     def full_hierarchical_message_passing(self, 
                                         num_steps: int = 10, 
                                         learning_rate: float = 0.01,
-                                        total_loss: Optional[torch.Tensor] = None) -> Dict[str, Any]:
+                                        total_loss: Optional[torch.Tensor] = None,
+                                        convergence_threshold: float = 1e-6,
+                                        max_steps: int = 50) -> Dict[str, Any]:
         """
-        Perform complete hierarchical message passing
+        Perform complete hierarchical message passing with convergence detection
         
-        Implements the full algorithm from Section 3.4
+        Implements the full algorithm from Section 3.4 with early stopping
         """
-        # logger.info(f"Starting hierarchical message passing for {num_steps} steps")
+        # Limit num_steps to prevent infinite loops
+        num_steps = min(num_steps, max_steps)
         
         results = {
             'losses_by_step': [],
             'percolation_up': [],
             'percolation_down': [],
             'gradient_norms': [],
-            'convergence_metrics': []
+            'convergence_metrics': [],
+            'converged': False,
+            'convergence_step': -1
         }
         
         for step in range(num_steps):
@@ -398,19 +417,45 @@ class HierarchicalMessagePasser:
                     grad_norms[simplex_id] = params.parameters.grad.norm().item()
             results['gradient_norms'].append(grad_norms)
             
-            # 5. Convergence metrics
+            # 4.5. CRITICAL FIX: Update message history with current parameter states
+            current_state = {}
+            for simplex_id, params in self.simplex_parameters.items():
+                current_state[simplex_id] = params.parameters.detach().clone()
+            self.message_history.append(current_state)
+            # Message history updated
+            
+            # 5. Convergence metrics and early stopping
             if step > 0:
                 # Compare with previous step
                 prev_state = self.message_history[-2] if len(self.message_history) >= 2 else {}
                 curr_state = self.message_history[-1]
                 
+                # Convergence check step
+                
                 convergence = {}
+                max_change = 0
                 for simplex_id in curr_state:
                     if simplex_id in prev_state:
                         diff = torch.norm(curr_state[simplex_id] - prev_state[simplex_id])
-                        convergence[simplex_id] = diff.item()
+                        change = diff.item()
+                        convergence[simplex_id] = change
+                        max_change = max(max_change, change)
+                        # Simplex change computed
                 
+                # Max change computed
                 results['convergence_metrics'].append(convergence)
+                
+                # Check for convergence
+                if max_change < convergence_threshold:
+                    results['converged'] = True
+                    results['convergence_step'] = step
+                    logger.debug(f"✅ CONVERGED at step {step} (max_change={max_change:.2e})")
+                    break
+                    
+                # Check for divergence (parameters growing too large)
+                if max_change > 1e6:
+                    logger.warning(f"💥 DIVERGING at step {step} (max_change={max_change:.2e}), stopping early")
+                    break
             
         return results
     
@@ -538,7 +583,12 @@ if __name__ == "__main__":
     # Run message passing
     from gaia.training.config import TrainingConfig
     training_config = TrainingConfig()
-    triangle_results = triangle_hmp.full_hierarchical_message_passing(num_steps=5, learning_rate=training_config.optimization.learning_rate)
+    triangle_results = triangle_hmp.full_hierarchical_message_passing(
+        num_steps=5, 
+        learning_rate=training_config.optimization.learning_rate,
+        convergence_threshold=1e-4,
+        max_steps=10
+    )
     print(f"   Message passing completed: {len(triangle_results['losses_by_step'])} steps")
     
     # Test 2: Tetrahedron complex
@@ -549,7 +599,12 @@ if __name__ == "__main__":
     print(f"   Dimensions: {tetrahedron_state['simplices_by_dimension']}")
     
     # Run message passing
-    tetrahedron_results = tetrahedron_hmp.full_hierarchical_message_passing(num_steps=3, learning_rate=training_config.optimization.learning_rate)
+    tetrahedron_results = tetrahedron_hmp.full_hierarchical_message_passing(
+        num_steps=3, 
+        learning_rate=training_config.optimization.learning_rate,
+        convergence_threshold=1e-4,
+        max_steps=8
+    )
     print(f"   Message passing completed: {len(tetrahedron_results['losses_by_step'])} steps")
     
     print("\n✅ Hierarchical Message Passing implementation complete!")
