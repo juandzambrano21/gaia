@@ -103,13 +103,35 @@ class EndofunctorialSolver:
                             # Initialize with composition of existing morphisms
                             with torch.no_grad():
                                 if hasattr(simplex.f, 'morphism') and hasattr(simplex.g, 'morphism'):
-                                    # Compose the weights: W_h = W_g @ W_f
-                                    new_morphism.weight.data = torch.matmul(
-                                        simplex.g.morphism.weight.data,
-                                        simplex.f.morphism.weight.data
-                                    )
-                                    if new_morphism.bias is not None:
-                                        new_morphism.bias.data = simplex.g.morphism.bias.data.clone()
+                                    # Check if morphisms are Identity layers (placeholders)
+                                    f_is_identity = isinstance(simplex.f.morphism, nn.Identity)
+                                    g_is_identity = isinstance(simplex.g.morphism, nn.Identity)
+                                    
+                                    if not f_is_identity and not g_is_identity:
+                                        # Both have weights - compose them: W_h = W_g @ W_f
+                                        new_morphism.weight.data = torch.matmul(
+                                            simplex.g.morphism.weight.data,
+                                            simplex.f.morphism.weight.data
+                                        )
+                                        if new_morphism.bias is not None:
+                                            new_morphism.bias.data = simplex.g.morphism.bias.data.clone()
+                                        print(f"🔧 INNER SOLVER: Composed weights from non-Identity morphisms")
+                                    elif f_is_identity and not g_is_identity:
+                                        # f is Identity, use g's weights
+                                        new_morphism.weight.data = simplex.g.morphism.weight.data.clone()
+                                        if new_morphism.bias is not None and hasattr(simplex.g.morphism, 'bias') and simplex.g.morphism.bias is not None:
+                                            new_morphism.bias.data = simplex.g.morphism.bias.data.clone()
+                                        print(f"🔧 INNER SOLVER: Used g's weights (f is Identity)")
+                                    elif not f_is_identity and g_is_identity:
+                                        # g is Identity, use f's weights
+                                        new_morphism.weight.data = simplex.f.morphism.weight.data.clone()
+                                        if new_morphism.bias is not None and hasattr(simplex.f.morphism, 'bias') and simplex.f.morphism.bias is not None:
+                                            new_morphism.bias.data = simplex.f.morphism.bias.data.clone()
+                                        print(f"🔧 INNER SOLVER: Used f's weights (g is Identity)")
+                                    else:
+                                        # Both are Identity - use default initialization
+                                        print(f"🔧 INNER SOLVER: Both morphisms are Identity - using default initialization")
+                                        # Keep default PyTorch initialization for new_morphism
                             
                             # Create new 1-simplex for the filled horn
                             from gaia.core.simplices import Simplex1

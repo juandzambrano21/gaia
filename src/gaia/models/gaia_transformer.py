@@ -798,8 +798,71 @@ class GAIATransformer(GAIAModule):
             )
             self.morphisms[f"block_{self.num_layers-1}_to_output"] = output_morph
         
-        # Create 2-simplices (triangles) for attention mechanisms
+        # Create 2-simplices (triangles) for compositions
+        # This creates the missing faces (horns) that need to be filled by horn solvers
         self.triangles = {}
+        
+        # Create triangles for consecutive morphism compositions
+        if self.num_layers >= 2:
+            # Input → Block_0 → Block_1 triangle
+            if "input_to_block_0" in self.morphisms and "block_0_to_block_1" in self.morphisms:
+                triangle_01 = self.functor.create_triangle(
+                    f=self.morphisms["input_to_block_0"],
+                    g=self.morphisms["block_0_to_block_1"],
+                    name="input_block0_block1_triangle"
+                )
+                self.triangles["input_01"] = triangle_01
+                
+        # Create triangles for all consecutive block pairs
+        for i in range(self.num_layers - 2):
+            morph1_key = f"block_{i}_to_block_{i+1}"
+            morph2_key = f"block_{i+1}_to_block_{i+2}"
+            if morph1_key in self.morphisms and morph2_key in self.morphisms:
+                triangle = self.functor.create_triangle(
+                    f=self.morphisms[morph1_key],
+                    g=self.morphisms[morph2_key],
+                    name=f"block_{i}_{i+1}_{i+2}_triangle"
+                )
+                self.triangles[f"blocks_{i}_{i+1}_{i+2}"] = triangle
+                
+        # Create triangle for last block to output if we have enough layers
+        if self.num_layers >= 2:
+            last_block_key = f"block_{self.num_layers-2}_to_block_{self.num_layers-1}"
+            output_key = f"block_{self.num_layers-1}_to_output"
+            if last_block_key in self.morphisms and output_key in self.morphisms:
+                triangle_out = self.functor.create_triangle(
+                    f=self.morphisms[last_block_key],
+                    g=self.morphisms[output_key],
+                    name=f"block_{self.num_layers-2}_to_output_triangle"
+                )
+                self.triangles["to_output"] = triangle_out
+                
+    
+        # We intentionally leave some faces undefined
+        if self.num_layers >= 1 and "input_to_block_0" in self.morphisms:
+            # Create a partial triangle structure that will have missing faces
+            from ..core.simplices import Simplex2
+            
+            # Create an incomplete 2-simplex that will generate horns
+            f = self.morphisms["input_to_block_0"]
+            if f"block_{self.num_layers-1}_to_output" in self.morphisms:
+                g = self.morphisms[f"block_{self.num_layers-1}_to_output"]
+                
+                # Create a 2-simplex but don't define all its faces - this creates horns!
+                incomplete_triangle = Simplex2(f, g, "incomplete_end_to_end_triangle")
+                self.functor.add(incomplete_triangle)
+                
+                # Intentionally don't define face map at index 1 - this creates an inner horn!
+                # The horn solver will need to fill this missing face
+                self.functor.define_face(incomplete_triangle.id, 0, g.id)  # d_0 defined
+                self.functor.define_face(incomplete_triangle.id, 2, f.id)  # d_2 defined
+                # d_1 is intentionally left undefined - creates inner horn Λ²₁
+                
+                self.triangles["incomplete_end_to_end"] = incomplete_triangle
+                
+        logger.debug(f"🔧 SIMPLICIAL STRUCTURE: Created {len(self.triangles)} triangles with potential horns")
+        
+        # Additional 2-simplices for attention mechanisms can be added here if needed
         
         # For each transformer block, create triangles representing attention patterns
         for i in range(self.num_layers):
@@ -907,9 +970,24 @@ class GAIATransformer(GAIAModule):
             all_horns = []
             logger.debug(f"🔍 HORN-FILLING: Checking functor registry with {len(self.functor.registry)} simplices")
             
+            # Log details about available simplices
+            for sid, simplex in list(self.functor.registry.items())[:5]:  # Show first 5
+                level = getattr(simplex, 'level', 'unknown')
+                name = getattr(simplex, 'name', 'unnamed')
+                logger.debug(f"🔍 HORN-FILLING: Simplex {name} (level {level}) - ID: {str(sid)[:8]}")
+            
             for level in range(1, 4):  # Check levels 1, 2, 3
                 level_horns = self.functor.find_horns(level=level, horn_type="both")
                 logger.debug(f"🔍 HORN-FILLING: Level {level} found {len(level_horns)} horns")
+                
+                # If no horns found, let's check why by examining simplices at this level
+                if len(level_horns) == 0:
+                    level_simplices = [s for s in self.functor.registry.values() if getattr(s, 'level', 0) == level]
+                    logger.debug(f"🔍 HORN-FILLING: Level {level} has {len(level_simplices)} simplices but no horns")
+                    for simplex in level_simplices[:3]:  # Show first 3
+                        faces = getattr(simplex, 'faces', [])
+                        logger.debug(f"🔍 HORN-FILLING: Simplex {simplex.name} has {len(faces)} faces: {[f.name if hasattr(f, 'name') else str(f) for f in faces[:3]]}")
+                
                 all_horns.extend(level_horns)
             
             logger.debug(f"🔍 HORN-FILLING: Total horns detected: {len(all_horns)}")
@@ -920,22 +998,30 @@ class GAIATransformer(GAIAModule):
             new_horns = []
             logger.debug(f"🔍 HORN-FILLING: Previously processed horns: {len(self._processed_horns)}")
             
+            # According to GAIA paper, horn filling should be continuous
+            # and fundamental to all layers. Remove artificial horn skipping logic.
+            # The paper states: "horn extensions can be more complex than the simple 2-simplex case"
+            # and "lifting problems define ways of decomposing structures into simpler pieces"
+            
+            # Process ALL detected horns - no skipping based on previous processing
+            # This aligns with the paper's emphasis on continuous horn filling
             for horn in horns:
                 horn_id = f"{horn[0]}_{horn[1]}"  # Create unique ID from simplex_id and face_index
-                # Process horns if never processed OR every 3 steps for continuous filling
-                if horn_id not in self._processed_horns or self._horn_solving_step % 3 == 0:
-                    new_horns.append(horn)
-                    logger.debug(f"🔍 HORN-FILLING: Added horn {horn_id} to processing queue")
-                else:
-                    logger.debug(f"🔍 HORN-FILLING: Skipping already processed horn {horn_id}")
+                new_horns.append(horn)
+                logger.debug(f"🔍 HORN-FILLING: Added horn {horn_id} to processing queue (theory-consistent: no skipping)")
             
             horns = new_horns
-            logger.debug(f"🔍 HORN-FILLING: Final processing queue: {len(horns)} horns")
+            logger.debug(f"🔍 HORN-FILLING: Final processing queue: {len(horns)} horns (all horns processed per GAIA theory)")
             
-            # If no horns to process but we have detected horns, force process some
-            if len(horns) == 0 and len(all_horns) > 0:
-                horns = all_horns[:min(3, len(all_horns))]
-                logger.debug(f"🔍 HORN-FILLING: Force processing {len(horns)} horns")
+            # LAYER 3 HORN STRUCTURES: According to paper, Layer 3 (category of elements) should also have horns
+            # "The third layer in GAIA is a category of elements over a (relational) database"
+            # Add Layer 3 horn detection for data-level categorical structures
+            if hasattr(self, 'data_category_elements') and self.data_category_elements:
+                logger.debug(f"🔍 HORN-FILLING: Checking Layer 3 (category of elements) for horn structures")
+                layer3_horns = self._detect_layer3_horns()
+                if layer3_horns:
+                    horns.extend(layer3_horns)
+                    logger.debug(f"🔍 HORN-FILLING: Added {len(layer3_horns)} Layer 3 horns to processing queue")
             
             if horns:
                 logger.debug(f"🔍 HORN-FILLING: Starting to solve {len(horns)} horns")
