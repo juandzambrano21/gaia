@@ -133,7 +133,6 @@ class GAIAModelRegistry:
         # Save to disk
         self._save_registry()
         
-        logger.info(f"📝 Registered model: {name} v{version}")
     
     def get_model_class(self, name: str, version: str = "latest") -> Type[BaseGAIAModel]:
         """Get model class by name and version.
@@ -251,7 +250,6 @@ class GAIAModelRegistry:
         # Create model instance
         model = model_class(config)
         
-        logger.info(f"🏗️ Created model: {name} v{version}")
         return model
     
     def update_metadata(self, name: str, version: str, **updates) -> None:
@@ -280,7 +278,6 @@ class GAIAModelRegistry:
         # Save to disk
         self._save_registry()
         
-        logger.info(f"📝 Updated metadata for {name} v{version}")
     
     def remove_model(self, name: str, version: str) -> None:
         """Remove a model from the registry.
@@ -304,7 +301,6 @@ class GAIAModelRegistry:
         # Save to disk
         self._save_registry()
         
-        logger.info(f"🗑️ Removed model: {name} v{version}")
     
     def _get_latest_version(self, name: str) -> str:
         """Get the latest version of a model.
@@ -340,7 +336,6 @@ class GAIAModelRegistry:
             for key, metadata_dict in data.items():
                 self._models[key] = ModelMetadata.from_dict(metadata_dict)
             
-            logger.info(f"📂 Loaded {len(self._models)} models from registry")
         except Exception as e:
             logger.warning(f"Failed to load registry: {e}")
     
@@ -383,7 +378,6 @@ class GAIAModelRegistry:
                 license="MIT"
             )
             
-            logger.info("✅ Registered built-in models")
         except ImportError as e:
             logger.warning(f"Could not register built-in models: {e}")
 

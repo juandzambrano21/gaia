@@ -371,6 +371,22 @@ class IntegratedCoalgebra(Coalgebra[torch.Tensor], GAIAComponent):
         
         return True
     
+    def iterate(self, initial_state: torch.Tensor, steps: int) -> List[torch.Tensor]:
+        """Iterate coalgebra dynamics for multiple steps using proper coalgebraic iteration."""
+        trajectory = [initial_state]
+        current_state = initial_state
+        
+        for _ in range(steps):
+            next_state = self.evolve(current_state)
+            trajectory.append(next_state)
+            # For parameter coalgebras, extract the parameters from the tuple
+            if isinstance(next_state, tuple) and len(next_state) >= 3:
+                current_state = next_state[2]  # Use parameters for next iteration
+            else:
+                current_state = next_state
+        
+        return trajectory
+    
     def iterate_dynamics(self, steps: int) -> List[torch.Tensor]:
         """Iterate coalgebra dynamics for multiple steps."""
         current = self.trajectory[-1] if self.trajectory else self.carrier

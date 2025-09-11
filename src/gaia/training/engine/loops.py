@@ -135,8 +135,8 @@ class TrainingLoop(BaseLoop):
     
     def _hierarchical_update(self, total_loss: torch.Tensor, lifting_losses: Dict[str, float]) -> None:
         """Perform hierarchical updates according to GAIA's simplicial learning algorithm"""
-        # Standard gradient computation
-        total_loss.backward(retain_graph=True)
+        # Standard gradient computation - use retain_graph=False to prevent memory accumulation
+        total_loss.backward(retain_graph=False)
         
         # GAIA hierarchical updates: solve lifting problems at different simplicial levels
         if self.config.hierarchical_learning:
@@ -342,9 +342,13 @@ class ValidationLoop(BaseLoop):
                     categorical_loss = self.model.compute_categorical_loss(inputs)
                     
                 if hasattr(self.model, 'verify_coherence') and self.verify_categorical_structure:
-                    coherence_info = self.model.verify_coherence()
-                    if 'coherence_loss' in coherence_info:
-                        coherence_loss = coherence_info['coherence_loss']
+                    coherence_result = self.model.verify_coherence()
+                    if isinstance(coherence_result, dict):
+                        if 'coherence_loss' in coherence_result:
+                            coherence_loss = coherence_result['coherence_loss']
+                    else:
+                        # verify_coherence returns a tensor directly
+                        coherence_loss = coherence_result if isinstance(coherence_result, torch.Tensor) else torch.tensor(0.0, device=self.device)
                 
                 # Prepare metrics
                 metrics = {
@@ -451,11 +455,18 @@ class ValidationLoop(BaseLoop):
                     categorical_loss = self.model.compute_categorical_loss()
                     
                 if hasattr(self.model, 'verify_coherence') and self.verify_categorical_structure:
-                    coherence_info = self.model.verify_coherence()
-                    if 'coherence_loss' in coherence_info:
-                        coherence_loss = coherence_info['coherence_loss']
-                    if not coherence_info.get('is_coherent', True):
-                        coherence_violations += 1
+                    coherence_result = self.model.verify_coherence()
+                    if isinstance(coherence_result, dict):
+                        if 'coherence_loss' in coherence_result:
+                            coherence_loss = coherence_result['coherence_loss']
+                        if not coherence_result.get('is_coherent', True):
+                            coherence_violations += 1
+                    else:
+                        # verify_coherence returns a tensor directly
+                        coherence_loss = coherence_result if isinstance(coherence_result, torch.Tensor) else torch.tensor(0.0, device=self.device)
+                        # Assume coherent if we only get a loss value
+                        if coherence_loss > 0.1:  # Threshold for coherence violation
+                            coherence_violations += 1
                 
                 # GAIA categorical structure verification
                 if self.verify_kan_fibration:

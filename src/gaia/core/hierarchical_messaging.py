@@ -92,7 +92,6 @@ class HierarchicalMessagePasser:
         # Optimizers for each dimension
         self.optimizers: Dict[int, optim.Optimizer] = {}
         
-        logger.info(f"Initialized hierarchical message passer with max dimension {max_dimension}")
     
     def add_simplex(self, 
                    simplex_id: str, 
@@ -130,7 +129,6 @@ class HierarchicalMessagePasser:
         if degeneracies:
             self.degeneracy_relations[simplex_id] = degeneracies
         
-        logger.debug(f"Added {dimension}-simplex {simplex_id} with {parameter_dim} parameters")
         return simplex_params
     
     def add_local_objective(self, 
@@ -164,7 +162,6 @@ class HierarchicalMessagePasser:
         )
         
         self.local_objectives[simplex_id] = local_obj
-        logger.debug(f"Added local objective for simplex {simplex_id} with {len(face_parameters)} face parameters")
         
         return local_obj
     
@@ -279,9 +276,12 @@ class HierarchicalMessagePasser:
                     local_loss = self.local_objectives[simplex_id].compute_loss()
                     dimension_loss += local_loss.item()
                     
-                    # Backward pass for this simplex
+                    # Backward pass for this simplex - use retain_graph=False to prevent memory accumulation
                     if local_loss.requires_grad:
-                        local_loss.backward(retain_graph=True)
+                        local_loss.backward(retain_graph=False)
+                        
+                    # Clear local loss reference
+                    del local_loss
                 
                 # Compute face gradient combination
                 face_gradients = self.compute_face_gradient_combination(simplex_id)
@@ -448,7 +448,6 @@ class HierarchicalMessagePasser:
                 if max_change < convergence_threshold:
                     results['converged'] = True
                     results['convergence_step'] = step
-                    logger.debug(f"✅ CONVERGED at step {step} (max_change={max_change:.2e})")
                     break
                     
                 # Check for divergence (parameters growing too large)
@@ -513,7 +512,6 @@ def create_triangle_complex(parameter_dim: int = 64, device: str = 'cpu') -> Hie
     hmp.add_local_objective("e20", edge_objective)
     hmp.add_local_objective("t012", triangle_objective)
     
-    logger.info("Created triangle complex with hierarchical message passing")
     return hmp
 
 def create_tetrahedron_complex(parameter_dim: int = 64, device: str = 'cpu') -> HierarchicalMessagePasser:
@@ -565,12 +563,10 @@ def create_tetrahedron_complex(parameter_dim: int = 64, device: str = 'cpu') -> 
     
     hmp.add_local_objective("tet0123", simple_objective)
     
-    logger.info("Created tetrahedron complex with hierarchical message passing")
     return hmp
 
 # Example usage and testing
 if __name__ == "__main__":
-    logger.info("Testing Hierarchical Message Passing implementation...")
     
     # Test 1: Triangle complex
     print("\n🔺 Testing triangle complex:")

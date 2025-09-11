@@ -16,13 +16,10 @@ def get_device(device: Optional[str] = None) -> torch.device:
     # Auto-detect best available device
     if torch.cuda.is_available():
         device = torch.device('cuda')
-        logger.info(f"Using CUDA device: {torch.cuda.get_device_name()}")
     elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
         device = torch.device('mps')
-        logger.info("Using MPS device")
     else:
         device = torch.device('cpu')
-        logger.info("Using CPU device")
         
     return device
 

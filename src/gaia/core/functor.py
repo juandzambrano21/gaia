@@ -168,7 +168,6 @@ class SimplicialFunctor:
         self.maps[map_key] = face_id
         self._horn_cache_valid = False
         
-        logger.debug(f"Defined face map: {source.name}.d_{index} → {face.name}")
 
     @_invalidate_cache
     def define_degeneracy(self, source_id: uuid.UUID, index: int, degen_id: uuid.UUID) -> None:
@@ -215,7 +214,6 @@ class SimplicialFunctor:
         self.maps[map_key] = degen_id
         self._horn_cache_valid = False
         
-        logger.debug(f"Defined degeneracy map: {source.name}.s_{index} → {degen.name}")
 
     def face(self, index: int, simplex_id: uuid.UUID) -> Simplex:
         """
@@ -283,8 +281,7 @@ class SimplicialFunctor:
                         horns.append((s_id, i))
                     elif horn_type == "outer" and (i == 0 or i == simplex.level):
                         horns.append((s_id, i))
-                    else:
-                        logger.debug(f"🔍 HORN DETECTION: Horn at ({str(s_id)[:8]}..., {i}) doesn't match type '{horn_type}'")
+
                 
         # Update cache
         self._horn_cache[cache_key] = horns
@@ -615,7 +612,6 @@ class SimplicialFunctor:
         obj = Simplex0(dim, name, self.basis_registry, same_basis=same_basis)
         self.add(obj)
         
-        logger.info(f"Created object: {name} (dim={dim})")
         return obj
     
     def create_morphism(self, network: Any, source: 'Simplex0', target: 'Simplex0', name: str) -> 'Simplex1':
@@ -650,7 +646,6 @@ class SimplicialFunctor:
         self.define_face(morphism.id, 0, target.id)  # d_0: f → target
         self.define_face(morphism.id, 1, source.id)  # d_1: f → source
         
-        logger.info(f"Created morphism: {name} with automatic face maps")
         return morphism
     
     def create_triangle(self, f: 'Simplex1', g: 'Simplex1', name: str) -> 'Simplex2':
@@ -700,7 +695,6 @@ class SimplicialFunctor:
         self.define_face(triangle.id, 1, triangle.h.id)  # d_1: remove B → h=g∘f
         self.define_face(triangle.id, 2, f.id)        # d_2: remove C → f
         
-        logger.info(f"Created triangle: {name} with automatic face maps")
         return triangle
 
     
@@ -806,9 +800,6 @@ class SimplicialFunctor:
             if 'endofunctor_updates' not in simplex.payload:
                 simplex.payload['endofunctor_updates'] = []
             simplex.payload['endofunctor_updates'].append(update_record)
-        
-        # Log the update
-        logger.debug(f"Registered endofunctor update for {simplex.name}: {endofunctor_name}({old_state}) → {new_state}")
         
         # Invalidate caches since structure may have changed
         self._horn_cache_valid = False

@@ -30,37 +30,25 @@ class EndofunctorialSolver:
     
     def solve_horn(self, horn) -> Optional[Dict]:
         """Solve inner horn using endofunctorial approach."""
-        print("🔧 INNER SOLVER STEP 1: Starting inner horn solving process...")
         try:
             # Extract horn information
             simplex_id = horn.simplex_id if hasattr(horn, 'simplex_id') else None
             horn_index = horn.horn_index if hasattr(horn, 'horn_index') else None
-            print(f"🔧 INNER SOLVER STEP 2: Extracted horn info - simplex_id: {simplex_id}, horn_index: {horn_index}")
             
             if simplex_id is None or horn_index is None:
-                print("🔧 INNER SOLVER ERROR: Missing simplex_id or horn_index")
                 return None
                 
             # Get the simplex from functor registry
             if not hasattr(self.functor, 'registry') or simplex_id not in self.functor.registry:
-                print("🔧 INNER SOLVER ERROR: Simplex not found in functor registry")
                 return None
                 
             simplex = self.functor.registry[simplex_id]
-            print(f"🔧 INNER SOLVER STEP 3: Retrieved simplex - level: {simplex.level}, type: {type(simplex).__name__}")
             
             # Verify this is an inner horn (1 ≤ k ≤ n-1)
             if not (1 <= horn_index <= simplex.level - 1):
-                print(f"🔧 INNER SOLVER ERROR: Invalid inner horn index {horn_index} for simplex level {simplex.level}")
                 return None
-                
-            print(f"🔧 INNER SOLVER STEP 4: Verified inner horn condition (1 ≤ {horn_index} ≤ {simplex.level - 1})")
-            
-            # Apply endofunctorial transformation
-            # For inner horns, we can use direct composition h = g ∘ f
-            print("🔧 INNER SOLVER STEP 5: Applying endofunctorial composition h = g ∘ f...")
+
             result = self._apply_endofunctorial_composition(simplex, horn_index)
-            print(f"🔧 INNER SOLVER STEP 6: Endofunctorial composition completed - result type: {type(result)}")
             
             solution = {
                 'status': 'solved',
@@ -69,11 +57,9 @@ class EndofunctorialSolver:
                 'horn_index': horn_index,
                 'result': result
             }
-            print(f"🔧 INNER SOLVER STEP 7: Inner horn solving SUCCESSFUL! Status: {solution['status']}")
             return solution
             
         except Exception as e:
-            print(f"🔧 INNER SOLVER ERROR: Exception during solving: {e}")
             return {
                 'status': 'failed',
                 'error': str(e)
@@ -81,7 +67,6 @@ class EndofunctorialSolver:
     
     def _apply_endofunctorial_composition(self, simplex, horn_index):
         """Apply endofunctorial composition for inner horn filling."""
-        print(f"🔧 INNER SOLVER: Applying endofunctorial composition for simplex {simplex} at horn index {horn_index}")
         
         # For inner horns, we need to fill the missing face by creating a new morphism
         try:
@@ -128,11 +113,7 @@ class EndofunctorialSolver:
                                         if new_morphism.bias is not None and hasattr(simplex.f.morphism, 'bias') and simplex.f.morphism.bias is not None:
                                             new_morphism.bias.data = simplex.f.morphism.bias.data.clone()
                                         print(f"🔧 INNER SOLVER: Used f's weights (g is Identity)")
-                                    else:
-                                        # Both are Identity - use default initialization
-                                        print(f"🔧 INNER SOLVER: Both morphisms are Identity - using default initialization")
-                                        # Keep default PyTorch initialization for new_morphism
-                            
+
                             # Create new 1-simplex for the filled horn
                             from gaia.core.simplices import Simplex1
                             import uuid
@@ -156,11 +137,9 @@ class EndofunctorialSolver:
                                 'modified_registry': True
                             }
             
-            print(f"🔧 INNER SOLVER WARNING: Could not create composition for simplex level {getattr(simplex, 'level', 'unknown')}")
             return {'modified_registry': False, 'error': 'Insufficient simplex structure'}
             
         except Exception as e:
-            print(f"🔧 INNER SOLVER ERROR: Failed to modify functorial structure: {e}")
             return {'modified_registry': False, 'error': str(e)}
     def __init__(self, functor: SimplicialFunctor, simplex2_id: uuid.UUID, lr: float = 0.01, coherence_weight: float = 1.0, writer: Optional[SummaryWriter] = None):
         self.functor = functor

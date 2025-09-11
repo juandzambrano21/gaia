@@ -258,10 +258,29 @@ class CoalgebraMorphism(Generic[X, Y]):
         This is a simplified verification - full verification would require
         testing on representative elements of the state space.
         """
-        # This is a placeholder for the verification
-        # In practice, this would test the commutative diagram condition
-        # on sample elements from the source state space
-        pass
+        # Verify coalgebra homomorphism condition: F(h) ∘ γ = δ ∘ h
+        try:
+            # Create a test state for verification
+            test_state = torch.randn(10)
+            
+            # Apply structure maps and morphism
+            source_evolved = self.source.structure_map(test_state)
+            target_evolved = self.target.structure_map(self.morphism(test_state))
+            
+            # Apply endofunctor to morphism and then to source evolution
+            functor_morphism_result = self.source.endofunctor.apply_to_morphism(self.morphism)
+            composed_result = functor_morphism_result(source_evolved)
+            
+            # Check if results are approximately equal (for tensor operations)
+            if hasattr(composed_result, 'shape') and hasattr(target_evolved, 'shape'):
+                if composed_result.shape == target_evolved.shape:
+                    diff = torch.norm(composed_result - target_evolved).item()
+                    if diff > 1e-3:  # Tolerance for numerical precision
+                        warnings.warn(f"Coalgebra condition violated: difference = {diff}")
+                else:
+                    warnings.warn("Shape mismatch in coalgebra verification")
+        except Exception as e:
+            warnings.warn(f"Could not verify coalgebra condition: {e}")
     
     def apply(self, state: X) -> Y:
         """Apply morphism to state."""
@@ -378,10 +397,28 @@ class FinalCoalgebra(Generic[X]):
         
         This checks that the structure map is an isomorphism.
         """
-        # This is a placeholder for Lambek's theorem verification
-        # In practice, this would verify that the structure map
-        # γ: Final → F(Final) is an isomorphism
-        return True
+        # Verify Lambek's theorem: final coalgebra structure map is an isomorphism
+        try:
+            # For final coalgebras, the structure map α: Z → F(Z) should be invertible
+            test_state = torch.randn(10)  # Sample test state
+            
+            # Apply structure map
+            evolved_state = self.coalgebra.structure_map(test_state)
+            
+            # For true verification, we would need to show α is bijective
+            # This is a simplified check for basic cases
+            if hasattr(evolved_state, 'shape') and hasattr(test_state, 'shape'):
+                # Check if dimensions are compatible (necessary but not sufficient)
+                if evolved_state.numel() == test_state.numel():
+                    return True
+                else:
+                    warnings.warn("Dimension mismatch suggests structure map is not isomorphism")
+                    return False
+            
+            return True  # Default to true for non-tensor cases
+        except Exception as e:
+            warnings.warn(f"Could not verify Lambek property: {e}")
+            return False
     
     def __repr__(self):
         return f"FinalCoalgebra(functor={self.endofunctor.__class__.__name__})"
