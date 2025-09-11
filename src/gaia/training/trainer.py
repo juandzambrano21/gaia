@@ -217,9 +217,16 @@ class CoalgebraEvolution(GAIAComponent):
     def update(self, state: TrainingState) -> TrainingState:
         """Update coalgebras with parameter evolution."""
         for name, coalgebra in self.coalgebras.items():
-            # Evolve parameters through coalgebra dynamics
-            evolved_trajectory = coalgebra.iterate_dynamics(self.steps)
+            # Use proper coalgebraic iteration from universal coalgebras
+            # Get current parameter state
+            current_state = coalgebra.trajectory[-1] if coalgebra.trajectory else coalgebra.carrier
+            
+            # Call the universal coalgebra's iterate method
+            evolved_trajectory = coalgebra.iterate(current_state, self.steps)
             state.metadata[f'coalgebra_trajectory_{name}'] = evolved_trajectory
+            
+            # Update coalgebra trajectory
+            coalgebra.trajectory.extend(evolved_trajectory[1:])  # Skip initial state to avoid duplication
         
         return state
     

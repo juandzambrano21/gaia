@@ -1,20 +1,26 @@
 """
 Module: simplices
-Defines simplicial objects for the GAIA framework.
+Core simplicial structures for GAIA categorical deep learning.
 
-Following Mahadevan (2024), this implements simplicial objects as
-functorial mappings from the simplex category Δ to neural network parameters.
+This module implements Layer 1 of GAIA: Simplicial Sets as described in
+Mahadevan (2024) Section 4. Following the paper's true architecture:
 
-Key principles:
-1. Pure categorical structure - no local identity checking
-2. Simplicial objects are immutable after creation
-3. Face and degeneracy operations are purely structural
-4. Composition is handled dynamically for coherence
+1. Simplicial category Δ with ordinal numbers [n] as objects
+2. Horn extension problems for hierarchical learning (Definition 23)
+3. Lifting diagrams for parameter updates (Definition 2)
+4. Kan complex properties for structural coherence
+5. Hierarchical simplicial modules with n-simplices managing (n+1)-subsimplices
+
+Key Features from Paper:
+- Inner horns (0 < i < n): solvable by traditional backpropagation
+- Outer horns (i = 0 or i = n): require advanced lifting methods
+- Simplicial sets as "combinatorial factory" for assembling AI components
+- Hierarchical learning beyond sequential framework
 """
 
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Tuple, Optional
+from typing import Any, Tuple, Optional, Dict
 from copy import deepcopy
 
 import torch
@@ -42,48 +48,69 @@ class SimplicialObject:
 
 class BasisRegistry:
     """
-    Registry for managing basis transformations between parameter spaces.
+    Registry for managing simplicial bases and horn extension problems.
     
-    Following Mahadevan (2024), this implements the basis equivalence
-    relation that defines the Param category. Two parameter spaces are
-    equivalent if there exists a differentiable isomorphism between them.
+    Following Mahadevan (2024) Section 4.2, this manages the simplicial category Δ
+    and provides the combinatorial factory for assembling generative AI components.
+    
+    Key Features from Paper:
+    1. Standard simplices Δⁿ as canonical objects in simplicial category
+    2. Horn extension problems Λᵢⁿ for hierarchical learning
+    3. Lifting diagrams for solving outer horn problems
+    4. Kan complex verification for structural coherence
     
     The registry maintains:
-    1. Canonical basis representatives for each dimension
-    2. Isomorphisms between equivalent bases
-    3. Efficient lookup for basis equivalence queries
+    - Standard simplices up to max dimension
+    - Horn problems and their solutions
+    - Lifting diagrams for outer horn extensions
+    - Isomorphisms between simplicial structures
     """
     
-    def __init__(self):
-        # Map from dimension to canonical basis UUID
-        self._canonical_bases: dict[int, uuid.UUID] = {}
+    def __init__(self, max_dimension: int = 10):
+        self.max_dimension = max_dimension
         
-        # Map from (basis_a, basis_b) to isomorphism neural network
+        # Standard simplicial structures from paper
+        self._standard_simplices: dict[int, 'StandardSimplex'] = {}
+        self._horn_registry: dict[tuple[int, int], 'Horn'] = {}
+        self._lifting_diagrams: dict[uuid.UUID, 'LiftingDiagram'] = {}
+        
+        # Legacy basis management for compatibility
+        self._canonical_bases: dict[int, uuid.UUID] = {}
+        self._basis_dims: dict[uuid.UUID, int] = {}
         self._isomorphisms: dict[tuple[uuid.UUID, uuid.UUID], nn.Module] = {}
         
-        # Map from basis UUID to its dimension
-        self._basis_dims: dict[uuid.UUID, int] = {}
+        # Initialize standard simplices following paper architecture
+        self._initialize_simplicial_category()
+    
+    def _initialize_simplicial_category(self):
+        """Initialize the simplicial category Δ following Mahadevan (2024)."""
+        # Create standard simplices Δⁿ for n = 0, 1, ..., max_dimension
+        for n in range(self.max_dimension + 1):
+            self._standard_simplices[n] = StandardSimplex(dimension=n, registry=self)
+    
+    def get_standard_simplex(self, dimension: int):
+        """Get standard n-simplex Δⁿ from the simplicial category."""
+        if dimension > self.max_dimension:
+            raise ValueError(f"Dimension {dimension} exceeds maximum {self.max_dimension}")
+        return self._standard_simplices[dimension]
+    
+    def create_horn(self, dimension: int, missing_vertex: int):
+        """Create horn Λᵢⁿ for hierarchical learning problems (Definition 23)."""
+        key = (dimension, missing_vertex)
+        if key not in self._horn_registry:
+            parent_simplex = self.get_standard_simplex(dimension)
+            self._horn_registry[key] = Horn(dimension=dimension, missing_vertex=missing_vertex, 
+                                          parent_simplex=parent_simplex, registry=self)
+            
+        return self._horn_registry[key]
     
     def canonical_id(self, dim: int) -> uuid.UUID:
-        """
-        Get the canonical basis ID for a given dimension.
-        
-        This implements the canonical choice function that selects a
-        representative from each equivalence class of parameter spaces.
-        
-        Args:
-            dim: The dimension of the parameter space
-            
-        Returns:
-            UUID of the canonical basis for this dimension
-        """
+        """Get canonical basis ID (legacy compatibility)."""
         if dim not in self._canonical_bases:
-            # Create new canonical basis for this dimension
             canonical_id = uuid.uuid4()
             self._canonical_bases[dim] = canonical_id
             self._basis_dims[canonical_id] = dim
             
-            # Register identity isomorphism
             identity = nn.Identity()
             self._isomorphisms[(canonical_id, canonical_id)] = identity
             
@@ -178,10 +205,16 @@ class BasisRegistry:
 
 class Simplex0(SimplicialObject):
     """
-    0-simplex representing an object in the Param category.
+    0-simplex representing objects in GAIA's simplicial category.
     
-    Following Mahadevan (2024), objects are equivalence classes of
-    parameter spaces <d> modulo differentiable isomorphism.
+    Following Mahadevan (2024) Section 4.1, 0-simplices represent basic
+    generative AI components in the simplicial hierarchy. These form the
+    foundation of the "combinatorial factory" for assembling complex systems.
+    
+    Key Properties from Paper:
+    - Represents parameter spaces as objects in simplicial category
+    - Forms basis for higher-dimensional simplicial structures
+    - Enables hierarchical learning through simplicial composition
     """
     __slots__ = ('dim', 'basis_id')
     
@@ -239,10 +272,19 @@ class Simplex0(SimplicialObject):
 
 class SimplexN(SimplicialObject):
     """
-    n-simplex for n ≥ 1, representing higher-dimensional simplicial structure.
+    n-simplex for n ≥ 1, implementing GAIA's hierarchical simplicial modules.
     
-    This is a pure categorical implementation with no local identity checking.
-    All simplicial identities are verified globally at the functor level.
+    Following Mahadevan (2024) Section 4.2, n-simplices manage hierarchical
+    learning where each n-simplex maintains parameters and updates based on
+    information from (n-1)-subsimplices and (n+1)-supersimplices.
+    
+    Key Features from Paper:
+    - Hierarchical parameter updates beyond sequential backpropagation
+    - Horn extension problems for learning complex compositions
+    - Lifting diagrams for solving outer horn problems
+    - Consistency across simplicial hierarchy
+    
+    This enables true hierarchical generative AI beyond traditional frameworks.
     """
     __slots__ = ('components', '_face_cache', '_degeneracy_cache')
 
@@ -260,10 +302,15 @@ class SimplexN(SimplicialObject):
 
     def face(self, i: int) -> "SimplexN":
         """
-        Compute the i-th face by removing the i-th component.
+        Compute the i-th face following simplicial category structure.
         
-        This is a pure categorical operation - no identity verification.
-        The functor is responsible for maintaining simplicial identities.
+        Following Mahadevan (2024), face maps d_i: Δ^n → Δ^{n-1} are fundamental
+        to the simplicial category and enable horn extension problems.
+        
+        For horn extensions:
+        - Missing i-th face creates horn Λᵢⁿ
+        - Inner horns (0 < i < n): solvable by backpropagation
+        - Outer horns (i = 0 or i = n): require lifting diagrams
         """
         if not 0 <= i <= self.level:
             raise ValueError(f"Face index {i} out of range for level {self.level}")
@@ -371,13 +418,141 @@ class Simplex1(SimplexN):
         return self
 
 
+class StandardSimplex(SimplicialObject):
+    """Standard n-simplex Δⁿ in the simplicial category.
+    
+    Following Mahadevan (2024), this represents the canonical n-dimensional
+    simplex with vertices {0, 1, ..., n} and all faces properly defined.
+    
+    Mathematical Foundation:
+        Δⁿ = {(t₀, t₁, ..., tₙ) ∈ ℝⁿ⁺¹ | ∑tᵢ = 1, tᵢ ≥ 0}
+        
+        Face maps: ∂ᵢ: Δⁿ → Δⁿ⁻¹ (remove i-th vertex)
+        Degeneracy maps: sⱼ: Δⁿ → Δⁿ⁺¹ (duplicate j-th vertex)
+    """
+    
+    def __init__(self, dimension: int, registry: BasisRegistry):
+        super().__init__(level=dimension, name=f"Δ^{dimension}")
+        self.dimension = dimension
+        self.registry = registry
+        self.vertices = list(range(dimension + 1))
+        
+        # Face and degeneracy operators as tensor operations
+        self._face_matrices = self._compute_face_matrices()
+        self._degeneracy_matrices = self._compute_degeneracy_matrices()
+    
+    def _compute_face_matrices(self) -> Dict[int, torch.Tensor]:
+        """Compute face operator matrices ∂ᵢ: Δⁿ → Δⁿ⁻¹."""
+        face_matrices = {}
+        if self.dimension > 0:
+            for i in range(self.dimension + 1):
+                # Create face matrix that removes i-th coordinate
+                face_matrix = torch.zeros(self.dimension, self.dimension + 1)
+                col_idx = 0
+                for j in range(self.dimension + 1):
+                    if j != i:
+                        face_matrix[col_idx, j] = 1.0
+                        col_idx += 1
+                face_matrices[i] = face_matrix
+        return face_matrices
+    
+    def _compute_degeneracy_matrices(self) -> Dict[int, torch.Tensor]:
+        """Compute degeneracy operator matrices sⱼ: Δⁿ → Δⁿ⁺¹."""
+        degeneracy_matrices = {}
+        for j in range(self.dimension + 1):
+            # Create degeneracy matrix that duplicates j-th coordinate
+            degeneracy_matrix = torch.zeros(self.dimension + 2, self.dimension + 1)
+            for i in range(self.dimension + 1):
+                if i <= j:
+                    degeneracy_matrix[i, i] = 1.0
+                else:
+                    degeneracy_matrix[i + 1, i] = 1.0
+            degeneracy_matrix[j + 1, j] = 1.0  # Duplicate j-th coordinate
+            degeneracy_matrices[j] = degeneracy_matrix
+        return degeneracy_matrices
+    
+    def face(self, i: int) -> 'StandardSimplex':
+        """Apply i-th face operator ∂ᵢ."""
+        if i < 0 or i > self.dimension:
+            raise ValueError(f"Face index {i} out of range for {self.dimension}-simplex")
+        if self.dimension == 0:
+            raise ValueError("0-simplex has no faces")
+        return self.registry.get_standard_simplex(self.dimension - 1)
+    
+    def degeneracy(self, j: int) -> 'StandardSimplex':
+        """Apply j-th degeneracy operator sⱼ."""
+        if j < 0 or j > self.dimension:
+            raise ValueError(f"Degeneracy index {j} out of range for {self.dimension}-simplex")
+        return self.registry.get_standard_simplex(self.dimension + 1)
+
+
+class Horn(SimplicialObject):
+    """Horn Λᵢⁿ for hierarchical learning problems.
+    
+    Following Mahadevan (2024) Definition 23, horns represent the fundamental
+    learning challenges in GAIA's hierarchical framework.
+    
+    Mathematical Foundation:
+        Λᵢⁿ = Δⁿ \ {interior of i-th face}
+        
+        Classification:
+        - Inner horns (0 < i < n): Solvable by enhanced backpropagation
+        - Outer horns (i = 0, n): Require advanced lifting diagram methods
+    """
+    
+    def __init__(self, dimension: int, missing_vertex: int, 
+                 parent_simplex: StandardSimplex, registry: BasisRegistry):
+        super().__init__(level=dimension, name=f"Λ_{missing_vertex}^{dimension}")
+        self.dimension = dimension
+        self.missing_vertex = missing_vertex
+        self.parent_simplex = parent_simplex
+        self.registry = registry
+        
+        # Validate horn construction
+        if missing_vertex < 0 or missing_vertex > dimension:
+            raise ValueError(f"Missing vertex {missing_vertex} out of range for {dimension}-horn")
+    
+    def is_inner_horn(self) -> bool:
+        """Check if this is an inner horn (0 < i < n)."""
+        return 0 < self.missing_vertex < self.dimension
+    
+    def is_outer_horn(self) -> bool:
+        """Check if this is an outer horn (i = 0 or i = n)."""
+        return self.missing_vertex == 0 or self.missing_vertex == self.dimension
+    
+    def horn_type(self) -> str:
+        """Get horn classification for learning algorithm selection."""
+        if self.is_inner_horn():
+            return "inner"
+        elif self.missing_vertex == 0:
+            return "outer_left"
+        elif self.missing_vertex == self.dimension:
+            return "outer_right"
+        else:
+            return "degenerate"
+    
+    def requires_lifting_diagram(self) -> bool:
+        """Check if horn requires lifting diagram solution."""
+        return self.is_outer_horn()
+    
+    def solvable_by_backprop(self) -> bool:
+        """Check if horn is solvable by enhanced backpropagation."""
+        return self.is_inner_horn()
+
+
 class Simplex2(SimplexN):
     """
-    2-simplex representing a commutative triangle in the Param category.
+    2-simplex implementing GAIA's hierarchical learning triangles.
     
-    Following Mahadevan (2024), this implements the inner horn Λ²₁ with
-    endofunctorial solver where h = g ∘ f is computed dynamically to maintain
-    coherence during training.
+    Following Mahadevan (2024) Section 4.2, this implements horn extension
+    problems for hierarchical learning. The inner horn Λ²₁ represents the
+    fundamental composition problem in GAIA's simplicial hierarchy.
+    
+    Key Features from Paper:
+    - Inner horn extension for hierarchical composition learning
+    - Dynamic coherence maintenance during training
+    - Hierarchical parameter updates beyond sequential backpropagation
+    - Foundation for higher-dimensional simplicial modules
     """
     def __init__(
         self,
@@ -389,21 +564,26 @@ class Simplex2(SimplexN):
         if f.codomain != g.domain:
             raise ValueError("Composition failed: codomain≠domain")
 
-        # Create h as an INDEPENDENT learnable neural network
-        # This is the key fix: h should be a separate network that learns to approximate g∘f
+        # Create h as composition g∘f following GAIA's hierarchical structure
+        # This implements the inner horn Λ²₁ with endofunctorial solver
         input_dim = f.domain.dim
         output_dim = g.codomain.dim
         
-        h_morphism = nn.Linear(input_dim, output_dim).to(DEVICE)
-        # Enable gradient tracking for h - it should be learnable!
-        h_morphism.requires_grad_(True)
+        # h is computed dynamically to maintain coherence during training
+        h_morphism = nn.Identity()  # Placeholder - actual computation via payload
+        h_morphism.requires_grad_(False)  # No learnable parameters
+        
+        # Create composition payload for dynamic computation
+        def compose_g_f(x):
+            """Dynamic composition following GAIA hierarchical learning."""
+            return g(f(x))
         
         h = Simplex1(
-            h_morphism,  # Independent learnable parameters
+            h_morphism,  # No parameters - pure composition
             f.domain,
             g.codomain,
-            f"h_independent_{f.name}_{g.name}",
-            payload=None  # No payload - h is independent, not a composition
+            f"compose_{g.name}_{f.name}",
+            payload=compose_g_f  # Dynamic composition for coherence
         )
 
         super().__init__(level=2, name=name, components=(f, h, g), payload=payload)
@@ -476,17 +656,40 @@ class Simplex2(SimplexN):
         return self.components[2]
 
     def is_inner_horn(self, missing_face: int) -> bool:
-        """Check if this is an inner horn with the specified missing face."""
-        return 0 < missing_face < self.level
-
+        """Check if removing face creates inner horn (solvable by backpropagation)."""
+        return self.level >= 2 and 0 < missing_face < self.level
+    
     def is_outer_horn(self, missing_face: int) -> bool:
-        """Check if this is an outer horn with the specified missing face."""
-        return missing_face in {0, self.level}
-
+        """Check if removing face creates outer horn (requires lifting diagrams)."""
+        return self.level >= 2 and (missing_face == 0 or missing_face == self.level)
+    
     def horn_type(self, missing_face: int) -> str:
-        """Determine the type of horn based on the missing face."""
+        """Determine horn type following Mahadevan (2024) Definition 23.
+        
+        Inner horns: Traditional backpropagation can solve
+        Outer horns: Require advanced lifting diagram methods
+        """
         if self.is_inner_horn(missing_face):
-            return "inner"
-        if self.is_outer_horn(missing_face):
-            return "outer"
+            return "inner"  # Solvable by backpropagation
+        elif self.is_outer_horn(missing_face):
+            return "outer"  # Requires lifting diagrams
         return "invalid"
+    
+    def create_horn_extension_problem(self, missing_face: int) -> dict[str, Any]:
+        """Create horn extension problem for hierarchical learning.
+        
+        Following paper Section 4.2, this creates the lifting problem structure
+        needed for GAIA's hierarchical learning framework.
+        """
+        horn_type = self.horn_type(missing_face)
+        if horn_type == "invalid":
+            raise ValueError(f"Cannot create horn by removing face {missing_face} from {self.level}-simplex")
+        
+        return {
+            'simplex_dimension': self.level,
+            'missing_face': missing_face,
+            'horn_type': horn_type,
+            'solvable_by_backprop': horn_type == "inner",
+            'requires_lifting_diagram': horn_type == "outer",
+            'remaining_faces': [i for i in range(self.level + 1) if i != missing_face]
+        }

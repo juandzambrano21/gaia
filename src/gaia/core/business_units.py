@@ -461,7 +461,6 @@ class BusinessUnitHierarchy:
         cycle_reports = []
         
         for cycle in range(cycles):
-            logger.info(f"Starting business cycle {cycle + 1}")
             
             # 1. Cascade directives from top
             self.cascade_directive_from_top(objectives)
@@ -477,7 +476,6 @@ class BusinessUnitHierarchy:
             # 4. Peer coordination
             self._simulate_peer_coordination()
             
-            logger.info(f"Completed business cycle {cycle + 1}")
         
         return cycle_reports
     
@@ -615,7 +613,6 @@ class BusinessUnitHierarchy:
     def add_business_unit(self, unit: BusinessUnit):
         """Add a business unit to the hierarchy."""
         self.business_units[unit.id] = unit
-        logger.info(f"Added business unit {unit.name} to hierarchy")
     
     def get_unit(self, unit_id: uuid.UUID) -> Optional[BusinessUnit]:
         """Get business unit by ID."""
@@ -637,28 +634,19 @@ def create_business_hierarchy_from_model(model) -> Optional[BusinessUnitHierarch
     if hasattr(model, 'functor'):  # Use 'functor' instead of 'simplicial_functor'
         hierarchy = BusinessUnitHierarchy(model.functor)
         
-        # CRITICAL FIX: Actually populate the hierarchy with REAL business units
         try:
-            logger.info(f"Attempting to populate business hierarchy from model: {type(model)}")
-            logger.info(f"Model attributes: {[attr for attr in dir(model) if not attr.startswith('_')]}")
-            # Create business units from model layers using REAL constructor
-            # Try different ways to get layer information from model
             layer_info = []
             
             if hasattr(model, 'layer_dims'):
                 layer_info = [(i, dim) for i, dim in enumerate(model.layer_dims)]
-                logger.info(f"Found layer_dims: {model.layer_dims}")
             elif hasattr(model, 'layers') and hasattr(model.layers, '__len__'):
                 # Try to get dimensions from actual layers
-                logger.info(f"Found layers: {len(model.layers)}")
                 for i, layer in enumerate(model.layers):
                     if hasattr(layer, 'weight') and hasattr(layer.weight, 'shape'):
                         dim = layer.weight.shape[0]  # Output dimension
                         layer_info.append((i, dim))
-                        logger.info(f"Layer {i}: dim={dim}")
                     else:
                         layer_info.append((i, 64))  # Default dimension
-                        logger.info(f"Layer {i}: default dim=64")
             elif hasattr(model, 'functor') and hasattr(model.functor, 'basis_registry'):
                 # Create units from basis registry
                 registry = model.functor.basis_registry
@@ -673,12 +661,10 @@ def create_business_hierarchy_from_model(model) -> Optional[BusinessUnitHierarch
                     layer_info = [(0, 64), (1, 32), (2, 16)]
             else:
                 # Fallback: create some default business units
-                logger.info("Using fallback: creating default business units")
                 layer_info = [(0, 64), (1, 32), (2, 16)]
             
             if layer_info:
                 from gaia.core.simplices import Simplex0
-                logger.info(f"Creating {len(layer_info)} business units")
                 
                 for i, dim in layer_info:
                     try:
@@ -691,13 +677,11 @@ def create_business_hierarchy_from_model(model) -> Optional[BusinessUnitHierarch
                             simplicial_functor=hierarchy.simplicial_functor
                         )
                         hierarchy.add_business_unit(unit)
-                        logger.info(f"Created business unit {i} with dim {dim}")
                     except Exception as unit_error:
                         logger.error(f"Failed to create business unit {i}: {unit_error}")
             else:
                 logger.warning("No layer_info found - no business units created")
                     
-            logger.info(f"Created business hierarchy with {len(hierarchy.business_units)} units")
             return hierarchy
         except Exception as e:
             logger.error(f"Failed to populate business hierarchy: {e}")
@@ -711,7 +695,6 @@ def create_business_hierarchy_from_model(model) -> Optional[BusinessUnitHierarch
                 simplex = Simplex0(dim=32, name="fallback_unit", registry=hierarchy.simplicial_functor.basis_registry)
                 unit = BusinessUnit(simplex=simplex, simplicial_functor=hierarchy.simplicial_functor)
                 hierarchy.add_business_unit(unit)
-                logger.info("Added fallback business unit")
             except Exception as fallback_error:
                 logger.error(f"Even fallback unit creation failed: {fallback_error}")
             return hierarchy

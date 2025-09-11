@@ -118,7 +118,7 @@ class CategoricalLossComputer:
         )
         
         # Log detailed losses for monitoring
-        if num_batches % 50 == 0:
+        if num_batches % 10 == 0:
             logger.info(f"Epoch {epoch}, Batch {num_batches} - Categorical Loss Breakdown:")
             logger.info(f"  • Yoneda Isomorphism: {yoneda_isomorphism_loss.item():.6f}")
             logger.info(f"  • Coalgebra Recurrence: {coalgebra_recurrence_loss.item():.6f}")

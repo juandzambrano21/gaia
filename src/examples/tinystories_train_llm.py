@@ -26,7 +26,7 @@ from gaia.data import create_gaia_dataset
 from gaia.training.engine import CheckpointManager
 
 # Initialize GAIA framework logging
-GAIAConfig.setup_logging(enable_ultra_verbose=True)
+GAIAConfig.setup_logging(enable_ultra_verbose=False)
 logger = GAIAConfig.get_logger('gaia_production_training')
 
 

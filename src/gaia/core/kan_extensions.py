@@ -631,12 +631,7 @@ class LeftKanExtension:
         """
         import logging
         logger = logging.getLogger(__name__)
-        
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: LEFT KAN EXTENSION universal property computation STARTED")
-        logger.info(f"   Input representations shape: {representations.shape}")
-        logger.info(f"   Target representations shape: {target_representations.shape}")
-        logger.info(f"   Fuzzy Functor F: {self.F.name}")
-        logger.info(f"   Extension functor K: {self.K.name}")
+
         
         device = representations.device
         # Handle both 2D and 3D input tensors
@@ -648,27 +643,14 @@ class LeftKanExtension:
             batch_size, seq_len, d_model = representations.shape
         else:
             raise ValueError(f"Expected 2D or 3D tensor, got {len(representations.shape)}D tensor with shape {representations.shape}")
-        
-        # 1. Fuzzy simplicial commutativity loss: measure diagram commutativity
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: Step 1 - Computing fuzzy unit transformation η")
-        
+                
         # Create fuzzy simplicial representations
         fuzzy_representations = self._tensorize_fuzzy_simplices(representations)
         fuzzy_targets = self._tensorize_fuzzy_simplices(target_representations)
         
         # Apply fuzzy unit transformation
         unit_composition = self._apply_fuzzy_unit_transformation(fuzzy_representations)
-        logger.info(f"   Fuzzy unit composition computed with membership propagation")
-        
-        # 2. Compute fuzzy mediating morphism with membership constraints
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: Step 2 - Computing fuzzy mediating morphism α")
-        mediating_morphism, mediating_membership = self._compute_fuzzy_mediating_morphism(
-            unit_composition, fuzzy_targets
-        )
-        logger.info(f"   Fuzzy mediating morphism membership: {mediating_membership:.6f}")
-        
-        # 3. Measure fuzzy simplicial commutativity defect
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: Step 3 - Computing fuzzy commutativity defect")
+
         
         # Compute supremum over fuzzy simplicial components
         commutativity_defects = []
@@ -686,10 +668,8 @@ class LeftKanExtension:
         
         # Supremum (maximum) of commutativity defects
         commutativity_loss = torch.max(torch.stack(commutativity_defects))
-        logger.info(f"   Fuzzy commutativity defect (supremum): {commutativity_loss.item():.6f}")
         
         # 4. Fuzzy uniqueness loss: penalize multiple fuzzy solutions
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: Step 4 - Testing fuzzy uniqueness")
         
         alternative_morphism, alt_membership = self._compute_alternative_fuzzy_mediating_morphism(
             unit_composition, fuzzy_targets
@@ -708,10 +688,7 @@ class LeftKanExtension:
                 uniqueness_defects.append(fuzzy_uniqueness_distance)
         
         uniqueness_loss = torch.max(torch.stack(uniqueness_defects))
-        logger.info(f"   Fuzzy uniqueness defect: {uniqueness_loss.item():.6f}")
-        
-        # 5. Fuzzy functoriality preservation
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: Step 5 - Verifying fuzzy functoriality")
+
         
         if seq_len > 1:
             # Check fuzzy morphism composition preservation
@@ -730,22 +707,13 @@ class LeftKanExtension:
                     functoriality_defects.append(func_distance)
             
             functoriality_loss = torch.max(torch.stack(functoriality_defects))
-            logger.info(f"   Fuzzy functoriality defect: {functoriality_loss.item():.6f}")
         else:
             functoriality_loss = torch.tensor(0.0, device=device)
-        
-        # 6. Combine losses with fuzzy categorical weights
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: Step 6 - Combining fuzzy losses")
         
         # Weights based on fuzzy categorical importance
         total_loss = (0.6 * commutativity_loss +     # Primary: fuzzy diagram commutativity
                      0.3 * uniqueness_loss +         # Secondary: fuzzy solution uniqueness  
                      0.1 * functoriality_loss)       # Tertiary: fuzzy structure preservation
-        
-        logger.info(f"   Weighted fuzzy commutativity: {(0.6 * commutativity_loss).item():.6f}")
-        logger.info(f"   Weighted fuzzy uniqueness: {(0.3 * uniqueness_loss).item():.6f}")
-        logger.info(f"   Weighted fuzzy functoriality: {(0.1 * functoriality_loss).item():.6f}")
-        logger.info(f"🔧 FUZZY KAN FRAMEWORK: LEFT KAN EXTENSION fuzzy universal property loss: {total_loss.item():.6f}")
         
         return total_loss
     
@@ -1139,17 +1107,11 @@ class RightKanExtension:
         import logging
         logger = logging.getLogger(__name__)
         
-        logger.info(f"🔧 KAN FRAMEWORK: RIGHT KAN EXTENSION universal property computation STARTED")
-        logger.info(f"   Input representations shape: {representations.shape}")
-        logger.info(f"   Target representations shape: {target_representations.shape}")
-        logger.info(f"   Functor F: {self.F}")
-        logger.info(f"   Extension functor K: {self.K}")
         
         device = representations.device
         batch_size, seq_len, d_model = representations.shape
         
         # Step 1: Compute counit transformation ε: Ran_K F ∘ K → F
-        logger.info(f"🔧 KAN FRAMEWORK: Step 1 - Computing counit transformation ε: Ran_K F ∘ K → F")
         
         # Apply K functor (simplified as linear transformation)
         k_applied = torch.matmul(representations, torch.randn(representations.size(-1), representations.size(-1), device=device) * 0.1)
@@ -1159,20 +1121,12 @@ class RightKanExtension:
         
         # Counit: Ran_K F ∘ K → F
         counit_composition = torch.matmul(ran_k_f_applied, torch.randn(representations.size(-1), representations.size(-1), device=device) * 0.1)
-        logger.info(f"   Counit composition shape: {counit_composition.shape}")
-        logger.info(f"   Counit composition norm: {torch.norm(counit_composition).item():.6f}")
-        
-        # Step 2: Compute mediating morphism α: G → Ran_K F
-        logger.info(f"🔧 KAN FRAMEWORK: Step 2 - Computing mediating morphism α: G → Ran_K F")
         
         # G is represented by target_representations
         # Mediating morphism: solve for α such that δ = ε ∘ (α * K)
         mediating_morphism = torch.matmul(target_representations, torch.randn(target_representations.size(-1), representations.size(-1), device=device) * 0.1)
-        logger.info(f"   Mediating morphism shape: {mediating_morphism.shape}")
-        logger.info(f"   Mediating morphism norm: {torch.norm(mediating_morphism).item():.6f}")
-        
+
         # Step 3: Check universal property δ = ε ∘ (α * K)
-        logger.info(f"🔧 KAN FRAMEWORK: Step 3 - Checking universal property δ = ε ∘ (α * K)")
         
         # δ: G ∘ K → F (natural transformation from target to source via K)
         delta_transform = torch.matmul(target_representations, torch.randn(target_representations.size(-1), representations.size(-1), device=device) * 0.1)
@@ -1183,53 +1137,40 @@ class RightKanExtension:
         
         # Universal property error
         composition_error = torch.norm(delta_transform - epsilon_alpha_k)
-        logger.info(f"   Composition error ||δ - ε∘(α*K)||: {composition_error.item():.6f}")
         
         # Commutativity loss
         commutativity_loss = torch.pow(composition_error, 2) / (torch.norm(delta_transform) + 1e-8)
-        logger.info(f"   Commutativity loss: {commutativity_loss.item():.6f}")
         
         # Step 4: Test uniqueness of mediating morphism
-        logger.info(f"🔧 KAN FRAMEWORK: Step 4 - Testing uniqueness of mediating morphism")
         
         # Alternative mediating morphism
         alternative_morphism = torch.matmul(target_representations, torch.randn(target_representations.size(-1), representations.size(-1), device=device) * 0.05)
-        logger.info(f"   Alternative morphism norm: {torch.norm(alternative_morphism).item():.6f}")
         
         # Uniqueness penalty
         uniqueness_penalty = torch.norm(mediating_morphism - alternative_morphism)
-        logger.info(f"   Uniqueness penalty ||α - α'||: {uniqueness_penalty.item():.6f}")
         
         # Uniqueness loss
         uniqueness_loss = torch.pow(uniqueness_penalty, 2) / (torch.norm(mediating_morphism) + 1e-8)
-        logger.info(f"   Uniqueness loss: {uniqueness_loss.item():.6f}")
         
         # Step 5: Verify functoriality preservation
-        logger.info(f"🔧 KAN FRAMEWORK: Step 5 - Verifying functoriality preservation")
         
         # Source morphisms (identity-like) - use sequence length dimension to match mediating_morphism
         seq_len = representations.size(1)
         source_morphisms = torch.eye(seq_len, device=device).unsqueeze(0).expand(representations.size(0), -1, -1)
-        logger.info(f"   Source morphisms norm: {torch.norm(source_morphisms).item():.6f}")
         
         # Extended morphisms should preserve composition
         # mediating_morphism is [4, 127, 512], we need [4, 127, 127] for comparison
         extended_morphisms = torch.matmul(mediating_morphism, mediating_morphism.transpose(-2, -1))
         # Normalize to same scale as identity
         extended_morphisms = extended_morphisms / (torch.norm(extended_morphisms, dim=(-2, -1), keepdim=True) + 1e-8) * seq_len
-        logger.info(f"   Extended morphisms norm: {torch.norm(extended_morphisms).item():.6f}")
         
         # Functoriality error - compare identity preservation
         functoriality_error = torch.norm(extended_morphisms - source_morphisms)
-        logger.info(f"   Functoriality error: {functoriality_error.item():.6f}")
         
         # Functoriality loss
         functoriality_loss = torch.pow(functoriality_error, 2) / (torch.norm(source_morphisms) + 1e-8)
-        logger.info(f"   Functoriality loss: {functoriality_loss.item():.6f}")
         
-        # Step 6: Combine losses with categorical weights
-        logger.info(f"🔧 KAN FRAMEWORK: Step 6 - Combining losses with categorical weights")
-        
+
         # Categorical weights for right Kan extension (limits emphasize global constraints)
         commutativity_weight = 0.4  # Counit commutativity
         uniqueness_weight = 0.4     # Mediating morphism uniqueness
@@ -1239,9 +1180,6 @@ class RightKanExtension:
         weighted_uniqueness = uniqueness_loss * uniqueness_weight
         weighted_functoriality = functoriality_loss * functoriality_weight
         
-        logger.info(f"   Weighted commutativity: {weighted_commutativity.item():.6f}")
-        logger.info(f"   Weighted uniqueness: {weighted_uniqueness.item():.6f}")
-        logger.info(f"   Weighted functoriality: {weighted_functoriality.item():.6f}")
         
         # Total universal property loss
         total_loss = weighted_commutativity + weighted_uniqueness + weighted_functoriality
@@ -1354,12 +1292,10 @@ class FoundationModelBuilder:
         elif hasattr(category, 'graded_objects'):
             object_count = sum(len(objects) for objects in category.graded_objects.values())
         
-        logger.info(f"Added base category '{name}' with {object_count} objects")
     
     def add_base_functor(self, name: str, functor: Functor):
         """Add base functor for foundation model"""
         self.base_functors[name] = functor
-        logger.info(f"Added base functor '{name}': {functor.source_category.name} → {functor.target_category.name}")
     
     def build_foundation_model_via_left_kan(self, 
                                           base_functor_name: str,
@@ -1382,7 +1318,6 @@ class FoundationModelBuilder:
         left_kan = LeftKanExtension(base_functor, extension_functor, model_name)
         self.extensions[model_name] = left_kan
         
-        logger.info(f"Built foundation model '{model_name}' via left Kan extension")
         return left_kan
     
     def build_foundation_model_via_right_kan(self, 
@@ -1404,7 +1339,6 @@ class FoundationModelBuilder:
         right_kan = RightKanExtension(base_functor, extension_functor, model_name)
         self.extensions[model_name] = right_kan
         
-        logger.info(f"Built foundation model '{model_name}' via right Kan extension")
         return right_kan
     
     def apply_model_modification(self, 
@@ -1445,7 +1379,6 @@ class FoundationModelBuilder:
         
         self.extensions[modified_model_name] = modification_result
         
-        logger.info(f"Applied modification to create '{modified_model_name}' from '{original_model_name}'")
         return modification_result
     
     def get_foundation_model(self, name: str):
@@ -1565,60 +1498,3 @@ def create_multimodal_foundation_model() -> FoundationModelBuilder:
     
     return builder
 
-# Example usage and testing
-if __name__ == "__main__":
-    logger.info("Testing Fuzzy Simplicial Kan Extensions implementation...")
-    
-    # Test 1: Basic fuzzy simplicial categories and functors
-    print("\n1. Testing fuzzy simplicial categories and functors:")
-    source_cat = FuzzyGenerativeAICategory("FuzzySource")
-    target_cat = FuzzyGenerativeAICategory("FuzzyTarget")
-    
-    source_cat.add_fuzzy_object("A", dimension=0, membership=0.9)
-    source_cat.add_fuzzy_object("B", dimension=1, membership=0.8)
-    target_cat.add_fuzzy_object("X", dimension=0, membership=0.95)
-    target_cat.add_fuzzy_object("Y", dimension=1, membership=0.85)
-    
-    functor = FuzzyNeuralFunctor(source_cat, target_cat)
-    mapped_A, mapped_dim, mapped_membership = functor.map_fuzzy_object("A", 0, 0.9)
-    print(f"   Fuzzy functor maps A to: {mapped_A} (dim={mapped_dim}, μ={mapped_membership:.3f})")
-    
-    # Test 2: Fuzzy Left Kan extension
-    print("\n2. Testing Fuzzy Left Kan extension:")
-    extension_cat = FuzzyGenerativeAICategory("FuzzyExtension")
-    extension_cat.add_fuzzy_object("P", dimension=0, membership=0.7)
-    extension_cat.add_fuzzy_object("Q", dimension=2, membership=0.6)
-    
-    K_functor = FuzzyNeuralFunctor(source_cat, extension_cat)
-    left_kan = LeftKanExtension(functor, K_functor, "FuzzyTestLeftKan")
-    print(f"   Fuzzy Left Kan extension created: {left_kan.name}")
-    
-    # Test 3: Fuzzy foundation model builder
-    print("\n3. Testing Fuzzy Foundation model builder:")
-    builder = create_llm_foundation_model(vocab_size=1000, hidden_dim=256)
-    print(f"   Created fuzzy LLM foundation builder with {len(builder.base_categories)} categories")
-    
-    # Build fuzzy foundation model
-    foundation_model = builder.build_foundation_model_via_left_kan(
-        "fuzzy_token_embedding", "fuzzy_token_embedding", "FuzzyLLM_v1"
-    )
-    print(f"   Built fuzzy foundation model: {foundation_model.name}")
-    
-    # Test 4: Fuzzy multimodal foundation model
-    print("\n4. Testing Fuzzy Multimodal foundation model:")
-    multimodal_builder = create_multimodal_foundation_model()
-    print(f"   Created fuzzy multimodal builder with {len(multimodal_builder.base_functors)} functors")
-    
-    # Test 5: Fuzzy colimit computation
-    print("\n5. Testing Fuzzy colimit computation:")
-    test_objects = ["A", "B"]
-    colimit_simplex, colimit_membership = source_cat.compute_fuzzy_colimit(test_objects)
-    print(f"   Fuzzy colimit computed with membership: {colimit_membership:.3f}")
-    
-    print("\n✅ Fuzzy Simplicial Kan Extensions implementation complete!")
-    print("🎯 Section 6.6 From (MAHADEVAN,2024) now implemented - Foundation models via fuzzy functor extension over simplicial categories")
-    print("🔧 Key improvements:")
-    print("   • Fuzzy simplicial categories with graded objects S_n")
-    print("   • Proper colimit construction for Kan extensions")
-    print("   • Fuzzy membership propagation through t-norms")
-    print("   • Universal property loss using fuzzy simplicial metrics")
